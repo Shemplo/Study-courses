@@ -1,0 +1,15 @@
+mut x = 1;
+x = x + 2 + (2 * 4);
+<< x % 4;
+
+for i = 0 to x {
+    << i;
+    if i gt x / 2 {
+        x = x / 0;
+        break;
+    }
+}
+
+// If uncomment this line -> throws DivideByZero
+// Without this string -> no exceptions ... due to lazy eval
+// << x;

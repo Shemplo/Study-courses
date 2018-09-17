@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Calculator</string>
+    <string name="summary_default" translatable="false" />
+    <string name="result_default" translatable="false">0</string>
+
+    <string name="button_clear" translatable="false">C</string>
+    <string name="button_clear_all" translatable="false">C</string>
+    <string name="button_sign" translatable="false">±</string>
+    <string name="button_percent" translatable="false">%</string>
+    <string name="button_add" translatable="false">+</string>
+    <string name="button_mul" translatable="false">×</string>
+    <string name="button_div" translatable="false">÷</string>
+    <string name="button_sub" translatable="false">−</string>
+    <string name="button_point" translatable="false">.</string>
+    <string name="button_eqv" translatable="false">=</string>
+    <string name="button_d0" translatable="false">0</string>
+    <string name="button_d1" translatable="false">1</string>
+    <string name="button_d2" translatable="false">2</string>
+    <string name="button_d3" translatable="false">3</string>
+    <string name="button_d4" translatable="false">4</string>
+    <string name="button_d5" translatable="false">5</string>
+    <string name="button_d6" translatable="false">6</string>
+    <string name="button_d7" translatable="false">7</string>
+    <string name="button_d8" translatable="false">8</string>
+    <string name="button_d9" translatable="false">9</string>
+</resources>

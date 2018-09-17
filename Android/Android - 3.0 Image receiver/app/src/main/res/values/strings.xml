@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">homework3</string>
+    <string name="error_loading_failed">Send sms with number or URL</string>
+    <string name="log_downloading">Image is downloading</string>
+</resources>

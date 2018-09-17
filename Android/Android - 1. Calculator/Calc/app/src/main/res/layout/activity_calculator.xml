@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="8"
+    tools:context=".CalculatorActivity"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:background="@color/color_background4"
+        android:layout_weight="3"
+        android:weightSum="1"
+        android:padding="@dimen/text_padding">
+
+        <HorizontalScrollView
+            android:id="@+id/history_sview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="horizontal"
+            android:fillViewport="true">
+
+            <TextView
+                android:id="@+id/history_preview"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="start|center_vertical"
+                android:text="@string/summary_default"
+                android:textSize="@dimen/summary_text_size"
+                android:textColor="@color/text_default"
+                android:paddingBottom="10dp"
+                android:textIsSelectable="true" />
+
+        </HorizontalScrollView>
+
+        <HorizontalScrollView
+            android:id="@+id/result_sview"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:scrollbars="horizontal"
+            android:fillViewport="true"
+            android:layout_weight="1"
+            android:fadeScrollbars="false">
+
+            <TextView
+                android:id="@+id/result_preview"
+                android:layout_height="match_parent"
+                android:layout_width="wrap_content"
+                android:gravity="center"
+                android:text="@string/result_default"
+                android:textSize="@dimen/result_text_size"
+                android:textColor="@color/text_default"
+                android:textIsSelectable="true" />
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <android.support.v7.widget.GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="5"
+        android:layout_gravity="fill"
+        android:padding="@dimen/buttons_margin"
+        app:columnCount="4"
+        app:rowCount="5"
+        app:orientation="horizontal"
+        android:background="@color/color_background2">
+
+        <Button
+            android:text="@string/button_percent"
+            android:id="@+id/percent"
+            style="@style/ActionButton" />
+
+        <Button
+            android:text="@string/button_clear_all"
+            android:id="@+id/clear"
+            app:layout_columnSpan="1"
+            style="@style/ActionButton" />
+
+        <Button
+            android:text="@string/button_eqv"
+            android:id="@+id/eqv"
+            app:layout_columnSpan="2"
+            style="@style/ResultButton" />
+
+        <!--<Button
+            android:text="@string/button_sign"
+            android:id="@+id/sign"
+            style="@style/ActionButton" />
+
+        <Button
+            android:text="@string/button_percent"
+            android:id="@+id/percent"
+            style="@style/ActionButton" />-->
+
+        <Button
+            android:text="@string/button_div"
+            android:id="@+id/div"
+            style="@style/ActionButton" />
+
+        <Button
+            android:text="@string/button_d7"
+            android:id="@+id/d7"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_d8"
+            android:id="@+id/d8"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_d9"
+            android:id="@+id/d9"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_mul"
+            android:id="@+id/mul"
+            style="@style/ActionButton" />
+
+        <Button
+            android:text="@string/button_d4"
+            android:id="@+id/d4"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_d5"
+            android:id="@+id/d5"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_d6"
+            android:id="@+id/d6"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_sub"
+            android:id="@+id/sub"
+            style="@style/ActionButton" />
+
+        <Button
+            android:text="@string/button_d1"
+            android:id="@+id/d1"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_d2"
+            android:id="@+id/d2"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_d3"
+            android:id="@+id/d3"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_add"
+            android:id="@+id/sum"
+            style="@style/ActionButton" />
+
+        <Button
+            android:text="@string/button_d0"
+            android:id="@+id/d0"
+            app:layout_columnSpan="2"
+            style="@style/Button" />
+
+        <Button
+            android:text="@string/button_point"
+            android:id="@+id/point"
+            style="@style/Button" />
+
+    </android.support.v7.widget.GridLayout>
+</LinearLayout>

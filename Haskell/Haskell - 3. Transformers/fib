@@ -1,0 +1,20 @@
+mut x = 0;
+>> x;
+
+mut a = 1;
+if x gt 0 {
+    << a;
+}
+
+mut b = 1;
+if x gt 1 {
+    << b;
+}
+
+for i = 2 to x {
+    mut c = a + b;
+    << c;
+
+    a = b;
+    b = c;
+}

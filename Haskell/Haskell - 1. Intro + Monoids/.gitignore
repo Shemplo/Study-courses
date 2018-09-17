@@ -1,0 +1,5 @@
+/bin
+/dist-newstyle
+/.stack-work
+
+.project

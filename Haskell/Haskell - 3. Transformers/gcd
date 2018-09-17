@@ -1,0 +1,14 @@
+// Assumed that a >= b
+mut a = 0;
+>> a;
+
+mut b = 0;
+>> b;
+
+while a % b gt 0 {
+    mut c = a % b;
+    a = b;
+    b = c;
+}
+
+<< b;

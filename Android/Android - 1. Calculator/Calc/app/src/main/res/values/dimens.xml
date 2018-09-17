@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_padding">15dp</dimen>
+    <dimen name="summary_text_size">22sp</dimen>
+    <dimen name="result_text_size">54sp</dimen>
+    <dimen name="buttons_margin">0.5dp</dimen>
+    <dimen name="buttons_font_size">25sp</dimen>
+    <dimen name="buttons_border_size">2dp</dimen>
+    <dimen name="buttons_border_radius">3dp</dimen>
+</resources>

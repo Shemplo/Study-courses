@@ -1,0 +1,7 @@
+/bin/
+/walk_test_dir/
+/files
+/hashes
+
+.classpath
+.project

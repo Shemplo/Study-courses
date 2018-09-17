@@ -1,0 +1,30 @@
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/color_background1</item>
+        <item name="colorPrimaryDark">@color/color_background2</item>
+        <item name="colorAccent">@color/color_background3</item>
+    </style>
+
+    <style name="Button">
+        <item name="layout_gravity">fill</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="layout_columnWeight">1</item>
+        <item name="layout_rowWeight">1</item>
+        <item name="android:layout_margin">@dimen/buttons_margin</item>
+        <item name="android:padding">0px</item>
+        <item name="android:textSize">@dimen/buttons_font_size</item>
+        <item name="android:textColor">@color/text_default</item>
+        <item name="android:background">@color/button_background_empty</item>
+    </style>
+
+    <style name="ActionButton" parent="Button">
+        <item name="android:background">@color/button_background_action</item>
+    </style>
+
+    <style name="ResultButton" parent="Button">
+        <item name="android:background">@color/button_background_result</item>
+    </style>
+
+</resources>

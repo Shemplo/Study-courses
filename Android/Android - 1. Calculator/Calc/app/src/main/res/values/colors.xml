@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_background1">#3F51B5</color>
+    <color name="color_background2">#303F9F</color>
+    <color name="color_background3">#FF4081</color>
+    <color name="color_background4">#CDD1E8</color>
+
+    <color name="button_background_empty">#6E79B5</color>
+    <color name="button_background_action">#5866B5</color>
+    <color name="button_background_result">#3C4EB5</color>
+
+    <color name="text_default">#ffffff</color>
+</resources>
