@@ -18,7 +18,7 @@ public class LRUTestUnit {
 
 	private final Random random = new Random ();
 	
-	private <K, V> LRUCache <K, V> getInstance (int capacity) {
+	private static <K, V> LRUCache <K, V> getInstance (int capacity) {
 		//return new SimpleLRUCache <> (capacity);
 		return new ConcurrentLRUCache <> (capacity);
 	}
@@ -202,10 +202,15 @@ public class LRUTestUnit {
 	
 	private static Queue <Integer> 
 		INSERT_QUEUE  = new ConcurrentLinkedQueue <> ();
+	private static final int SIZE = 1_000_000;
 	
 	@BeforeAll
 	public static void prepareStreesTest () {
-		for (int i = 0; i < 1_000_000; i++) {
+		if (!(getInstance (1) instanceof ConcurrentLRUCache)) {
+			return;
+		}
+		
+		for (int i = 0; i < SIZE; i++) {
 			INSERT_QUEUE.add (i);
 		}
 	}
@@ -214,17 +219,16 @@ public class LRUTestUnit {
 	@DisplayName ("Stress test for cache")
 	public void stressTest () {
 		LRUCache <Integer, Void> cache = getInstance (1000);
+		if (!(cache instanceof ConcurrentLRUCache)) {
+			return;
+		}
 		
 		Thread [] threads = new Thread [4];
 		for (int i = 0; i < threads.length; i++) {
 			threads [i] = new Thread (() -> {
 				Integer tmp = null;
 				while ((tmp = INSERT_QUEUE.poll ()) != null) {
-					try {
-						cache.put (tmp, null);
-					} catch (AssertionError ae) {
-						System.out.println (ae);
-					}
+					cache.put (tmp, null);
 				}
 			});
 		}
