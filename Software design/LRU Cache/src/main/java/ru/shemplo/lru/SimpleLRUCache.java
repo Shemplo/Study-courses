@@ -27,7 +27,6 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 	}
 	
 	public SimpleLRUCache (int capacity) {
-		assert capacity > 0;
 		if (capacity <= 0) {
 			String text = "Capacity can't be non-positive";
 			throw new IllegalArgumentException (text);
@@ -38,7 +37,6 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 	
 	@Override
 	public void put (K key, V value) {
-		assert key != null;
 		if (key == null) {
 			String text = "Key can't have NULL value";
 			throw new IllegalArgumentException (text);
@@ -83,11 +81,17 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 			node.next.previous = node.previous;
 		}
 		
+		head.previous = node;
+		node.next = head;
 		head = node;
 	}
 	
 	protected void removeLast (int number) {
 		while (number > 0 && tail != null) {
+			// Because no explicit operation `to remove`
+			// It's equal to Illegal State
+			assert tail.previous != null || CAPACITY == 1;
+			
 			VALUES.remove (tail.KEY);
 			tail.next = null;
 			number -= 1;

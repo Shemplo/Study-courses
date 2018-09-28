@@ -2,7 +2,9 @@ package ru.shemplo.lru.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,6 +19,7 @@ public class LRUTestUnit {
 	
 	private <K, V> LRUCache <K, V> getInstance (int capacity) {
 		return new SimpleLRUCache <> (capacity);
+		//return new ConcurrentLRUCache <> (capacity);
 	}
 	
 	@Nested
@@ -36,11 +39,11 @@ public class LRUTestUnit {
 				@SuppressWarnings ("unused")
 				LRUCache <Integer, String> cache = getInstance (0);
 				cache = getInstance (-1);
-				
-				fail ("Created instance with non-positive capacity");
 			} catch (Exception | AssertionError e) {
-				// It's OK (expected behavior)
+				return; // It's OK (expected behavior)
 			}
+			
+			fail ("Created instance with non-positive capacity");
 		}
 		
 		@Test
@@ -186,7 +189,7 @@ public class LRUTestUnit {
 			
 			assertEquals (middleValue, cache.get (middleKey));
 			
-			for (int i = 0; i < toInsert - 1; i++) {
+			for (int i = 0; i < capacity - 1; i++) {
 				int key = random.nextInt (toInsert);
 				cache.put (key, "" + key);
 			}
@@ -194,6 +197,51 @@ public class LRUTestUnit {
 			assertEquals (middleValue, cache.get (middleKey));
 		}
 		
+	}
+	
+	@Test
+	@DisplayName ("Stress test for cache")
+	public void stressTest () {
+		Queue <Integer> queue = new ConcurrentLinkedQueue <> ();
+		LRUCache <Integer, Void> cache = getInstance (1000);
+		for (int i = 0; i < 10_000_000; i++) {
+			queue.add (i);
+		}
+		
+		/*
+		Thread [] threads = new Thread [2];
+		for (int i = 0; i < threads.length; i++) {
+			threads [i] = new Thread (() -> {
+				Integer tmp = null;
+				while ((tmp = queue.poll ()) != null) {
+					try {
+						cache.put (tmp, null);
+					} catch (AssertionError ae) {
+						System.out.println (ae);
+					}
+				}
+			});
+		}
+		
+		for (int i = 0; i < threads.length; i++) {
+			threads [i].start ();
+		}
+		
+		for (int i = 0; i < threads.length; i++) {
+			try {
+				threads [i].join ();
+			} catch (InterruptedException e) {}
+		}
+		*/
+		
+		Integer tmp = null;
+		while ((tmp = queue.poll ()) != null) {
+			try {
+				cache.put (tmp, null);
+			} catch (AssertionError ae) {
+				ae.printStackTrace ();
+			}
+		}
 	}
 	
 }
