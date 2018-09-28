@@ -7,3 +7,4 @@
 * _(3 term, 2016)_ : Advanced java, Android, Math logic
 * _(4 term, 2017)_ : Assembly, Type theory
 * _(6 term, 2018)_ : Haskell
+* _(7 term, 2018)_ : Software design
