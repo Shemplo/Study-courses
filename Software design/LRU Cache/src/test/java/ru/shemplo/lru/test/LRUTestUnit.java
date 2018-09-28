@@ -6,20 +6,21 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import ru.shemplo.lru.ConcurrentLRUCache;
 import ru.shemplo.lru.LRUCache;
-import ru.shemplo.lru.SimpleLRUCache;
 
 public class LRUTestUnit {
 
 	private final Random random = new Random ();
 	
 	private <K, V> LRUCache <K, V> getInstance (int capacity) {
-		return new SimpleLRUCache <> (capacity);
-		//return new ConcurrentLRUCache <> (capacity);
+		//return new SimpleLRUCache <> (capacity);
+		return new ConcurrentLRUCache <> (capacity);
 	}
 	
 	@Nested
@@ -199,21 +200,26 @@ public class LRUTestUnit {
 		
 	}
 	
+	private static Queue <Integer> 
+		INSERT_QUEUE  = new ConcurrentLinkedQueue <> ();
+	
+	@BeforeAll
+	public static void prepareStreesTest () {
+		for (int i = 0; i < 1_000_000; i++) {
+			INSERT_QUEUE.add (i);
+		}
+	}
+	
 	@Test
 	@DisplayName ("Stress test for cache")
 	public void stressTest () {
-		Queue <Integer> queue = new ConcurrentLinkedQueue <> ();
 		LRUCache <Integer, Void> cache = getInstance (1000);
-		for (int i = 0; i < 10_000_000; i++) {
-			queue.add (i);
-		}
 		
-		/*
-		Thread [] threads = new Thread [2];
+		Thread [] threads = new Thread [4];
 		for (int i = 0; i < threads.length; i++) {
 			threads [i] = new Thread (() -> {
 				Integer tmp = null;
-				while ((tmp = queue.poll ()) != null) {
+				while ((tmp = INSERT_QUEUE.poll ()) != null) {
 					try {
 						cache.put (tmp, null);
 					} catch (AssertionError ae) {
@@ -231,16 +237,6 @@ public class LRUTestUnit {
 			try {
 				threads [i].join ();
 			} catch (InterruptedException e) {}
-		}
-		*/
-		
-		Integer tmp = null;
-		while ((tmp = queue.poll ()) != null) {
-			try {
-				cache.put (tmp, null);
-			} catch (AssertionError ae) {
-				ae.printStackTrace ();
-			}
 		}
 	}
 	

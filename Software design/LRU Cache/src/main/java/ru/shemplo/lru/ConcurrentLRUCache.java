@@ -2,7 +2,9 @@ package ru.shemplo.lru;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ConcurrentLRUCache <K, V> implements LRUCache <K, V> {
@@ -10,15 +12,15 @@ public class ConcurrentLRUCache <K, V> implements LRUCache <K, V> {
 	protected final ConcurrentMap <K, Node> 
 		VALUES = new ConcurrentHashMap <> ();
 	
-	private final Node DUMMY = new Node (null, null);
-	
 	protected final AtomicReference <Node>
-		HEAD = new AtomicReference <> (DUMMY),
-		TAIL = new AtomicReference <> (DUMMY),
+		HEAD = new AtomicReference <> (new Node (null, null)),
+		TAIL = new AtomicReference <> (new Node (null, null)),
 		CASN = new AtomicReference <> (null);
 	
 	protected final AtomicInteger 
-		SIZE   = new AtomicInteger (0);
+		SIZE = new AtomicInteger (0);
+	
+	protected final AtomicLong TIME = new AtomicLong (0L);
 	
 	protected final int CAPACITY;
 	
@@ -28,12 +30,21 @@ public class ConcurrentLRUCache <K, V> implements LRUCache <K, V> {
 			previous = new AtomicReference <> (null), 
 			next     = new AtomicReference <> (null);
 		
+		public final AtomicBoolean FLAG = new AtomicBoolean (false);
+		public long time = 0;
+		
+		protected volatile boolean isLocked = false;
+		
 		public final V VALUE;
 		public final K KEY;
 		
 		public Node (K key, V value) {
 			this.VALUE = value;
 			this.KEY = key;
+		}
+		
+		public boolean isLocked () {
+			return isLocked;
 		}
 		
 	}
@@ -46,6 +57,9 @@ public class ConcurrentLRUCache <K, V> implements LRUCache <K, V> {
 		}
 		
 		this.CAPACITY = capacity;
+		
+		TAIL.get ().previous.set (HEAD.get ());
+		HEAD.get ().next.set (TAIL.get ());		
 	}
 	
 	public String toString () {
@@ -74,79 +88,98 @@ public class ConcurrentLRUCache <K, V> implements LRUCache <K, V> {
 	
 	@Override
 	public void put (K key, V value) {
-		assert key != null;
 		if (key == null) {
 			String text = "Key can't have NULL value";
 			throw new IllegalArgumentException (text);
 		}
 		
 		Node newNode = new Node (key, value);
+		//VALUES.put (key, newNode);
 		moveToHead (newNode);
 	}
 	
 	protected void moveToHead (Node node) {
 		if (node == null) { return; } 
-		int attempt = 0;
 		
 		while (true) {
-			attempt += 1;
-			
-			// Each thread tries to add it's own node to processing
-			boolean voted = CASN.compareAndSet (null, node);
-			if (!voted && attempt > 1) { continue; }
-			
-			Node currentNode = CASN.get ();
-			if (currentNode == null) {
-				continue;
-			}
-			
-			Node prev = currentNode.previous.get (),
-				 next = currentNode.next.get ();
-			
-			if (prev != null) {
-				prev.next.compareAndSet (currentNode, next);
-			}
-			
-			if (next != null) {
-				next.previous.compareAndSet (currentNode, prev);
-			}
-			
-			HEAD.get ().previous.compareAndSet (null, currentNode);
-			
-			if (voted) {
-				// Here can be just one thread
-				VALUES.putIfAbsent (currentNode.KEY, currentNode);
-				if (SIZE.get () >= CAPACITY) {
-					Node tail = TAIL.get ();
-					if (tail.KEY != null && tail.KEY != currentNode.KEY) {
-						VALUES.remove (tail.KEY, tail);
+			Node prev = node.previous.get (), 
+				 next = node.next.get ();
+			if (node.FLAG.compareAndSet (false, true)) {
+				if (prev != null) {
+					if (!prev.FLAG.compareAndSet (false, true)) {
+						node.FLAG.set (false);
 					}
-					
-					TAIL.set (tail.previous.get ());
-					if (TAIL.get () == null) {
-						System.out.println (tail.KEY);
-					}
-					
-					assert TAIL.get () != null;
-					TAIL.get ().next.set (null);
+				} else if (next != null) {
+					// This node is already head
+					node.FLAG.set (false);
+					break;
 				} else {
-					SIZE.incrementAndGet ();
+					// This is new node in cache
+					synchronized (HEAD) {
+						VALUES.putIfAbsent (node.KEY, node);
+						SIZE.incrementAndGet ();
+						
+						HEAD.get ().previous.set (node);
+						node.next.set (HEAD.get ());
+						HEAD.set (node);
+						
+						node.time = TIME.getAndIncrement ();
+						
+						node.FLAG.set (false);
+						break;
+					}
 				}
 				
-				currentNode.next.set (HEAD.get ());
-				currentNode.previous.set (null);
-				HEAD.set (currentNode);
+				if (next != null) {
+					if (!next.FLAG.compareAndSet (false, true)) {
+						if (prev != null) { prev.FLAG.set (false); }
+						node.FLAG.set (false);
+					}
+					
+					if (prev != null) {
+						// PREV --[NODE]--> NEXT
+						prev.next.set (next);
+					}
+					
+					// PREV <--[NODE]-- NEXT
+					next.previous.set (prev);
+				} else if (prev != null) {
+					// This node is tail
+					synchronized (TAIL) {
+						TAIL.set (prev);
+					}
+				}
 				
-				CASN.set (null);
-				break;
-			} 
+				synchronized (HEAD) {
+					HEAD.get ().previous.set (node);
+					node.next.set (HEAD.get ());
+					HEAD.set (node);
+					
+					node.time = TIME.getAndIncrement ();
+					
+					if (prev != null) { prev.FLAG.set (false); }
+					if (next != null) { next.FLAG.set (false); }
+					node.FLAG.set (false);
+					break;
+				}
+			}
 		}
 	}
 	
 	@Override
 	public V get (K key) {
 		Node node = VALUES.get (key);
-		if (node == null) {
+		if (node == null || (node.previous.get () == null 
+							 && node.next.get () == null)) {
+			return null;
+		} else if (TIME.get () - node.time > CAPACITY ) {
+			while (!node.FLAG.compareAndSet (false, true)) {}
+			synchronized (TAIL) {
+				TAIL.set (node.previous.get ());
+				assert TAIL.get () != null;
+				SIZE.decrementAndGet ();
+			}
+			
 			return null;
 		}
 		
@@ -161,7 +194,7 @@ public class ConcurrentLRUCache <K, V> implements LRUCache <K, V> {
 
 	@Override
 	public int getSize () {
-		return SIZE.get ();
+		return Math.min (CAPACITY, SIZE.get ());
 	}
 	
 }
