@@ -7,7 +7,6 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 
 	protected final Map <K, Node> VALUES = new HashMap <> ();
 	
-	protected int currentSize = 0;
 	protected final int CAPACITY;
 	
 	protected Node head, tail;
@@ -42,63 +41,47 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 			throw new IllegalArgumentException (text);
 		}
 		
-		if (currentSize >= CAPACITY) {
-			int toRemove = currentSize + 1 - CAPACITY;
-			removeLast (toRemove);
+		if (VALUES.containsKey (key)) {
+			String text = "Key already exists with value: " + VALUES.get (key).VALUE;
+			throw new IllegalStateException (text);
+		}
+		
+		if (VALUES.size () >= CAPACITY) {
+			assert VALUES.remove (tail.KEY) != null;
+			tail = tail.previous;
+			
+			assert VALUES.size () < CAPACITY;
 		}
 		
 		Node newNode = new Node (key, value);
-		VALUES.put (key, newNode);
+		assert VALUES.put (key, newNode) == null;
 		moveToHead (newNode);
-		
-		currentSize += 1;
 	}
 	
 	protected void moveToHead (Node node) {
-		if (node.previous == null 
-			&& node.next == null) { // new node
-			
-			if (head == null) {
+		Node prev = node.previous, next = node.next;
+		if (prev != null && next != null) {
+			node.previous.next = next;
+			node.next.previous = prev;
+		} else if (prev != null && next == null) {
+			assert tail == node;
+			tail = tail.previous;
+		} else if (prev == null && next == null) {
+			if (head == null && tail == null) {
 				head = tail = node;
+				return;
 			} else {
-				head.previous = node;
-				node.next = head;
-				head = node;
+				assert head != null && tail != null;
 			}
-			
+		} else {
+			// node is already head
+			assert head == node;
 			return;
-		}
-		
-		// for some existing node:
-		
-		if (node.previous != null) {
-			// [previous] <-> [node] <-> ???
-			node.previous.next = node.next;
-		}
-		
-		if (node.next != null) {
-			// ??? <-> [node] <-> [next]
-			node.next.previous = node.previous;
 		}
 		
 		head.previous = node;
 		node.next = head;
 		head = node;
-	}
-	
-	protected void removeLast (int number) {
-		while (number > 0 && tail != null) {
-			// Because no explicit operation `to remove`
-			// It's equal to Illegal State
-			assert tail.previous != null || CAPACITY == 1;
-			
-			VALUES.remove (tail.KEY);
-			tail.next = null;
-			number -= 1;
-			
-			tail = tail.previous;
-			currentSize -= 1;
-		}
 	}
 
 	@Override
@@ -119,7 +102,7 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 	
 	@Override
 	public int getSize () {
-		return currentSize;
+		return VALUES.size ();
 	}
 	
 }

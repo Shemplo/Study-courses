@@ -2,25 +2,24 @@ package ru.shemplo.lru.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Queue;
+import java.util.HashSet;
 import java.util.Random;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Set;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
-import ru.shemplo.lru.ConcurrentLRUCache;
 import ru.shemplo.lru.LRUCache;
+import ru.shemplo.lru.SimpleLRUCache;
 
 public class LRUTestUnit {
 
 	private final Random random = new Random ();
 	
 	private static <K, V> LRUCache <K, V> getInstance (int capacity) {
-		//return new SimpleLRUCache <> (capacity);
-		return new ConcurrentLRUCache <> (capacity);
+		return new SimpleLRUCache <> (capacity);
 	}
 	
 	@Nested
@@ -81,44 +80,69 @@ public class LRUTestUnit {
 		}
 		
 		@Test
-		@DisplayName ("Test cache on PUT value with NULL keu")
+		@DisplayName ("Test cache on PUT value with NULL key")
 		public void testNullKeyInsert () {
 			LRUCache <Integer, String> cache = getInstance (100);
 			try {
 				cache.put (null, "Insert with null key");
-				
-				fail ("Inserted value with null key");
 			} catch (Exception | AssertionError e) {
 				// It's OK (expected behavior)
+				return;
 			}
+			
+			fail ("Inserted value with null key");
 		}
 		
-		@Test
+		@RepeatedTest (4)
 		@DisplayName ("Test cache on insert of several values")
 		public void testSeveralInserts () {
 			int capacity = 10 + random.nextInt (10000),
-				toInsert = 10 + random.nextInt (capacity / 2);
+				toInsert = 5 + random.nextInt (capacity / 2);
 			LRUCache <Integer, String> cache = getInstance (capacity);
 			for (int i = 0; i < toInsert; i++) {
-				int key = random.nextInt (capacity * 2);
-				cache.put (key, "" + key);
+				int value = random.nextInt (capacity * 2);
+				cache.put (i, "" + value);
 			}
 			
 			assertEquals (toInsert, cache.getSize ());
 		}
 		
-		@Test
+		@RepeatedTest (4)
 		@DisplayName ("Test cache on huge insert")
 		public void testOverCapacityInserts () {
 			int capacity = 10 + random.nextInt (10000),
 				toInsert = capacity + 1 + random.nextInt (capacity);
 			LRUCache <Integer, String> cache = getInstance (capacity);
 			for (int i = 0; i < toInsert; i++) {
-				int key = random.nextInt (toInsert);
-				cache.put (key, "" + key);
+				int value = random.nextInt (toInsert);
+				cache.put (i, "" + value);
 			}
 			
 			assertEquals (capacity, cache.getSize ());
+		}
+		
+		@RepeatedTest (4)
+		@DisplayName ("Test PUT on repeating keys")
+		public void testRepeatedKey () {
+			LRUCache <Integer, String> cache = getInstance (1000);
+			int insert = 10 + random.nextInt (10000);
+			Set <Integer> keys = new HashSet <> ();
+			
+			for (int i = 0; i < insert; i++) {
+				int key = random.nextInt (cache.getCapacity ());
+				if (keys.contains (key)) {
+					try {
+						cache.put (key, "" + key);
+					} catch (Exception | AssertionError e) {
+						continue;
+					}
+					
+					fail ("Inserted value with pereated key");
+				} else {
+					keys.add (key); cache.put (key, key + "");
+					assertEquals (keys.size (), cache.getSize ());
+				}
+			}
 		}
 		
 	}
@@ -147,101 +171,39 @@ public class LRUTestUnit {
 			assertEquals (value, answer);
 		}
 		
-		@Test
-		@DisplayName ("Test GET after over capacity insert")
-		public void testBigInsertAndGet () {
-			int capacity = 10 + random.nextInt (10000),
-				toInsert = capacity + random.nextInt (capacity);
-			LRUCache <Integer, String> cache = getInstance (capacity);
+		@RepeatedTest (8)
+		@DisplayName ("Test cache on correct GET requests")
+		public void testInsertAndSeveralGet () {
+			LRUCache <Integer, String> cache = getInstance (10000);
+			int range = 10 + random.nextInt (1000);
 			
-			int firstKey = -(1 + random.nextInt (1000));
-			String firstValue = "" + (firstKey);
-			cache.put (firstKey, firstValue);
-			
-			for (int i = 0; i < toInsert; i++) {
-				int key = random.nextInt (toInsert);
-				cache.put (key, "" + key);
+			for (int i = 0; i < cache.getCapacity () + range; i++) {
+				cache.put (i, "value-" + i);
 			}
 			
-			assertNull (cache.get (firstKey));
+			int missed = 0;
+			for (int i = cache.getCapacity () + range - 1; i >= 0; i--) {
+				missed += (cache.get (i) == null ? 1 : 0);
+			}
+			
+			assert missed == range;
 		}
 		
-		@Test
-		@DisplayName ("Test GET from \"center\" of cache")
-		public void testGetFromMiddle () {
-			int capacity = 10 + random.nextInt (10000),
-				toInsert = capacity + 1 + random.nextInt (capacity);
+		@RepeatedTest (4)
+		@DisplayName ("Test cache on correct GET requests from tail")
+		public void testInsertAndGetFromTail () {
+			int capacity = 10 + random.nextInt (10000);
 			LRUCache <Integer, String> cache = getInstance (capacity);
-			
-			String middleValue = null;
-			int middleKey = -1;
-			
-			for (int i = 0; i < toInsert; i++) {
-				int key = random.nextInt (toInsert);
-				if (i == toInsert / 2) {
-					key = -key; // to make unique
-					
-					middleValue = "" + key;
-					middleKey = key;
-				}
+			for (int i = 0; i < cache.getCapacity (); i++) {
+				cache.put (i, "value-" + i);
 				
-				cache.put (key, "" + key);
+				if (i > 0) { assert cache.get (i - 1) != null; }
 			}
 			
-			assertEquals (middleValue, cache.get (middleKey));
-			
-			for (int i = 0; i < capacity - 1; i++) {
-				int key = random.nextInt (toInsert);
-				cache.put (key, "" + key);
-			}
-			
-			assertEquals (middleValue, cache.get (middleKey));
+			cache.put (-1, "stub");
+			assertNull (cache.get (1));
 		}
 		
-	}
-	
-	private static Queue <Integer> 
-		INSERT_QUEUE  = new ConcurrentLinkedQueue <> ();
-	private static final int SIZE = 1_000_000;
-	
-	@BeforeAll
-	public static void prepareStreesTest () {
-		if (!(getInstance (1) instanceof ConcurrentLRUCache)) {
-			return;
-		}
-		
-		for (int i = 0; i < SIZE; i++) {
-			INSERT_QUEUE.add (i);
-		}
-	}
-	
-	@Test
-	@DisplayName ("Stress test for cache")
-	public void stressTest () {
-		LRUCache <Integer, Void> cache = getInstance (1000);
-		if (!(cache instanceof ConcurrentLRUCache)) {
-			return;
-		}
-		
-		Thread [] threads = new Thread [4];
-		for (int i = 0; i < threads.length; i++) {
-			threads [i] = new Thread (() -> {
-				Integer tmp = null;
-				while ((tmp = INSERT_QUEUE.poll ()) != null) {
-					cache.put (tmp, null);
-				}
-			});
-		}
-		
-		for (int i = 0; i < threads.length; i++) {
-			threads [i].start ();
-		}
-		
-		for (int i = 0; i < threads.length; i++) {
-			try {
-				threads [i].join ();
-			} catch (InterruptedException e) {}
-		}
 	}
 	
 }
