@@ -35,7 +35,7 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 	}
 	
 	@Override
-	public void put (K key, V value) {
+	public void put (final K key, final V value) {
 		if (key == null) {
 			String text = "Key can't have NULL value";
 			throw new IllegalArgumentException (text);
@@ -55,7 +55,9 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 		
 		Node newNode = new Node (key, value);
 		assert VALUES.put (key, newNode) == null;
+		
 		moveToHead (newNode);
+		assert head == newNode;
 	}
 	
 	protected void moveToHead (Node node) {
@@ -70,8 +72,6 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 			if (head == null && tail == null) {
 				head = tail = node;
 				return;
-			} else {
-				assert head != null && tail != null;
 			}
 		} else {
 			// node is already head
@@ -79,19 +79,23 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 			return;
 		}
 		
+		assert head != null && tail != null;
+		
 		head.previous = node;
 		node.next = head;
 		head = node;
 	}
 
 	@Override
-	public V get (K key) {
+	public V get (final K key) {
 		Node node = VALUES.get (key);
 		if (node == null) {
 			return null;
 		}
 		
 		moveToHead (node);
+		assert head == node;
+		
 		return node.VALUE;
 	}
 	
@@ -102,6 +106,7 @@ public class SimpleLRUCache <K, V> implements LRUCache <K, V> {
 	
 	@Override
 	public int getSize () {
+		assert VALUES.size () >= 0;
 		return VALUES.size ();
 	}
 	

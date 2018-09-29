@@ -121,7 +121,7 @@ public class LRUTestUnit {
 			assertEquals (capacity, cache.getSize ());
 		}
 		
-		@RepeatedTest (4)
+		@RepeatedTest (8)
 		@DisplayName ("Test PUT on repeating keys")
 		public void testRepeatedKey () {
 			LRUCache <Integer, String> cache = getInstance (1000);
@@ -158,7 +158,7 @@ public class LRUTestUnit {
 			assertNull (cache.get (random.nextInt ()));
 		}
 		
-		@Test
+		@RepeatedTest (8)
 		@DisplayName ("Test GET after single PUT")
 		public void testInsertAndGet () {
 			LRUCache <Integer, String> cache = getInstance (100);
