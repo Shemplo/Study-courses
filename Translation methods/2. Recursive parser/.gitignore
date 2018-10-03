@@ -1,0 +1,12 @@
+/build/
+/bin/
+/target
+.settings
+/lib
+
+.classpath
+.project
+
+dependency*
+
+*.log

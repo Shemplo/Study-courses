@@ -1,0 +1,412 @@
+% !TEX encoding = UTF-8
+% !TEX program = pdflatex
+\documentclass[12pt]{article}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\textheight=24cm
+\textwidth=16cm
+\oddsidemargin=0pt
+\topmargin=-1.5cm
+
+\title{Лабораторная работа №2}
+\author{\copyright~~Плотников Андрей}
+\date{13 декабря 2017 г.}
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+Вариант 6. Визуализация переменных в Си
+
+Описания переменных в Си. Сначала следует имя типа, затем
+разделенные  запятой  имена  переменных.  Переменная  может  быть
+указателем, в этом случае перед ней идет звездочка (возможны и
+указатели на указатели, и т. д.). Описаний может быть несколько.
+Используйте один терминал для всех имен переменных и имен типов.
+
+Пример
+
+    \begin{verbatim}
+        int a, *b, ***c, d;
+    \end{verbatim}
+
+\begin{itemize}
+    \item \textbf{Разработка грамматики}
+
+            Построим грамматику.
+            
+            S -- стартовый нетерминал
+
+            D -- объявление переменной
+
+            T -- тип переменных
+
+            K -- разделитель типа и имени
+
+            F -- первая переменная
+
+            N -- последующие переменные
+
+            V -- имя переменной
+            
+
+            S $\rightarrow$ D
+
+            D $\rightarrow$ TKD
+
+            D $\rightarrow$ $\varepsilon$
+
+            K $\rightarrow$ ' 'F
+
+            F $\rightarrow$ VN
+
+            N $\rightarrow$ ,VN
+
+            N $\rightarrow$ ;
+
+            V $\rightarrow$ *V
+
+            V $\rightarrow$ a
+
+            T $\rightarrow$ a
+
+
+            В грамматике нет левой рекурсии.
+
+    \item \textbf{Построение лексического анализатора}
+        \begin{verbatim}
+private enum Token {
+    ASTERISK,  // *
+    COMMA,     // ,
+    SEMICOLON, // ;
+    NAME,      // a-z
+    END        // $
+}
+
+public class Parser {
+    
+    private static String processingString;
+    private static Token processingToken;
+    private static char proccessingChar;
+    private static int offset;
+    
+    public static Node parse (String input) {
+        processingString = input + "$";
+        processingToken = null;
+        proccessingChar = 0;
+        offset = 0;
+        
+        nextToken ();
+        return fetchEnterPoint ();
+    }
+    
+    private static boolean isBlank (char symbol) {
+        return Character.isWhitespace (symbol);
+    }
+    
+    private static boolean isControl (char symbol) {
+        return symbol == ',' || symbol == ';';
+    }
+    
+    private static boolean hasMore () {
+        return offset < processingString.length ();
+    }
+    
+    private static void nextChar () {
+        proccessingChar = processingString.charAt (offset ++);
+    }
+    
+    private static void nextToken () {
+        while (hasMore () && isBlank (proccessingChar)) {
+            nextChar (); // Skipping blank spaces
+        }
+        
+        if (isBlank (proccessingChar)) {
+            throw new ParseException ("End of string reached at ", offset);
+        }
+        
+        switch (proccessingChar) {
+            case '*':
+                processingToken = Token.ASTERISK;
+                nextChar ();
+                break;
+            case ',':
+                processingToken = Token.COMMA;
+                nextChar ();
+                break;
+            case ';':
+                processingToken = Token.SEMICOLON;
+                nextChar ();
+                break;
+            case '$':
+                processingToken = Token.END;
+                break;
+            
+            default:
+                while (hasMore () 
+                        && !isBlank (proccessingChar)
+                        && !isControl (proccessingChar)) {
+                    nextChar ();
+                }
+                
+                processingToken = Token.NAME;
+        }
+    }
+    
+    ...
+}
+        \end{verbatim}
+
+    \item \textbf{Построение синтаксического анализатора}
+
+        Построим множества FIRST и FOLLOW для нетерминалов грамматики
+
+        \begin{tabular} {|c|c|c|}
+            \hline
+                \textbf{Нетерминал} & \textbf{FIRST} & \textbf{FOLLOW} \\
+            \hline
+                S & $\varepsilon$,  a & \$ \\
+            \hline
+                D & $\varepsilon$, a & \$ \\
+            \hline
+                K & space & a \\
+            \hline
+                F & *, a & a \\
+            \hline
+                N & \textbf{,}, ; & a \\
+            \hline
+                V & *, a & \textbf{,}, ; \\
+            \hline
+                T & a & space \\
+            \hline
+        \end{tabular}
+
+
+        Структура данных для хранения дерева
+        \begin{verbatim}
+public class Node {
+
+    private final List <Node> _list;
+    private final String _name;
+    
+    public Node (String name, Node... children) {
+        this._list = new ArrayList <> (Arrays.asList (children));
+        this._name = name;
+    }
+    
+}
+        \end{verbatim}
+
+        Синтаксический анализатор
+
+        \begin{verbatim}
+public class Parser {
+    ...
+
+    // S
+    private static Node fetchEnterPoint () {
+        String method = "Enter point";
+        switch (processingToken) {
+            case NAME:
+                return new Node (method, 
+                                    fetchVariableDeclaration ());
+            case END:
+                return new Node (method, new Node ("$"));
+                
+            default:
+                throw new ParseException ("Enter point not found at ", 
+                                            offset);
+        }
+    }
+    
+    // D
+    private static Node fetchVariableDeclaration () {
+        String method = "Variable declaration";
+        switch (processingToken) {
+            case NAME:
+                Node type = fetchVariableType ();
+                Node skip = fetchVariableSkiper ();
+                return new Node (method, type, skip, 
+                                    fetchVariableDeclaration ());
+            case END:
+                return new Node (method, new Node ("$"));
+                
+            default:
+                throw 
+                    new ParseException ("Variable declaration not found at ", 
+                                            offset);
+        }
+    }
+    
+    // T
+    private static Node fetchVariableType () {
+        String method = "Variable type";
+        switch (processingToken) {
+            case NAME:
+                nextToken ();
+                return new Node (method, new Node ("a"));
+                
+            default:
+                throw new ParseException ("Variable type not found at ", 
+                                            offset);
+        }
+    }
+    
+    // K
+    private static Node fetchVariableSkiper () {
+        String method = "Variable skiper";
+        switch (processingToken) {
+            case ASTERISK:
+            case NAME:
+                return new Node (method, fetchVariableEnterance ());
+                
+            default:
+                throw new ParseException ("Variable skiper not found at ", 
+                                            offset);
+        }
+    }
+    
+    // F
+    private static Node fetchVariableEnterance () {
+        String method = "Variable enterance";
+        switch (processingToken) {
+            case ASTERISK:
+            case NAME:
+                Node variable = fetchVariable ();
+                Node next = fetchNextVariable ();
+                return new Node (method, variable, next);
+                
+            default:
+                throw 
+                    new ParseException ("Variable enterance not found at ", 
+                                            offset);
+        }
+    }
+    
+    // V
+    private static Node fetchVariable () {
+        String method = "Variable";
+        switch (processingToken) {
+            case ASTERISK:
+                nextToken ();
+                Node variable = fetchVariable ();
+                return new Node (method, new Node ("*"), 
+                                    variable);
+            case NAME:
+                nextToken ();
+                return new Node (method, new Node ("a"));
+                
+            default:
+                throw new ParseException ("Variable not found at ", 
+                                            offset);
+        }
+    }
+    
+    // N
+    private static Node fetchNextVariable () {
+        String method = "Next variable";
+        switch (processingToken) {
+            case COMMA:
+                nextToken ();
+                Node variable = fetchVariable ();
+                Node next = fetchNextVariable ();
+                return new Node (method, new Node (","), 
+                                    variable, next);
+            case SEMICOLON:
+                nextToken ();
+                return new Node (method);
+                
+            default:
+                throw new ParseException ("Variable not found at ", 
+                                            offset);
+        }
+    }
+}
+        \end{verbatim}				
+
+
+
+    \item \textbf{Визуализация дерева разбора}
+
+        В качестве примера для визуализации возьмём следующий тест:
+
+        \begin{verbatim}				
+int a, *b, **c; double n, m;
+        \end{verbatim}				
+
+        Дерево разбора
+        \begin{verbatim}				
+Enter point (S)
+|- Variable declaration (D)
+    |- Variable type (T)
+        |- a
+    |- Variable skiper (K)
+        |- Variable enterance (F)
+            |- Variable (V)
+                |- a
+            |- Next variable (N)
+                |- ,
+                |- Variable (V)
+                    |- *
+                    |- Variable (V)
+                        |- a
+            |- Next variable (N)
+                |- ,
+                |- Variable (V)
+                    |- *
+                    |- Variable (V)
+                        |- *
+                        |- Variable (V)
+                            |- a
+                |- Next variable (N)
+    |- Variable declaration (D)
+        |- Variable type (T)
+            |- a
+        |- Variable skiper (K)
+            |- Variable enterance (F)
+                |- Variable (V)
+                    |- a
+            |- Next variable (N)
+                |- ,
+                |- Variable (V)
+                    |- a
+                |- Next variable (N)
+        |- Variable declaration (D)
+            |- $
+        \end{verbatim}				
+
+    \item \textbf{Подготовка набора тестов}
+
+        \begin{tabular} {|l|l|}
+            \hline
+                \textbf{Тест} & \textbf{Описание}\\
+            \hline
+                int a; & Простой тест \\
+            \hline
+                int *a; & Простой тест №2 \\
+            \hline
+                int a, b, c; & Тест на правило N $\rightarrow$ ,VN \\
+            \hline
+                int *a, **b; & Тест на правило V $\rightarrow$ *V \\
+            \hline
+                int a; int c; & Тест на правило D $\rightarrow$ TKD \\
+            \hline
+                  & Тест на правило D $\rightarrow$ $\varepsilon$ \\
+            \hline
+                int *a, b; double c, *d; float e; & Случайный тест \\
+            \hline
+                int ***a, ******b, ***c; double n, *m; & Случайный тест №2 \\
+            \hline
+        \end{tabular}
+
+
+\end{itemize}
+
+\end{document}
+
+%%% Local Variables:
+%%% fill-column: 10
+%%% mode: latex
+%%% coding: utf-8
+%%% TeX-PDF-mode: t
+%%% End:
