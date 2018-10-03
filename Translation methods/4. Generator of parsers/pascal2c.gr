@@ -1,0 +1,177 @@
+pascal (String code = "") {
+    header { 
+        code = code + $header.code + "\n"
+             + "int" + $s +"main" + $s + "()" + $s + "{\n";
+    }
+    variables  { code = code + $variables.code }
+    main_scope { 
+        code = code + $main_scope.code 
+             + "\treturn" + $s + "0;\n}\n"
+    }
+}
+
+header (String code = "") {
+    PROGRAM identifier { 
+        code = "//" + $s + "translated" 
+             + $s + "program" 
+             + $s + $identifier.code + "\n" 
+    }
+}
+
+variables (String code = "") {
+    var_declaration* {
+        code = code + "\t" + $var_declaration.type 
+             + $s + $var_declaration.name + ";\n"
+    }
+}
+
+var_declaration (String name = "", String type = "") {
+    VAR 
+    identifier { name = $identifier.code } 
+    COLON
+    variable_type { type = $variable_type.code + ";" }
+    SEMI
+}
+
+variable_type (String code = "") {
+    INTEGER { code = "int" }
+    |
+    STRING { code = "char" + $space + "*" }
+}
+
+main_scope (String code = "") {
+    BEGIN
+    operation* {
+        code = code + $operation.code + "\n"
+    }
+    END
+    DOT
+}
+
+operation (String code = "") {
+    function_call {
+        code = code + "\t" + $function_call.fc
+    }
+    |
+    assignment {
+        code = code + $assignment.code
+    }
+}
+
+assignment (String code = "") {
+    identifier {
+        code = code + "\t" + $identifier.code + $s + "=" + $s
+    }
+    ASSIGN 
+    expression+ {
+        code = code + $expression.code
+    }
+    SEMI? {
+        code = code + ";"
+    }
+}
+
+expression (String code = "") {
+    function_call {
+        code = code + $function_call.fc
+    }
+    PLUS? {
+        code = code + "+"
+    }
+    |
+    identifier {
+        code = code + $identifier.code
+    }
+    PLUS? {
+        code = code + "+"
+    }
+    |
+    NUMBER {
+        code = code + $NUMBER.value
+    }
+    PLUS? {
+        code = code + "+"
+    }
+    |
+    DQUOT
+    identifier? {
+        code = $identifier.code
+    }
+    DQUOT {
+        code = $dq + code + $dq
+    }
+    PLUS? {
+        code = code + "+"
+    }
+}
+
+function_call (String fc = "") {
+    identifier {
+        fc = fc + $identifier.code
+    }
+    LPAREN {
+        fc = fc + "("
+    }
+    function_argument* {
+        fc = fc + $function_argument.fa
+    }
+    RPAREN {
+        fc = fc + ")"
+    }
+    SEMI? {
+        fc = fc + ";"
+    }
+}
+
+function_argument (String fa = "") {
+    identifier {
+        fa = $identifier.code
+    }
+    COMMA? {
+        fa = fa + $COMMA.value
+    }
+}
+
+identifier (String code = $empty) {
+    IDENT { code = $IDENT.value }
+}
+
+PROGRAM : program;
+
+VAR : var;
+
+COLON : ':';
+
+INTEGER : Integer;
+
+STRING : String;
+
+BEGIN : begin;
+
+END : end;
+
+DOT : '.';
+
+LPAREN : '(';
+
+RPAREN : ')';
+
+NUMBER : /[0-9.]+/;
+
+PLUS : '+';
+
+MINUS : '-';
+
+MULTIPLY : '*';
+
+DIVIDE : '/';
+
+ASSIGN : ':=';
+
+SEMI : ';';
+
+DQUOT : '"';
+
+COMMA : ',';
+
+IDENT : /[a-zA-Z][a-zA-Z0-9]*/;

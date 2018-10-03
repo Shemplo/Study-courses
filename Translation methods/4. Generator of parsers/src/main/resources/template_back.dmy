@@ -1,0 +1,284 @@
+%CLASS_PACKAGE%
+
+import java.util.ArrayList;
+import java.util.List;
+
+import java.io.IOException;
+import java.io.Reader;
+
+import ru.shemplo.dsau.stuctures.Pair;
+import ru.shemplo.dsau.stuctures.Trio;
+import ru.shemplo.mt.task4.dmy.TreeNode;
+
+public class %CLASS_NAME% {
+    
+    private static enum Times {
+        // Single - Zero or Single - Zero or more - Single or more
+        S,          ZOS,             ZOM,           SOM
+    }
+    
+    private static interface ParseTreeProducer {
+
+        public Pair <?, Integer> consume (int start) throws IOException;
+        
+        public void apply (TreeNode node, ParseTreeProducer producer);
+        
+        public TreeNode getNode ();
+        
+        public void reset ();
+        
+    }
+    
+    private final ParseTreeProducer TOP_LEVEL_CONSUMER;
+    
+    public %CLASS_NAME% () {
+        this.TOP_LEVEL_CONSUMER = new %CONSUMER% ();
+    }
+    
+    private final List <Integer> buffer = new ArrayList <> ();
+    private Reader reader = null;
+    
+    public void parse (Reader r) throws IOException {
+        this.reader = r;
+        buffer.clear ();
+        
+        System.out.println (TOP_LEVEL_CONSUMER.consume (0));
+    }
+    
+    private int getByIndex (int index) throws IOException {
+        while (buffer.size () - 1 < index) {
+            int code = reader.read ();
+            buffer.add (code);
+        }
+        
+        return buffer.get (index).intValue ();
+    }
+    
+    private abstract class AbsNonTerminalProducer implements ParseTreeProducer {
+        
+        protected final List <Trio <ParseTreeProducer, Times, String>> [] BRANCHES;
+        protected final List <List <TreeNode>> READY_NODES;
+        protected final int [][] COUNTERS;
+        
+        protected TreeNode node;
+        
+        @SafeVarargs
+        public AbsNonTerminalProducer (List <Trio <ParseTreeProducer, Times, String>>... branches) {
+            this.COUNTERS = new int [branches.length][];
+            this.READY_NODES = new ArrayList <> ();
+            
+            for (int i = 0; i < branches.length; i++) {
+                COUNTERS [i] = new int [branches [i].size ()];
+                READY_NODES.add (new ArrayList <> ());
+            }
+            
+            this.BRANCHES = branches;
+        }
+        
+        public String toString () {
+            return "(" + this.getClass ().getSimpleName () 
+                 + "~" + this.hashCode () + ")";
+        }
+        
+        private boolean isTimeEnough (Times time, int counts) {
+            if (Times.S.equals (time) && counts != 1) {
+                return false;
+            }
+            
+            if (Times.SOM.equals (time) && counts < 1) {
+                return false;
+            }
+            
+            /*
+            if (Times.ZOS.equals (time) && counts > 1) {
+                return false;
+            }
+            */
+            
+            return true;
+        }
+        
+        private boolean isBranchReady (int branch) {
+            for (int i = 0; i < BRANCHES [branch].size (); i++) {
+                Trio <?, Times, ?> term = BRANCHES [branch].get (i);
+                if (!isTimeEnough (term.S, COUNTERS [branch][i])) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        @Override
+        public Pair <?, Integer> consume (int start) throws IOException {
+            int [] failed = new int [BRANCHES.length];
+            for (int i = 0; i < BRANCHES.length; i++) {
+                
+                TreeNode node = new TreeNode (this.toString ());
+                int pointer = start;
+                
+                for (int j = 0; j < BRANCHES [i].size (); j++) {
+                    int code = getByIndex (pointer);
+                    if (code == -1) { break; }
+                    
+                    Trio <ParseTreeProducer, Times, ?> term = BRANCHES [i].get (j);
+                    term.F.reset ();
+                    
+                    Pair <?, Integer> result = term.F.consume (pointer);
+                    
+                    if (result.F instanceof Exception) {
+                        if (Character.isWhitespace (code)) {
+                            while (Character.isWhitespace (getByIndex (++pointer))) {}
+                            j -=1; continue; // One more attempt without whitespaces
+                        }
+                        
+                        //System.out.println (result);
+                        
+                        if (isTimeEnough (term.S, COUNTERS [i][j])) {
+                            // This term repeated enough times
+                            continue;
+                        } else {
+                            // Failed to continue branch -> drop it
+                            failed [i] = pointer;
+                            break;
+                        }
+                    } else {
+                        node.CHILDREN.add ((TreeNode) result.F);
+                        term.F.apply (node, this);
+                        COUNTERS [i][j] += 1;
+                        pointer += result.S;
+                        
+                        if (Times.S.equals (term.S) 
+                            || Times.ZOS.equals (term.S)) {
+                            continue;
+                        } else {
+                            // Term can be repeated
+                            j -= 1; continue;
+                        }
+                    }
+                }
+                
+                if (isBranchReady (i)) {
+                    return Pair.mp (node, pointer - start);
+                }
+            }
+            
+            /*
+            System.out.print (this + " ");
+            for (int i = 0; i < failed.length; i++) {
+                System.out.print (failed [i] + " " + ((char) getByIndex (failed [i]) + "; "));
+            }
+            System.out.println ();
+            */
+            
+            return Pair.mp (new IllegalStateException ("No branch matched in " + this), start);
+        }
+        
+        @Override
+        public void apply (TreeNode node, ParseTreeProducer producer) {}
+        
+        @Override
+        public TreeNode getNode () {
+            return node;
+        }
+        
+        @Override
+        public void reset () {
+            for (int i = 0; i < BRANCHES.length; i++) {
+                COUNTERS [i] = new int [BRANCHES [i].size ()];
+            }
+            
+            node = null;
+        }
+        
+    }
+    
+    private abstract class AbsTerminalProducer implements ParseTreeProducer {
+        
+        protected final boolean IS_REGEXP;
+        protected final String REGEXP;
+        
+        protected StringBuilder accumulator = new StringBuilder ();
+        protected int pointer = 0;
+        
+        protected TreeNode node;
+        
+        public String value = "";
+        
+        public AbsTerminalProducer (String need, boolean isRegexp) {
+            this.IS_REGEXP = isRegexp;
+            this.REGEXP = need;
+            
+            if (!isRegexp) { accumulator.append (need); }
+        }
+        
+        public String toString () {
+            return "(" + this.getClass ().getSimpleName () 
+                 + " ~ " + this.hashCode () + ")";
+        }
+        
+        @Override
+        public Pair <?, Integer> consume (int start) throws IOException {
+            //System.out.println ("--> Enter to " + this);
+            if (IS_REGEXP) {
+                while (true) {
+                    char c = (char) getByIndex (start + pointer);
+                    if ((accumulator.toString () + c).matches (REGEXP)) {
+                        accumulator.append (c);
+                    } else {
+                        break;
+                    }
+                    
+                    //System.out.println ("Char `" + c + "` in " + this);
+                    pointer += 1;
+                }
+                
+                if (pointer == 0) {
+                    char c = (char) getByIndex (start + pointer);
+                    String text = "Unexpected char `" + c + "` in " + this;
+                    return Pair.mp (new IllegalStateException (text), pointer);
+                }
+            } else {
+                while (pointer < accumulator.length ()) {
+                    char c = (char) getByIndex (start + pointer);
+                    if (accumulator.charAt (pointer) != c) {
+                        String text = "Unexpected char `" + c + "` in " + this + " at " + (start + pointer);
+                        return Pair.mp (new IllegalStateException (text), pointer);
+                    }
+                    
+                    //System.out.println ("Char `" + c + "` in " + this);
+                    pointer += 1;
+                }
+            }
+            
+            //System.out.println ("> " + this + " " + accumulator.toString ());
+            this.node = new TreeNode (accumulator.toString ());
+            value = accumulator.toString ();
+            
+            return Pair.mp (getNode (), pointer);
+        }
+        
+        @Override
+        public void apply (TreeNode node, ParseTreeProducer producer) {}
+        
+        @Override
+        public TreeNode getNode () {
+            return node;
+        }
+        
+        @Override
+        public void reset () {
+            if (IS_REGEXP) {
+                accumulator.setLength (0);
+            }
+            
+            pointer = 0;
+            node = null;
+            value = "";
+        }
+        
+    }
+    
+    %CLASS_CONTEXTS%
+    
+}

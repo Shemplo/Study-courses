@@ -1,0 +1,39 @@
+variables {
+    var_line*
+}
+
+var_line {
+    var_type
+    STAR*
+    var_name+
+    SEMI
+}
+
+var_type {
+    INT | DOUBLE | CHAR | FLOAT
+}
+
+var_name {
+    identifier
+    COMMA?
+}
+
+identifier (String code = $empty) {
+    IDENT { code = $IDENT.value }
+}
+
+IDENT : /[a-zA-Z][a-zA-Z0-9]*/;
+
+STAR : '*';
+
+SEMI : ';';
+
+COMMA : ',';
+
+INT : int;
+
+CHAR : char;
+
+DOUBLE : 'double';
+
+FLOAT : 'float';
