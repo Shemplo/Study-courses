@@ -1,9 +1,9 @@
 package ru.shemplo.tf.stcs;
 
-import ru.shemplo.tf.TimePeriod;
+import ru.shemplo.dsau.utils.time.TimeDelta;
 
 public interface HasTimePeriod {
 
-	public TimePeriod getTimeBounds ();
+	public TimeDelta getTimeBounds ();
 	
 }

@@ -10,6 +10,11 @@ public class TimePeriod extends Pair <Date, Date> {
 		super (from, to);
 	}
 	
+	public boolean contains (Date date) {
+		return (F.before (date) || F.equals (date))
+			&& (S.after (date) || S.equals (date));
+	}
+	
 	@Override
 	public TimePeriod swap () {
 		return TimePeriod.mtp (S, F);

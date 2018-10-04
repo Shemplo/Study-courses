@@ -7,7 +7,8 @@ import java.util.Random;
 
 import java.io.IOException;
 
-import ru.shemplo.dsau.utils.TimeDelta;
+import ru.shemplo.dsau.utils.time.TimeDelta;
+import ru.shemplo.dsau.utils.time.TimeUtils;
 import ru.shemplo.tf.TimePeriod;
 import ru.shemplo.tf.stcs.StatisticsProvider;
 import ru.shemplo.tf.stcs.TweetsStatProvider;
@@ -41,13 +42,14 @@ public class LocalNetworkSession implements NetworkSession {
 		}
 		*/
 		
-		long periodLength = TimeDelta.deltaOfPeriod (period).getLength ();
+		TimePeriod tmpPeriod = TimePeriod.mtp (TimeUtils.floorToHours (period.F), period.S);
+		long periodLength = TimeDelta.deltaOfPeriod (tmpPeriod).getLength ();
 		List <Date> usages = new ArrayList <> ();
 		Random random = new Random ();
 		
 		for (int i = 0; i < periodLength / 1000; i ++) {
 			int delta = random.nextInt ((int) periodLength);
-			usages.add (new Date (period.F.getTime () + delta));
+			usages.add (new Date (tmpPeriod.F.getTime () + delta));
 		}
 		
 		return new TweetsStatProvider (key, period, usages);

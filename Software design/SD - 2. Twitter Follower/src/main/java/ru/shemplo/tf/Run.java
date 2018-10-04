@@ -3,8 +3,8 @@ package ru.shemplo.tf;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import ru.shemplo.dsau.utils.TimeDelta;
-import ru.shemplo.dsau.utils.TimeDelta.TDUnit;
+import ru.shemplo.dsau.utils.time.TimeDelta;
+import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
 import ru.shemplo.tf.gfx.ImageResultProducer;
 import ru.shemplo.tf.gfx.ResultProducer;
 import ru.shemplo.tf.ntwk.LocalNetworkSession;
