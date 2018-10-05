@@ -1,4 +1,4 @@
-package ru.shemplo.tf.ntwk;
+package ru.shemplo.tf.test;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -8,8 +8,9 @@ import java.util.Random;
 import java.io.IOException;
 
 import ru.shemplo.dsau.utils.time.TimeDelta;
+import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
-import ru.shemplo.tf.TimePeriod;
+import ru.shemplo.tf.ntwk.NetworkSession;
 import ru.shemplo.tf.stcs.StatisticsProvider;
 import ru.shemplo.tf.stcs.TweetsStatProvider;
 

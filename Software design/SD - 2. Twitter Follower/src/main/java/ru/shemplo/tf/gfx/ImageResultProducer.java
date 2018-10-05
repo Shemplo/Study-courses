@@ -12,8 +12,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import ru.shemplo.dsau.stuctures.Pair;
+import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
-import ru.shemplo.tf.TimePeriod;
 import ru.shemplo.tf.stcs.DataComposer;
 import ru.shemplo.tf.stcs.StatisticsProvider;
 
@@ -25,7 +25,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 							 DRAW_DATE_FORMAT = new SimpleDateFormat ("dd.MM.yy");
 	
 	private final int MAX_HEIGHT = 200, TEXT_HEIGHT = 15, TEXT_PADDING = 5, LINES = 10;
-	private final int PADDING = 20, COLUMN_WIDTH = 25, COLUMN_MARGIN = 15, LEGEND = 30;
+	private final int PADDING = 20, COLUMN_WIDTH = 20, COLUMN_MARGIN = 15, LEGEND = 30;
 	
 	public ImageResultProducer (StatisticsProvider provider) {
 		this.PROVIDER = provider;
@@ -60,7 +60,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		
 		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = image.createGraphics ();
-		g.setFont (new Font ("Arial", Font.PLAIN, 12));
+		g.setFont (new Font ("Arial", Font.PLAIN, 10));
 		
 		//g.setColor (Color.WHITE);
 		//g.fillRect (0, 0, width, height);
@@ -75,7 +75,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 			
 			String text = "" + (int) (limit * (1.0 * (LINES - i) / LINES));
 			g.setColor (new Color (100, 100, 100));
-			g.drawString (text, width - PADDING - LEGEND + 10, y + 5);
+			g.drawString (text, width - PADDING - LEGEND + 10, y + 3);
 		}
 		
 		for (int i = 0; i < usages.size (); i++) {
@@ -93,7 +93,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 			int textWidth = g.getFontMetrics ().stringWidth (text);
 			g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset);
 			
-			if ("00:00".equals (text)) {
+			if ("00:00".equals (text) && i != 1 && i != usages.size () - 1) {
 				text = DRAW_DATE_FORMAT.format (usages.get (i).F);
 				textWidth = g.getFontMetrics ().stringWidth (text);
 				g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset * 2);
@@ -108,7 +108,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		
 		x = PADDING + 0 * (COLUMN_WIDTH + COLUMN_MARGIN);
 		text = DRAW_DATE_FORMAT.format (usages.get (0).F);
-		g.setFont (new Font ("Arial", Font.PLAIN, 12));
+		g.setFont (new Font ("Arial", Font.PLAIN, 10));
 		int textWidth = g.getFontMetrics ().stringWidth (text);
 		g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset * 2);
 		

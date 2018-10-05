@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 
 import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimeDelta;
+import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
 import ru.shemplo.dsau.utils.time.TimeUtils;
-import ru.shemplo.tf.TimePeriod;
 import ru.shemplo.tf.stcs.HoursComposer;
 import ru.shemplo.tf.stcs.StatisticsProvider;
 import ru.shemplo.tf.stcs.TweetsStatProvider;

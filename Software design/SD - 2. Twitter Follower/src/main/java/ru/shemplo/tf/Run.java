@@ -10,10 +10,10 @@ import ru.shemplo.dsau.utils.time.TimeDelta;
 import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
 import ru.shemplo.tf.gfx.ImageResultProducer;
 import ru.shemplo.tf.gfx.ResultProducer;
-import ru.shemplo.tf.ntwk.LocalNetworkSession;
 import ru.shemplo.tf.ntwk.NetworkSession;
 import ru.shemplo.tf.stcs.HoursComposer;
 import ru.shemplo.tf.stcs.StatisticsProvider;
+import ru.shemplo.tf.test.LocalNetworkSession;
 
 public class Run {
 

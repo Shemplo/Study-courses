@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import ru.shemplo.dsau.stuctures.Pair;
-import ru.shemplo.tf.TimePeriod;
+import ru.shemplo.dsau.utils.time.TimePeriod;
 
 public interface StatisticsProvider {
 

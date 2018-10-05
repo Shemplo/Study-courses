@@ -5,8 +5,8 @@ import java.util.Date;
 import java.util.List;
 
 import ru.shemplo.dsau.stuctures.Pair;
+import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
-import ru.shemplo.tf.TimePeriod;
 
 public class TweetsStatProvider implements StatisticsProvider {
 
