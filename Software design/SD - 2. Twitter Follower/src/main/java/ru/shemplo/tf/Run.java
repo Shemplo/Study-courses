@@ -38,7 +38,7 @@ public class Run {
 			throw new IllegalArgumentException (text);
 		}
 		
-		TimeDelta delta = TimeDelta.valueOf (TDUnit.HWR, -20);
+		TimeDelta delta = TimeDelta.valueOf (TDUnit.HWR, -hours);
 		
 		System.out.println (hashtag + " " + hours);
 		NetworkSession session = new LocalNetworkSession ();

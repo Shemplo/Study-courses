@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.text.DateFormat;
@@ -23,8 +24,8 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 	private final DateFormat DRAW_TIME_FORMAT = new SimpleDateFormat ("HH:mm"),
 							 DRAW_DATE_FORMAT = new SimpleDateFormat ("dd.MM.yy");
 	
-	private final int PADDING = 15, COLUMN_WIDTH = 25, COLUMN_MARGIN = 15;
-	private final int MAX_HEIGHT = 200, TEXT_HEIGHT = 15, TEXT_PADDING = 5;
+	private final int MAX_HEIGHT = 200, TEXT_HEIGHT = 15, TEXT_PADDING = 5, LINES = 10;
+	private final int PADDING = 20, COLUMN_WIDTH = 25, COLUMN_MARGIN = 15;
 	
 	public ImageResultProducer (StatisticsProvider provider) {
 		this.PROVIDER = provider;
@@ -32,9 +33,9 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 	
 	private Color getGradient (Color base, int time) {
 		double mod = 0.875 + Math.sin (time) / 6;
-		int r = (int) (base.getRed () * mod), 
+		int r = (int) (base.getRed   () * mod), 
 			g = (int) (base.getGreen () * mod),
-			b = (int) (base.getBlue () * mod),
+			b = (int) (base.getBlue  () * mod),
 			a = (int) (base.getAlpha ());
 		return new Color (r, g, b, a);
 	}
@@ -54,22 +55,35 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		double limit = usages.stream ().map (p -> p.S).max (Integer::compare).orElse (1);
 		
 		int columns = usages.size ();
-		int width  = columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING, 
-			height = MAX_HEIGHT + (TEXT_PADDING + TEXT_HEIGHT + PADDING) * 2;
+		int width  = Math.max (columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING, 300), 
+			height = MAX_HEIGHT + (TEXT_PADDING + TEXT_HEIGHT + PADDING) * 3;
 		
 		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = image.createGraphics ();
+		g.setFont (new Font ("Arial", Font.PLAIN, 12));
+		
+		//g.setColor (Color.WHITE);
+		//g.fillRect (0, 0, width, height);
 		
 		int textOffset = TEXT_PADDING + TEXT_HEIGHT,
-			labelsY = PADDING + MAX_HEIGHT;
+			labelsY = textOffset + PADDING + MAX_HEIGHT;
+		
+		for (int i = 0; i <= LINES; i ++) {
+			g.setColor (new Color (200, 200, 200));
+			int y = PADDING + textOffset + i * (MAX_HEIGHT / LINES);
+			g.drawLine (PADDING, y, width - PADDING, y);
+		}
 		
 		for (int i = 0; i < usages.size (); i++) {
 			int x = PADDING + i * (COLUMN_WIDTH + COLUMN_MARGIN),
 				h = (int) (usages.get (i).S / limit * MAX_HEIGHT);
 			
 			g.setColor (getGradient (new Color (0, 172, 237), x));
-			g.fillRect (x, PADDING + MAX_HEIGHT - h, COLUMN_WIDTH, h);
+			g.fillRect (x, labelsY - h, COLUMN_WIDTH, h);
 
+			g.setColor (Color.DARK_GRAY);
+			g.drawRect (x, labelsY - h, COLUMN_WIDTH, h);
+			
 			g.setColor (Color.BLACK);
 			String text = DRAW_TIME_FORMAT.format (usages.get (i).F);
 			int textWidth = g.getFontMetrics ().stringWidth (text);
@@ -82,10 +96,16 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 			}
 		}
 		
-		int x = PADDING + 0 * (COLUMN_WIDTH + COLUMN_MARGIN);
+		int x = PADDING;
 		
 		g.setColor (Color.BLACK);
-		String text = DRAW_DATE_FORMAT.format (usages.get (0).F);
+		g.setFont (new Font ("Courier New", Font.PLAIN, 18));
+		String text = "Statisctis of using #" + PROVIDER.getRequestKey () + " in tweets";
+		g.drawString (text, x, PADDING);
+		
+		g.setFont (new Font ("Arial", Font.PLAIN, 12));
+		x = PADDING + 0 * (COLUMN_WIDTH + COLUMN_MARGIN);
+		text = DRAW_DATE_FORMAT.format (usages.get (0).F);
 		int textWidth = g.getFontMetrics ().stringWidth (text);
 		g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset * 2);
 		
