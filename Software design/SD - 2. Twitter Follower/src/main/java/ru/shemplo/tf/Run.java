@@ -1,7 +1,10 @@
 package ru.shemplo.tf;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import ru.shemplo.dsau.utils.time.TimeDelta;
 import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
@@ -44,6 +47,7 @@ public class Run {
 		ResultProducer <BufferedImage> producer = new ImageResultProducer (provider);
 		BufferedImage image = producer.produce (new HoursComposer ());
 		
+		ImageIO.write (image, "png", new File ("pic.png"));
 		System.out.println (image);
 	}
 	

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimeUtils;
 import ru.shemplo.tf.TimePeriod;
 
@@ -20,7 +21,7 @@ public class TweetsStatProvider implements StatisticsProvider {
 	}
 
 	@Override
-	public List <Integer> getUsages (DataComposer <Date, Integer> composer) {
+	public List <Pair <Date, Integer>> getUsages (DataComposer <Date, Integer> composer) {
 		return composer.compose (DATES);
 	}
 

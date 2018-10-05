@@ -2,10 +2,15 @@ package ru.shemplo.tf.gfx;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
-import ru.shemplo.dsau.utils.time.TimeDelta;
+import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimeUtils;
 import ru.shemplo.tf.TimePeriod;
 import ru.shemplo.tf.stcs.DataComposer;
@@ -15,20 +20,82 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 
 	private final StatisticsProvider PROVIDER;
 	
+	private final DateFormat DRAW_TIME_FORMAT = new SimpleDateFormat ("HH:mm"),
+							 DRAW_DATE_FORMAT = new SimpleDateFormat ("dd.MM.yy");
+	
+	private final int PADDING = 15, COLUMN_WIDTH = 25, COLUMN_MARGIN = 15;
+	private final int MAX_HEIGHT = 200, TEXT_HEIGHT = 15, TEXT_PADDING = 5;
+	
 	public ImageResultProducer (StatisticsProvider provider) {
 		this.PROVIDER = provider;
 	}
 	
+	private Color getGradient (Color base, int time) {
+		double mod = 0.875 + Math.sin (time) / 6;
+		int r = (int) (base.getRed () * mod), 
+			g = (int) (base.getGreen () * mod),
+			b = (int) (base.getBlue () * mod),
+			a = (int) (base.getAlpha ());
+		return new Color (r, g, b, a);
+	}
+	
 	@Override
 	public BufferedImage produce (DataComposer <Date, Integer> composer) {
-		List <Integer> usages = PROVIDER.getUsages (composer);
+		List <Pair <Date, Integer>> usages = PROVIDER.getUsages (composer);
+		System.out.println (usages);
 		
 		TimePeriod period = PROVIDER.getPeriod ();
-		Date from = period.F, to = TimeUtils.floorToHours (period.S),
-			 fromDay = TimeUtils.floorToDays (from);
-		TimeDelta delta = TimeDelta.deltaOf (from, to), skip = TimeDelta.deltaOf (fromDay, from);
-		System.out.println (from + " " + to + "\n"  + delta + "\n" + fromDay + "\n" + skip);
-		return null;
+		Date from = period.F, to = TimeUtils.floorToHours (period.S.getTime ());
+		
+		TimePeriod trimmedPeriod = TimePeriod.mtp (from, to);
+		usages = usages.stream ()
+			   . filter (p -> trimmedPeriod.contains (p.F))
+			   . collect (Collectors.toList ());
+		double limit = usages.stream ().map (p -> p.S).max (Integer::compare).orElse (1);
+		
+		int columns = usages.size ();
+		int width  = columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING, 
+			height = MAX_HEIGHT + (TEXT_PADDING + TEXT_HEIGHT + PADDING) * 2;
+		
+		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_ARGB);
+		Graphics g = image.createGraphics ();
+		
+		int textOffset = TEXT_PADDING + TEXT_HEIGHT,
+			labelsY = PADDING + MAX_HEIGHT;
+		
+		for (int i = 0; i < usages.size (); i++) {
+			int x = PADDING + i * (COLUMN_WIDTH + COLUMN_MARGIN),
+				h = (int) (usages.get (i).S / limit * MAX_HEIGHT);
+			
+			g.setColor (getGradient (new Color (0, 172, 237), x));
+			g.fillRect (x, PADDING + MAX_HEIGHT - h, COLUMN_WIDTH, h);
+
+			g.setColor (Color.BLACK);
+			String text = DRAW_TIME_FORMAT.format (usages.get (i).F);
+			int textWidth = g.getFontMetrics ().stringWidth (text);
+			g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset);
+			
+			if ("00:00".equals (text)) {
+				text = DRAW_DATE_FORMAT.format (usages.get (i).F);
+				textWidth = g.getFontMetrics ().stringWidth (text);
+				g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset * 2);
+			}
+		}
+		
+		int x = PADDING + 0 * (COLUMN_WIDTH + COLUMN_MARGIN);
+		
+		g.setColor (Color.BLACK);
+		String text = DRAW_DATE_FORMAT.format (usages.get (0).F);
+		int textWidth = g.getFontMetrics ().stringWidth (text);
+		g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset * 2);
+		
+		x = PADDING + (columns - 1) * (COLUMN_WIDTH + COLUMN_MARGIN);
+		text = DRAW_DATE_FORMAT.format (usages.get (columns - 1).F);
+		textWidth = g.getFontMetrics ().stringWidth (text);
+		g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset * 2);
+		
+		g.dispose ();
+		return image;
 	}
 
 }

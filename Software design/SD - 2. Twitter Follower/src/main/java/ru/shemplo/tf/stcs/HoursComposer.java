@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimeDelta;
 import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
 import ru.shemplo.dsau.utils.time.TimeUtils;
@@ -13,7 +14,7 @@ import ru.shemplo.dsau.utils.time.TimeUtils;
 public class HoursComposer implements DataComposer <Date, Integer> {
 
 	@Override
-	public List <Integer> compose (List <Date> data) {
+	public List <Pair <Date, Integer>> compose (List <Date> data) {
 		Map <Long, Integer> entries = new HashMap <> ();
 		for (Date date : data) {
 			long key = TimeUtils.floorToHours (date).getTime ();
@@ -24,7 +25,7 @@ public class HoursComposer implements DataComposer <Date, Integer> {
 		
 		return entries.keySet ().stream ()
 			 . sorted ()
-			 . map (entries::get)
+			 . map (k -> Pair.mp (new Date (k), entries.get (k)))
 			 . collect (Collectors.toList ());
 	}
 

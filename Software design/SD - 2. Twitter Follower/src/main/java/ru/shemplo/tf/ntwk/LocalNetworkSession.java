@@ -42,7 +42,7 @@ public class LocalNetworkSession implements NetworkSession {
 		}
 		*/
 		
-		TimePeriod tmpPeriod = TimePeriod.mtp (TimeUtils.floorToHours (period.F), period.S);
+		TimePeriod tmpPeriod = TimePeriod.mtp (TimeUtils.floorToDays (period.F), period.S);
 		long periodLength = TimeDelta.deltaOfPeriod (tmpPeriod).getLength ();
 		List <Date> usages = new ArrayList <> ();
 		Random random = new Random ();
