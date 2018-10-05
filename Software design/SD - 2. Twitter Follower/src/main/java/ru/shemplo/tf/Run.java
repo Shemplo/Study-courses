@@ -11,13 +11,15 @@ import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
 import ru.shemplo.tf.gfx.ImageResultProducer;
 import ru.shemplo.tf.gfx.ResultProducer;
 import ru.shemplo.tf.ntwk.NetworkSession;
+import ru.shemplo.tf.ntwk.VKSession;
 import ru.shemplo.tf.stcs.HoursComposer;
 import ru.shemplo.tf.stcs.StatisticsProvider;
-import ru.shemplo.tf.test.LocalNetworkSession;
 
 public class Run {
 
 	public static void main (String ... args) throws IOException {
+		PropertiesLoader.load ("src/main/resources/properties");
+		
 		if (args == null || args.length < 1) {
 			String text = "First argument missed: [hashtag]";
 			throw new IllegalArgumentException (text);
@@ -41,7 +43,7 @@ public class Run {
 		TimeDelta delta = TimeDelta.valueOf (TDUnit.HWR, -hours);
 		
 		System.out.println (hashtag + " " + hours);
-		NetworkSession session = new LocalNetworkSession ();
+		NetworkSession session = new VKSession ("shemplo");
 		session.tryConnect ();
 		
 		if (session.isConnected ()) {
@@ -51,7 +53,7 @@ public class Run {
 			
 			ImageIO.write (image, "png", new File ("pic.png"));
 		} else {
-			System.err.println ("Not connected to twitter.com");
+			System.err.println ("Not connected");
 		}
 	}
 	

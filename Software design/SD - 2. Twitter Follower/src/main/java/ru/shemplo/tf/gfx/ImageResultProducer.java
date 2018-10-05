@@ -28,6 +28,11 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 	private final int PADDING = 20, COLUMN_WIDTH = 20, COLUMN_MARGIN = 15, LEGEND = 30;
 	
 	public ImageResultProducer (StatisticsProvider provider) {
+		if (provider == null) {
+			String text = StatisticsProvider.class.getSimpleName () + " argument can't be NULL";
+			throw new IllegalArgumentException (text);
+		}
+		
 		this.PROVIDER = provider;
 	}
 	
@@ -101,7 +106,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		}
 		
 		int x = PADDING;
-		String text = "Statisctis of using #" + PROVIDER.getRequestKey () + " in tweets";
+		String text = "Statisctis of using #" + PROVIDER.getRequestKey () + " in posts";
 		g.setColor (Color.BLACK);
 		g.setFont (new Font ("Courier New", Font.PLAIN, 18));
 		g.drawString (text, x, PADDING);

@@ -12,7 +12,6 @@ import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
 import ru.shemplo.tf.ntwk.NetworkSession;
 import ru.shemplo.tf.stcs.StatisticsProvider;
-import ru.shemplo.tf.stcs.TweetsStatProvider;
 
 public class LocalNetworkSession implements NetworkSession {
 
@@ -55,7 +54,7 @@ public class LocalNetworkSession implements NetworkSession {
 			usages.add (new Date (tmpPeriod.F.getTime () + delta));
 		}
 		
-		return new TweetsStatProvider (key, period, usages);
+		return null;
 	}
 
 }

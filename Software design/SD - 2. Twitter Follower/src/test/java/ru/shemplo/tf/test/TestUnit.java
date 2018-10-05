@@ -19,7 +19,7 @@ import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
 import ru.shemplo.dsau.utils.time.TimeUtils;
 import ru.shemplo.tf.stcs.HoursComposer;
 import ru.shemplo.tf.stcs.StatisticsProvider;
-import ru.shemplo.tf.stcs.TweetsStatProvider;
+import ru.shemplo.tf.stcs.VKStatisticsProvider;
 
 public class TestUnit {
 
@@ -230,7 +230,7 @@ public class TestUnit {
 		public void testProviderGetKey () {
 			TimePeriod period = new TimePeriod (new Date (), new Date ());
 			
-			StatisticsProvider provider = new TweetsStatProvider ("Some key", period, new ArrayList <> ());
+			StatisticsProvider provider = new VKStatisticsProvider ("Some key", period, new ArrayList <> ());
 			assertEquals ("Some key", provider.getRequestKey ());
 		}
 		
@@ -239,7 +239,7 @@ public class TestUnit {
 			TimePeriod period = new TimePeriod (new Date (), new Date ());
 			Date from = TimeUtils.floorToHours (period.F);
 			
-			StatisticsProvider provider = new TweetsStatProvider ("Some key", period, new ArrayList <> ());
+			StatisticsProvider provider = new VKStatisticsProvider ("Some key", period, new ArrayList <> ());
 			TimePeriod period2 = provider.getPeriod ();
 			
 			assertEquals (from, period2.F);

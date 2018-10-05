@@ -4,25 +4,34 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.vk.api.sdk.objects.wall.WallPostFull;
+
 import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
 
-public class TweetsStatProvider implements StatisticsProvider {
+public class VKStatisticsProvider implements StatisticsProvider {
 
-	private final List <Date> DATES;
+	@SuppressWarnings ("unused")
+	private final List <WallPostFull> DATES;
 	private final TimePeriod PERIOD;
 	private final String KEY;
 	
-	public TweetsStatProvider (String key, TimePeriod period, List <Date> usages) {
+	public VKStatisticsProvider (String key, TimePeriod period, List <WallPostFull> wallPosts) {
+		if (key == null || period == null || wallPosts == null) {
+			String text = "Argumens of " + this.getClass ().getSimpleName () + " can't be NULL";
+			throw new IllegalArgumentException (text);
+		}
+		
 		this.PERIOD = TimePeriod.mtp (TimeUtils.floorToHours (period.F), period.S);
-		this.DATES = new ArrayList <> (usages);
+		this.DATES = new ArrayList <> (wallPosts);
 		this.KEY = key;
 	}
 
 	@Override
 	public List <Pair <Date, Integer>> getUsages (DataComposer <Date, Integer> composer) {
-		return composer.compose (DATES);
+		//return composer.compose (DATES);
+		return null;
 	}
 
 	@Override
