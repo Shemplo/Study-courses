@@ -25,7 +25,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 							 DRAW_DATE_FORMAT = new SimpleDateFormat ("dd.MM.yy");
 	
 	private final int MAX_HEIGHT = 200, TEXT_HEIGHT = 15, TEXT_PADDING = 5, LINES = 10;
-	private final int PADDING = 20, COLUMN_WIDTH = 25, COLUMN_MARGIN = 15;
+	private final int PADDING = 20, COLUMN_WIDTH = 25, COLUMN_MARGIN = 15, LEGEND = 30;
 	
 	public ImageResultProducer (StatisticsProvider provider) {
 		this.PROVIDER = provider;
@@ -43,7 +43,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 	@Override
 	public BufferedImage produce (DataComposer <Date, Integer> composer) {
 		List <Pair <Date, Integer>> usages = PROVIDER.getUsages (composer);
-		System.out.println (usages);
+		/* XXX: REMOVE IN FUTURE */ System.out.println (usages);
 		
 		TimePeriod period = PROVIDER.getPeriod ();
 		Date from = period.F, to = TimeUtils.floorToHours (period.S.getTime ());
@@ -55,7 +55,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		double limit = usages.stream ().map (p -> p.S).max (Integer::compare).orElse (1);
 		
 		int columns = usages.size ();
-		int width  = Math.max (columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING, 300), 
+		int width  = Math.max (columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING + LEGEND, 300), 
 			height = MAX_HEIGHT + (TEXT_PADDING + TEXT_HEIGHT + PADDING) * 3;
 		
 		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_ARGB);
@@ -71,7 +71,11 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		for (int i = 0; i <= LINES; i ++) {
 			g.setColor (new Color (200, 200, 200));
 			int y = PADDING + textOffset + i * (MAX_HEIGHT / LINES);
-			g.drawLine (PADDING, y, width - PADDING, y);
+			g.drawLine (PADDING, y, width - PADDING - LEGEND, y);
+			
+			String text = "" + (int) (limit * (1.0 * (LINES - i) / LINES));
+			g.setColor (new Color (100, 100, 100));
+			g.drawString (text, width - PADDING - LEGEND + 10, y + 5);
 		}
 		
 		for (int i = 0; i < usages.size (); i++) {
@@ -97,15 +101,14 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		}
 		
 		int x = PADDING;
-		
+		String text = "Statisctis of using #" + PROVIDER.getRequestKey () + " in tweets";
 		g.setColor (Color.BLACK);
 		g.setFont (new Font ("Courier New", Font.PLAIN, 18));
-		String text = "Statisctis of using #" + PROVIDER.getRequestKey () + " in tweets";
 		g.drawString (text, x, PADDING);
 		
-		g.setFont (new Font ("Arial", Font.PLAIN, 12));
 		x = PADDING + 0 * (COLUMN_WIDTH + COLUMN_MARGIN);
 		text = DRAW_DATE_FORMAT.format (usages.get (0).F);
+		g.setFont (new Font ("Arial", Font.PLAIN, 12));
 		int textWidth = g.getFontMetrics ().stringWidth (text);
 		g.drawString (text, x + (COLUMN_WIDTH - textWidth) / 2, labelsY + textOffset * 2);
 		

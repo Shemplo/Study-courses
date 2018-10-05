@@ -15,14 +15,16 @@ import ru.shemplo.tf.stcs.TweetsStatProvider;
 
 public class LocalNetworkSession implements NetworkSession {
 
+	private boolean isConnected = false;
+	
 	@Override
 	public boolean isConnected () {
-		return false;
+		return isConnected;
 	}
 
 	@Override
 	public void tryConnect () throws IOException {
-		
+		isConnected = true;
 	}
 
 	@Override
@@ -47,7 +49,7 @@ public class LocalNetworkSession implements NetworkSession {
 		List <Date> usages = new ArrayList <> ();
 		Random random = new Random ();
 		
-		for (int i = 0; i < periodLength / 1000; i ++) {
+		for (int i = 0; i < periodLength / 10000; i ++) {
 			int delta = random.nextInt ((int) periodLength);
 			usages.add (new Date (tmpPeriod.F.getTime () + delta));
 		}

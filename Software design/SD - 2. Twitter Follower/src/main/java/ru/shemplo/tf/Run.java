@@ -42,13 +42,17 @@ public class Run {
 		
 		System.out.println (hashtag + " " + hours);
 		NetworkSession session = new LocalNetworkSession ();
+		session.tryConnect ();
 		
-		StatisticsProvider provider = session.sendRequest ("tag", delta.getPeriod ());
-		ResultProducer <BufferedImage> producer = new ImageResultProducer (provider);
-		BufferedImage image = producer.produce (new HoursComposer ());
-		
-		ImageIO.write (image, "png", new File ("pic.png"));
-		System.out.println (image);
+		if (session.isConnected ()) {
+			StatisticsProvider provider = session.sendRequest (hashtag, delta.getPeriod ());
+			ResultProducer <BufferedImage> producer = new ImageResultProducer (provider);
+			BufferedImage image = producer.produce (new HoursComposer ());
+			
+			ImageIO.write (image, "png", new File ("pic.png"));
+		} else {
+			System.err.println ("Not connected to twitter.com");
+		}
 	}
 	
 }
