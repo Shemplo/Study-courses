@@ -11,7 +11,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import ru.shemplo.dsau.utils.time.TimePeriod;
-import ru.shemplo.tf.stcs.StatisticsProvider;
+import ru.shemplo.tf.stcs.StatisticsData;
 
 public class FakeTwitterSession implements NetworkSession {
 
@@ -46,7 +46,7 @@ public class FakeTwitterSession implements NetworkSession {
 	}
 
 	@Override
-	public StatisticsProvider sendRequest (String key, TimePeriod period) throws IOException {
+	public StatisticsData sendRequest (String key, TimePeriod period) throws IOException {
 		return null;
 	}
 

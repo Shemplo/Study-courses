@@ -11,7 +11,7 @@ import ru.shemplo.dsau.utils.time.TimeDelta;
 import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
 import ru.shemplo.tf.ntwk.NetworkSession;
-import ru.shemplo.tf.stcs.StatisticsProvider;
+import ru.shemplo.tf.stcs.StatisticsData;
 
 public class LocalNetworkSession implements NetworkSession {
 
@@ -28,7 +28,7 @@ public class LocalNetworkSession implements NetworkSession {
 	}
 
 	@Override
-	public StatisticsProvider sendRequest (String key, TimePeriod period) throws IOException {
+	public StatisticsData sendRequest (String key, TimePeriod period) throws IOException {
 		/*
 		DateFormat format = new SimpleDateFormat ("EEE MMM dd HH:mm:ss Z YYYY", Locale.ENGLISH);
 		*/

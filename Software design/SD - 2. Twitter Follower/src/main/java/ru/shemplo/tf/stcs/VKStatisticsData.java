@@ -13,13 +13,13 @@ import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
 
-public class VKStatisticsProvider implements StatisticsProvider {
+public class VKStatisticsData implements StatisticsData {
 
 	private final List <JsonObject> POSTS;
 	private final TimePeriod PERIOD;
 	private final String KEY;
 	
-	public VKStatisticsProvider (String key, TimePeriod period, List <JsonObject> wallPosts) {
+	public VKStatisticsData (String key, TimePeriod period, List <JsonObject> wallPosts) {
 		if (key == null || period == null || wallPosts == null) {
 			String text = "Argumens of " + this.getClass ().getSimpleName () + " can't be NULL";
 			throw new IllegalArgumentException (text);

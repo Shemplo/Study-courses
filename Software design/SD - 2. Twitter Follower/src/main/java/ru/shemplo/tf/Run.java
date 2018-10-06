@@ -13,7 +13,7 @@ import ru.shemplo.tf.gfx.ResultProducer;
 import ru.shemplo.tf.ntwk.NetworkSession;
 import ru.shemplo.tf.ntwk.VKSession;
 import ru.shemplo.tf.stcs.HoursComposer;
-import ru.shemplo.tf.stcs.StatisticsProvider;
+import ru.shemplo.tf.stcs.StatisticsData;
 
 public class Run {
 
@@ -45,7 +45,7 @@ public class Run {
 		session.tryConnect ();
 		
 		if (session.isConnected ()) {
-			StatisticsProvider provider = session.sendRequest (hashtag, delta.getPeriod ());
+			StatisticsData provider = session.sendRequest (hashtag, delta.getPeriod ());
 			ResultProducer <BufferedImage> producer = new ImageResultProducer (provider);
 			BufferedImage image = producer.produce (new HoursComposer ());
 			

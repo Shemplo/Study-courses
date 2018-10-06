@@ -3,7 +3,7 @@ package ru.shemplo.tf.ntwk;
 import java.io.IOException;
 
 import ru.shemplo.dsau.utils.time.TimePeriod;
-import ru.shemplo.tf.stcs.StatisticsProvider;
+import ru.shemplo.tf.stcs.StatisticsData;
 
 public interface NetworkSession {
 
@@ -40,7 +40,7 @@ public interface NetworkSession {
 	 * If method {@link #isConnected ()} returned negative result
 	 * then attempt must be ignored or must pass throw exception.
 	 * 
-	 * As result will be returned instance of {@link StatisticsProvider}
+	 * As result will be returned instance of {@link StatisticsData}
 	 * that will contains all received data during given {@link TimePeriod}
 	 * by the requested <i>key</i>.
 	 * 
@@ -51,10 +51,10 @@ public interface NetworkSession {
 	 * 
 	 * @throws IOException in case of request errors
 	 * 
-	 * @see StatisticsProvider
+	 * @see StatisticsData
 	 * 
 	 */
-	public StatisticsProvider sendRequest (String key, TimePeriod period) 
+	public StatisticsData sendRequest (String key, TimePeriod period) 
 		throws IOException;
 	
 }

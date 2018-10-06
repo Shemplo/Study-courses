@@ -6,7 +6,7 @@ import java.util.List;
 import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimePeriod;
 
-public interface StatisticsProvider {
+public interface StatisticsData {
 
 	/**
 	 * Converts raw data from response of request to expected.

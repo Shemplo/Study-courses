@@ -20,8 +20,8 @@ import com.vk.api.sdk.queries.newsfeed.NewsfeedSearchQuery;
 
 import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
-import ru.shemplo.tf.stcs.StatisticsProvider;
-import ru.shemplo.tf.stcs.VKStatisticsProvider;
+import ru.shemplo.tf.stcs.StatisticsData;
+import ru.shemplo.tf.stcs.VKStatisticsData;
 
 public class VKSession implements NetworkSession {
 
@@ -52,7 +52,7 @@ public class VKSession implements NetworkSession {
 	}
 
 	@Override
-	public StatisticsProvider sendRequest (String key, TimePeriod period) throws IOException {
+	public StatisticsData sendRequest (String key, TimePeriod period) throws IOException {
 		if (!isConnected ()) {
 			throw new IllegalStateException ("Not connected");
 		}
@@ -84,7 +84,7 @@ public class VKSession implements NetworkSession {
 				}
 			} while (startFrom.length () > 0);
 			
-			return new VKStatisticsProvider (key, period, posts);
+			return new VKStatisticsData (key, period, posts);
 		} catch (ClientException es) {
 			this.client = null;
 			

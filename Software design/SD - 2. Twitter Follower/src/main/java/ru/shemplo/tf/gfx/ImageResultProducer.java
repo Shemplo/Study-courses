@@ -15,11 +15,11 @@ import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
 import ru.shemplo.tf.stcs.DataComposer;
-import ru.shemplo.tf.stcs.StatisticsProvider;
+import ru.shemplo.tf.stcs.StatisticsData;
 
 public class ImageResultProducer implements ResultProducer <BufferedImage> {
 
-	private final StatisticsProvider PROVIDER;
+	private final StatisticsData PROVIDER;
 	
 	private final DateFormat DRAW_TIME_FORMAT = new SimpleDateFormat ("HH:mm"),
 							 DRAW_DATE_FORMAT = new SimpleDateFormat ("dd.MM.yy");
@@ -27,9 +27,9 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 	private final int MAX_HEIGHT = 200, TEXT_HEIGHT = 15, TEXT_PADDING = 5, LINES = 10;
 	private final int PADDING = 20, COLUMN_WIDTH = 20, COLUMN_MARGIN = 15, LEGEND = 30;
 	
-	public ImageResultProducer (StatisticsProvider provider) {
+	public ImageResultProducer (StatisticsData provider) {
 		if (provider == null) {
-			String text = StatisticsProvider.class.getSimpleName () + " argument can't be NULL";
+			String text = StatisticsData.class.getSimpleName () + " argument can't be NULL";
 			throw new IllegalArgumentException (text);
 		}
 		
@@ -106,7 +106,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		}
 		
 		int x = PADDING;
-		String text = "Statisctis of using #" + PROVIDER.getRequestKey () 
+		String text = "Statisctics of using #" + PROVIDER.getRequestKey () 
 								+ " in posts of " + PROVIDER.getSource ();
 		g.setColor (Color.BLACK);
 		g.setFont (new Font ("Courier New", Font.PLAIN, 18));

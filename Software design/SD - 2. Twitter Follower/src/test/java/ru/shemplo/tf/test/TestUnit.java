@@ -40,8 +40,8 @@ import ru.shemplo.tf.ntwk.NetworkSession;
 import ru.shemplo.tf.ntwk.VKSession;
 import ru.shemplo.tf.stcs.DataComposer;
 import ru.shemplo.tf.stcs.HoursComposer;
-import ru.shemplo.tf.stcs.StatisticsProvider;
-import ru.shemplo.tf.stcs.VKStatisticsProvider;
+import ru.shemplo.tf.stcs.StatisticsData;
+import ru.shemplo.tf.stcs.VKStatisticsData;
 
 public class TestUnit {
 
@@ -256,7 +256,7 @@ public class TestUnit {
 		public void testProviderGetKey () {
 			TimePeriod period = new TimePeriod (new Date (), new Date ());
 			
-			StatisticsProvider provider = new VKStatisticsProvider ("Some key", period, new ArrayList <> ());
+			StatisticsData provider = new VKStatisticsData ("Some key", period, new ArrayList <> ());
 			assertEquals ("Some key", provider.getRequestKey ());
 		}
 		
@@ -265,7 +265,7 @@ public class TestUnit {
 			TimePeriod period = new TimePeriod (new Date (), new Date ());
 			Date from = TimeUtils.floorToHours (period.F);
 			
-			StatisticsProvider provider = new VKStatisticsProvider ("Some key", period, new ArrayList <> ());
+			StatisticsData provider = new VKStatisticsData ("Some key", period, new ArrayList <> ());
 			TimePeriod period2 = provider.getPeriod ();
 			
 			assertEquals (from, period2.F);
@@ -365,7 +365,7 @@ public class TestUnit {
 					Date from = new Date (System.currentTimeMillis () - 3254 - RANDOM.nextInt (3294834));
 					TimePeriod period = TimePeriod.mtp (from, new Date ());
 					
-					StatisticsProvider provider = SESSION.sendRequest ("vk", period);
+					StatisticsData provider = SESSION.sendRequest ("vk", period);
 					assertNotNull (provider);
 					
 					List <Pair <Date, Integer>> list = provider.getUsages (new HoursComposer ());
@@ -392,7 +392,7 @@ public class TestUnit {
 		public void testRender () {
 			long hourLength = 1000 * 60 * 60;
 			
-			StatisticsProvider provider = new StatisticsProvider() {
+			StatisticsData provider = new StatisticsData() {
 				
 				@Override
 				public List <Pair <Date, Integer>> getUsages (DataComposer <Date, Integer> composer) {
