@@ -41,8 +41,6 @@ public class Run {
 		}
 		
 		TimeDelta delta = TimeDelta.valueOf (TDUnit.HWR, -hours);
-		
-		System.out.println (hashtag + " " + hours);
 		NetworkSession session = new VKSession ("shemplo");
 		session.tryConnect ();
 		

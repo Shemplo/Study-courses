@@ -15,6 +15,8 @@ public class PropertiesLoader {
 		) {
 			String line;
 			while ((line = br.readLine ()) != null) {
+				if (line.length () == 0) { continue; }
+				
 				StringTokenizer st = new StringTokenizer (line);
 				System.setProperty (st.nextToken (), st.nextToken ());
 			}

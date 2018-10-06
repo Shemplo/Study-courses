@@ -46,6 +46,10 @@ public class VKSession implements NetworkSession {
 
 	@Override
 	public StatisticsProvider sendRequest (String key, TimePeriod period) throws IOException {
+		if (!isConnected ()) {
+			throw new IllegalStateException ("Not connected");
+		}
+		
 		try {
 			TimePeriod tmpPeriod = TimePeriod.mtp (TimeUtils.floorToDays (period.F), period.S);
 			int startTime = (int) (tmpPeriod.F.getTime () / 1000);

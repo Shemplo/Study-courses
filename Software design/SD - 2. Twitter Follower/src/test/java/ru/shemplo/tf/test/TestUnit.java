@@ -1,22 +1,44 @@
 package ru.shemplo.tf.test;
 
+import static com.xebialabs.restito.builder.stub.StubHttp.*;
+import static com.xebialabs.restito.semantics.Action.*;
+import static com.xebialabs.restito.semantics.Condition.*;
+import static org.glassfish.grizzly.http.Method.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import java.util.function.Consumer;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.mina.core.RuntimeIoException;
+import org.glassfish.grizzly.http.util.HttpStatus;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
+import com.xebialabs.restito.server.StubServer;
+
 import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.time.TimeDelta;
-import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
+import ru.shemplo.dsau.utils.time.TimePeriod;
 import ru.shemplo.dsau.utils.time.TimeUtils;
+import ru.shemplo.tf.PropertiesLoader;
+import ru.shemplo.tf.gfx.ImageResultProducer;
+import ru.shemplo.tf.gfx.ResultProducer;
+import ru.shemplo.tf.ntwk.FakeTwitterSession;
+import ru.shemplo.tf.ntwk.NetworkSession;
+import ru.shemplo.tf.ntwk.VKSession;
+import ru.shemplo.tf.stcs.DataComposer;
 import ru.shemplo.tf.stcs.HoursComposer;
 import ru.shemplo.tf.stcs.StatisticsProvider;
 import ru.shemplo.tf.stcs.VKStatisticsProvider;
@@ -24,6 +46,10 @@ import ru.shemplo.tf.stcs.VKStatisticsProvider;
 public class TestUnit {
 
 	private final Random RANDOM = new Random ();
+	
+	static {
+		PropertiesLoader.load ("src/main/resources/properties");
+	}
 	
 	@Nested
 	public class TestTimeLibrary {
@@ -244,6 +270,151 @@ public class TestUnit {
 			
 			assertEquals (from, period2.F);
 			assertEquals (period.S, period2.S);
+		}
+		
+	}
+	
+	@Nested
+	public class TestNetwork {
+		
+		@Nested
+		public class TestTwitterNetwork {
+			
+			@Test
+			@SuppressWarnings ("static-access")
+			public void testConnectionWithStubServer () {
+				withStubServer (s -> {
+					byte [] toEncode = String.join (":", "test", "past").getBytes (StandardCharsets.UTF_8);
+					String basic = Base64.getEncoder ().encodeToString (toEncode);
+					
+					whenHttp (s).match (
+						method (POST).startsWithUri ("/authorize")
+									 .withHeader ("authorization", "Basic " + basic)
+									 .withHeader ("accept", "application/json")
+						).then (status (HttpStatus.ACCEPTED_202));
+					
+					/*
+					DateFormat format = new SimpleDateFormat ("EEE MMM dd HH:mm:ss Z YYYY", Locale.ENGLISH);
+					
+					JsonObject root = new JsonObject ();
+					JsonArray statuses = new JsonArray ();
+					root.add ("statuses", statuses);
+					
+					int tweets = 1000 + RANDOM.nextInt (10000);
+					for (int i = 0; i < tweets; i++) {
+						JsonObject tweet = new JsonObject ();
+						
+						long time = System.currentTimeMillis () - RANDOM.nextInt (238494);
+						tweet.addProperty ("created_at", format.format (new Date (time)));
+					}
+					
+					whenHttp (s).match (
+						method (POST).startsWithUri ("/search")
+									 .withHeader ("authorization", "Basic " + basic)
+									 .withHeader ("accept", "application/json")
+						).then (stringContent (root.toString ()));
+					*/
+					
+					NetworkSession session = new FakeTwitterSession ("test");
+					try {
+						session.tryConnect ();
+						if (!session.isConnected ()) {
+							throw new IllegalStateException ("not connected");
+						}
+					} catch (IOException ioe) {
+						throw new RuntimeIoException (ioe);
+					}
+				});
+			}
+			
+			private void withStubServer (Consumer <StubServer> callback) {
+				StubServer server = new StubServer (22041);
+				try {
+					callback.accept (server.run ());
+				} finally {
+					if (server != null) {
+						server.stop ();
+					}
+				}
+			}
+			
+		}
+		
+		@Nested
+		public class TestVKNetwork {
+			
+			private NetworkSession SESSION = new VKSession ("shemplo");
+			
+			@Test
+			public void testConnetion () {
+				try {
+					SESSION.tryConnect ();
+					if (!SESSION.isConnected ()) {
+						throw new IllegalStateException ("not connected");
+					}
+				} catch (IOException ioe) {
+					throw new RuntimeIoException (ioe);
+				}
+			}
+			
+			@Test
+			public void testRequest () {
+				try {
+					SESSION.tryConnect ();
+					
+					Date from = new Date (System.currentTimeMillis () - 3254 - RANDOM.nextInt (3294834));
+					TimePeriod period = TimePeriod.mtp (from, new Date ());
+					
+					StatisticsProvider provider = SESSION.sendRequest ("vk", period);
+					assertNotNull (provider);
+					
+					List <Pair <Date, Integer>> list = provider.getUsages (new HoursComposer ());
+					for (int i = 0; i < list.size (); i++) {
+						if (list.get (i).S <= 0) {
+							fail ("Zero or negative entry");
+						}
+					}
+				} catch (IOException ioe) {
+					throw new RuntimeIoException (ioe);
+				} catch (IllegalStateException ise) {
+					// It means that no connection failed
+				}
+			}
+			
+		}
+		
+	}
+	
+	@Nested
+	public class TestImageRender {
+		
+		@Test
+		public void testRender () {
+			long hourLength = 1000 * 60 * 60;
+			
+			StatisticsProvider provider = new StatisticsProvider() {
+				
+				@Override
+				public List <Pair <Date, Integer>> getUsages (DataComposer <Date, Integer> composer) {
+					return new ArrayList <> (Arrays.asList (
+						Pair.mp (new Date (546), 45), Pair.mp (new Date (hourLength + 568), 28)
+					));
+				}
+				
+				@Override
+				public String getRequestKey () {
+					return "tag";
+				}
+				
+				@Override
+				public TimePeriod getPeriod () {
+					return TimePeriod.mtp (new Date (0), new Date ());
+				}
+				
+			};
+			
+			ResultProducer <BufferedImage> producer = new ImageResultProducer (provider);
+			assertNotNull (producer.produce (new HoursComposer ()));
 		}
 		
 	}
