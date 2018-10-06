@@ -1,7 +1,11 @@
 package ru.shemplo.tf.ntwk;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import java.io.IOException;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -45,21 +49,29 @@ public class VKSession implements NetworkSession {
 		try {
 			TimePeriod tmpPeriod = TimePeriod.mtp (TimeUtils.floorToDays (period.F), period.S);
 			int startTime = (int) (tmpPeriod.F.getTime () / 1000);
+			List <JsonObject> posts = new ArrayList <> ();
 			
 			String startFrom = "";
 			do {
 				NewsfeedSearchQuery nsq = client.newsfeed ().search (ACTOR)
 										. q (key)
+										. count (200)
 										. startTime (startTime)
 										. startFrom (startFrom);
 				ClientResponse response = nsq.executeAsRaw ();
 				JsonElement json = new JsonParser ().parse (response.getContent ());
 				JsonObject res = json.getAsJsonObject ().getAsJsonObject ("response");
 				
-				System.out.println (res.has ("next_from"));
+				JsonArray items = res.getAsJsonArray ("items");
+				items.forEach (i -> posts.add (i.getAsJsonObject ()));
+				
+				startFrom = "";
+				if (res.has ("next_from")) {
+					startFrom = res.getAsJsonPrimitive ("next_from").getAsString ();
+				}
 			} while (startFrom.length () > 0);
 			
-			return new VKStatisticsProvider (key, tmpPeriod, null);
+			return new VKStatisticsProvider (key, period, posts);
 		} catch (ClientException es) {
 			this.client = null;
 			
