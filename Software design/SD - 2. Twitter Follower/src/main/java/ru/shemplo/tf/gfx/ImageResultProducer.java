@@ -60,7 +60,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		double limit = usages.stream ().map (p -> p.S).max (Integer::compare).orElse (1);
 		
 		int columns = usages.size ();
-		int width  = Math.max (columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING + LEGEND, 300), 
+		int width  = Math.max (columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING + LEGEND, 450), 
 			height = MAX_HEIGHT + (TEXT_PADDING + TEXT_HEIGHT + PADDING) * 3;
 		
 		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_ARGB);
