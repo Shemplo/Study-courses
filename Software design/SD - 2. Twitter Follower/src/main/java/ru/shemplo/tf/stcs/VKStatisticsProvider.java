@@ -49,4 +49,9 @@ public class VKStatisticsProvider implements StatisticsProvider {
 		return this.PERIOD;
 	}
 
+	@Override
+	public String getSource () {
+		return "vk.com";
+	}
+
 }

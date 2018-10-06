@@ -410,6 +410,11 @@ public class TestUnit {
 				public TimePeriod getPeriod () {
 					return TimePeriod.mtp (new Date (0), new Date ());
 				}
+
+				@Override
+				public String getSource () {
+					return "stub";
+				}
 				
 			};
 			

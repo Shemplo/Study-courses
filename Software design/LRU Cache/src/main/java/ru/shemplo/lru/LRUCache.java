@@ -20,7 +20,7 @@ public interface LRUCache <K, V> {
 	 *   3. !cache.containsKey(key)
 	 *  
 	 *  post:
-	 *   1. cache'[0] == <key, value>
+	 *   1. cache'[0] == &lt;key, value&gt;
 	 *   2. size' <= capacity
 	 * </pre>
 	 * 
@@ -53,8 +53,8 @@ public interface LRUCache <K, V> {
 	 *   2. size <= capacity
 	 *  
 	 *  post:
-	 *   1. value = null | <key, value>.second
-	 *   2. (?value != null) cache'[0] = <key, value>
+	 *   1. value = null | &lt;key, value&gt;.second
+	 *   2. (?value != null) cache'[0] = &lt;key, value&gt;
 	 *   3. size' = size
 	 * </pre>
 	 * 

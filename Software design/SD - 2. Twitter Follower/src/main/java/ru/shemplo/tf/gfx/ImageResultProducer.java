@@ -60,7 +60,7 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		double limit = usages.stream ().map (p -> p.S).max (Integer::compare).orElse (1);
 		
 		int columns = usages.size ();
-		int width  = Math.max (columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING + LEGEND, 450), 
+		int width  = Math.max (columns * COLUMN_WIDTH + (columns - 1) * COLUMN_MARGIN + 2 * PADDING + LEGEND, 650), 
 			height = MAX_HEIGHT + (TEXT_PADDING + TEXT_HEIGHT + PADDING) * 3;
 		
 		BufferedImage image = new BufferedImage (width, height, BufferedImage.TYPE_INT_ARGB);
@@ -106,7 +106,8 @@ public class ImageResultProducer implements ResultProducer <BufferedImage> {
 		}
 		
 		int x = PADDING;
-		String text = "Statisctis of using #" + PROVIDER.getRequestKey () + " in posts";
+		String text = "Statisctis of using #" + PROVIDER.getRequestKey () 
+								+ " in posts of " + PROVIDER.getSource ();
 		g.setColor (Color.BLACK);
 		g.setFont (new Font ("Courier New", Font.PLAIN, 18));
 		g.drawString (text, x, PADDING);

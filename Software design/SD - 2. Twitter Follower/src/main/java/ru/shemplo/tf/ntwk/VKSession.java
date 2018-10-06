@@ -13,6 +13,7 @@ import com.vk.api.sdk.client.ClientResponse;
 import com.vk.api.sdk.client.TransportClient;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.UserActor;
+import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.queries.newsfeed.NewsfeedSearchQuery;
@@ -42,6 +43,12 @@ public class VKSession implements NetworkSession {
 	public void tryConnect () throws IOException {
 		TransportClient transportClient = HttpTransportClient.getInstance (); 
 		this.client = new VkApiClient (transportClient);
+		
+		try {
+			client.account ().getInfo (ACTOR).execute ();
+		} catch (ClientException | ApiException es) {
+			throw new IOException (es);
+		}
 	}
 
 	@Override
@@ -51,8 +58,9 @@ public class VKSession implements NetworkSession {
 		}
 		
 		try {
-			TimePeriod tmpPeriod = TimePeriod.mtp (TimeUtils.floorToDays (period.F), period.S);
-			int startTime = (int) (tmpPeriod.F.getTime () / 1000);
+			TimePeriod tmpPeriod = TimePeriod.mtp (TimeUtils.floorToHours (period.F), period.S);
+			int startTime = (int) (tmpPeriod.F.getTime () / 1000),
+				endTime = (int) (tmpPeriod.S.getTime () / 1000);
 			List <JsonObject> posts = new ArrayList <> ();
 			
 			String startFrom = "";
@@ -61,6 +69,7 @@ public class VKSession implements NetworkSession {
 										. q (key)
 										. count (200)
 										. startTime (startTime)
+										. endTime (endTime)
 										. startFrom (startFrom);
 				ClientResponse response = nsq.executeAsRaw ();
 				JsonElement json = new JsonParser ().parse (response.getContent ());
