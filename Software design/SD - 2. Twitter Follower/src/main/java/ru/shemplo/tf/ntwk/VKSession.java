@@ -47,6 +47,8 @@ public class VKSession implements NetworkSession {
 		try {
 			client.account ().getInfo (ACTOR).execute ();
 		} catch (ClientException | ApiException es) {
+			this.client = null; // not connected
+			
 			throw new IOException (es);
 		}
 	}
