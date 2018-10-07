@@ -7,9 +7,9 @@ import java.util.Random;
 
 import java.io.IOException;
 
-import ru.shemplo.dsau.utils.time.TimeDelta;
-import ru.shemplo.dsau.utils.time.TimePeriod;
-import ru.shemplo.dsau.utils.time.TimeUtils;
+import ru.shemplo.snowball.utils.time.TimeDelta;
+import ru.shemplo.snowball.utils.time.TimePeriod;
+import ru.shemplo.snowball.utils.time.TimeUtils;
 import ru.shemplo.tf.ntwk.NetworkSession;
 import ru.shemplo.tf.stcs.StatisticsData;
 

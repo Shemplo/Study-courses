@@ -10,7 +10,7 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
-import ru.shemplo.dsau.utils.time.TimePeriod;
+import ru.shemplo.snowball.utils.time.TimePeriod;
 import ru.shemplo.tf.stcs.StatisticsData;
 
 public class FakeTwitterSession implements NetworkSession {

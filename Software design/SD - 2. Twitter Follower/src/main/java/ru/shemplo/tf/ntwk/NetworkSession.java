@@ -2,7 +2,7 @@ package ru.shemplo.tf.ntwk;
 
 import java.io.IOException;
 
-import ru.shemplo.dsau.utils.time.TimePeriod;
+import ru.shemplo.snowball.utils.time.TimePeriod;
 import ru.shemplo.tf.stcs.StatisticsData;
 
 public interface NetworkSession {

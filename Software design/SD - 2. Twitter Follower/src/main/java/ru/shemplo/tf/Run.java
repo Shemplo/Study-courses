@@ -6,8 +6,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import ru.shemplo.dsau.utils.time.TimeDelta;
-import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
+import ru.shemplo.snowball.utils.time.TimeDelta;
+import ru.shemplo.snowball.utils.time.TimeDelta.TDUnit;
 import ru.shemplo.tf.gfx.ImageResultProducer;
 import ru.shemplo.tf.gfx.ResultProducer;
 import ru.shemplo.tf.ntwk.NetworkSession;

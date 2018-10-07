@@ -9,9 +9,9 @@ import java.util.function.Function;
 
 import com.google.gson.JsonObject;
 
-import ru.shemplo.dsau.stuctures.Pair;
-import ru.shemplo.dsau.utils.time.TimePeriod;
-import ru.shemplo.dsau.utils.time.TimeUtils;
+import ru.shemplo.snowball.stuctures.Pair;
+import ru.shemplo.snowball.utils.time.TimePeriod;
+import ru.shemplo.snowball.utils.time.TimeUtils;
 
 public class VKStatisticsData implements StatisticsData {
 

@@ -27,11 +27,11 @@ import org.junit.jupiter.api.Test;
 
 import com.xebialabs.restito.server.StubServer;
 
-import ru.shemplo.dsau.stuctures.Pair;
-import ru.shemplo.dsau.utils.time.TimeDelta;
-import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
-import ru.shemplo.dsau.utils.time.TimePeriod;
-import ru.shemplo.dsau.utils.time.TimeUtils;
+import ru.shemplo.snowball.stuctures.Pair;
+import ru.shemplo.snowball.utils.time.TimeDelta;
+import ru.shemplo.snowball.utils.time.TimeDelta.TDUnit;
+import ru.shemplo.snowball.utils.time.TimePeriod;
+import ru.shemplo.snowball.utils.time.TimeUtils;
 import ru.shemplo.tf.PropertiesLoader;
 import ru.shemplo.tf.gfx.ImageResultProducer;
 import ru.shemplo.tf.gfx.ResultProducer;

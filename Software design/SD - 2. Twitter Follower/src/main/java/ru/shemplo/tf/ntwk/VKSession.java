@@ -18,8 +18,8 @@ import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.queries.newsfeed.NewsfeedSearchQuery;
 
-import ru.shemplo.dsau.utils.time.TimePeriod;
-import ru.shemplo.dsau.utils.time.TimeUtils;
+import ru.shemplo.snowball.utils.time.TimePeriod;
+import ru.shemplo.snowball.utils.time.TimeUtils;
 import ru.shemplo.tf.stcs.StatisticsData;
 import ru.shemplo.tf.stcs.VKStatisticsData;
 

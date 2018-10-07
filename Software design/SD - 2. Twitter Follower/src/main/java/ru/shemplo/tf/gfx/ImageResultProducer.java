@@ -11,9 +11,9 @@ import java.awt.image.BufferedImage;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import ru.shemplo.dsau.stuctures.Pair;
-import ru.shemplo.dsau.utils.time.TimePeriod;
-import ru.shemplo.dsau.utils.time.TimeUtils;
+import ru.shemplo.snowball.stuctures.Pair;
+import ru.shemplo.snowball.utils.time.TimePeriod;
+import ru.shemplo.snowball.utils.time.TimeUtils;
 import ru.shemplo.tf.stcs.DataComposer;
 import ru.shemplo.tf.stcs.StatisticsData;
 

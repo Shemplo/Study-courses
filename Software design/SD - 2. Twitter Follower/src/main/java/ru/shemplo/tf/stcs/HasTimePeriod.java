@@ -2,7 +2,7 @@ package ru.shemplo.tf.stcs;
 
 import java.util.Date;
 
-import ru.shemplo.dsau.utils.time.TimeDelta;
+import ru.shemplo.snowball.utils.time.TimeDelta;
 
 public interface HasTimePeriod {
 

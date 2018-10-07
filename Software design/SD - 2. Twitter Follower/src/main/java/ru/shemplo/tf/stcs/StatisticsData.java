@@ -3,8 +3,8 @@ package ru.shemplo.tf.stcs;
 import java.util.Date;
 import java.util.List;
 
-import ru.shemplo.dsau.stuctures.Pair;
-import ru.shemplo.dsau.utils.time.TimePeriod;
+import ru.shemplo.snowball.stuctures.Pair;
+import ru.shemplo.snowball.utils.time.TimePeriod;
 
 public interface StatisticsData {
 

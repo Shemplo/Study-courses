@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import ru.shemplo.dsau.stuctures.Pair;
-import ru.shemplo.dsau.utils.time.TimeDelta;
-import ru.shemplo.dsau.utils.time.TimeDelta.TDUnit;
-import ru.shemplo.dsau.utils.time.TimeUtils;
+import ru.shemplo.snowball.stuctures.Pair;
+import ru.shemplo.snowball.utils.time.TimeDelta;
+import ru.shemplo.snowball.utils.time.TimeDelta.TDUnit;
+import ru.shemplo.snowball.utils.time.TimeUtils;
 
 public class HoursComposer implements DataComposer <Date, Integer> {
 
