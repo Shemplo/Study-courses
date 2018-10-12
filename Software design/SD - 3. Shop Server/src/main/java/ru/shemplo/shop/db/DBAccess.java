@@ -2,11 +2,14 @@ package ru.shemplo.shop.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import ru.shemplo.snowball.utils.db.DBType;
 
 public class DBAccess implements AutoCloseable {
 
-	private static DBAccess instance;
+	private volatile static DBAccess instance;
 	
 	public static DBAccess getInstanceOf (DBType type) {
 		if (instance == null) {
@@ -31,6 +34,14 @@ public class DBAccess implements AutoCloseable {
 		
 		String url = String.join (":", "jdbc", type.TYPE, dbUrl);
 		this.DB = DriverManager.getConnection (url);
+	}
+	
+	public ResultSet execute (String query) throws SQLException {
+		return DB.createStatement ().executeQuery (query);
+	}
+	
+	public void update (String query) throws SQLException {
+		DB.createStatement ().executeUpdate (query);
 	}
 
 	@Override
