@@ -16,6 +16,7 @@ import ru.shemplo.shop.db.DBLib;
 import ru.shemplo.shop.servlet.AddProductServlet;
 import ru.shemplo.shop.servlet.GetProductsServlet;
 import ru.shemplo.shop.servlet.QueryServlet;
+import ru.shemplo.shop.servlet.ResourceServlet;
 import ru.shemplo.snowball.stuctures.Pair;
 import ru.shemplo.snowball.utils.db.DBType;
 
@@ -26,10 +27,12 @@ public class Run {
 	}
 	
 	private static List <Pair <String, Servlet>> SERVLETS = new ArrayList <> ();
+	
 	static {
 		SERVLETS.add (Pair.mp ("/add-product" , new AddProductServlet  ()));
 		SERVLETS.add (Pair.mp ("/get-products", new GetProductsServlet ()));
 		SERVLETS.add (Pair.mp ("/query"       , new QueryServlet       ()));
+		SERVLETS.add (Pair.mp ("/src/*"       , new ResourceServlet    ()));
 	}
 	
 	public static void main (String ... args) throws Exception {
@@ -37,14 +40,14 @@ public class Run {
 		db.update (DBLib.createTable ());
 		
 		Server server = new Server (8081);
-		ServletContextHandler context = new ServletContextHandler (SESSIONS);
 		
+		ServletContextHandler context = new ServletContextHandler (SESSIONS);
 		SERVLETS.forEach (p -> context.addServlet (new ServletHolder (p.S), p.F));
-        context.setContextPath ("/");
-        server.setHandler (context);
-        
-        server.start ();
-        server.join ();
+		context.setContextPath ("/");
+		server.setHandler (context);
+		
+		server.start ();
+		server.join ();
 		
 		db.close ();
 	}

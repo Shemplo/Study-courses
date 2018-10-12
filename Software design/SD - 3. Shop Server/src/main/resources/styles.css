@@ -1,3 +1,7 @@
 td {
-	padding: 0 0.5em;
+	padding: 0.15em 0.35em;
+}
+
+tr:first-child {
+	font-weight: bold;
 }
