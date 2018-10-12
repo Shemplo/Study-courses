@@ -39,6 +39,11 @@ public class HTMLBuilder {
 		return this;
 	}
 	
+	public HTMLBuilder addLine (String value) {
+		SB.append ("<div>").append (value).append("</div>");
+		return this;
+	}
+	
 	public HTMLBuilder addTag (String value) {
 		SB.append (value);
 		return this;

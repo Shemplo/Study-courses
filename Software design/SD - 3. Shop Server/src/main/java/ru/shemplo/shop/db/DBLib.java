@@ -6,7 +6,7 @@ public class DBLib {
 		return new StringBuilder ()
 			 . append ("CREATE TABLE IF NOT EXISTS `products` (")
 			 . append ("`id`    INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,")
-			 . append ("`name`  TEXT NOT NULL,")
+			 . append ("`name`  TEXT NOT NULL UNIQUE,")
 			 . append ("`price` INT  NOT NULL")
 			 . append (")")
 			 . toString ();

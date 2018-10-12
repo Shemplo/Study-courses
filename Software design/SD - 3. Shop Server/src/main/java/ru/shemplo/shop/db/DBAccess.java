@@ -48,6 +48,7 @@ public class DBAccess implements AutoCloseable {
 	public void close () throws Exception {
 		if (this.DB != null) {
 			this.DB.close ();
+			instance = null;
 		}
 	}
 	

@@ -21,6 +21,10 @@ import ru.shemplo.snowball.utils.db.DBType;
 
 public class Run {
 	
+	static {
+		PropertiesLoader.load ("src/main/resources/properties");
+	}
+	
 	private static List <Pair <String, Servlet>> SERVLETS = new ArrayList <> ();
 	static {
 		SERVLETS.add (Pair.mp ("/add-product" , new AddProductServlet  ()));
@@ -29,8 +33,6 @@ public class Run {
 	}
 	
 	public static void main (String ... args) throws Exception {
-		PropertiesLoader.load ("src/main/resources/properties");
-		
 		DBAccess db = DBAccess.getInstanceOf (DBType.SQLite);
 		db.update (DBLib.createTable ());
 		
