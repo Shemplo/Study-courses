@@ -60,6 +60,20 @@ public abstract class AbsServlet extends HttpServlet {
 		resp.setStatus (SC_OK);
 	}
 	
+	/**
+	 * Checked method of computing necessary operations for request.
+	 * 
+	 * Here can be any operations that are necessary to grant request 
+	 * requirements and don't care about possible exceptions 
+	 * (Guaranteed that exception will be caught and returned to
+	 * user as human-readable message).
+	 * 
+	 * @param params of HTTP request in format &lt;name, values&gt;
+	 * @param html builder of response content
+	 * 
+	 * @throws Exception
+	 * 
+	 */
 	protected abstract void computeRequest (Map <String, String []> params, HTMLBuilder html) 
 	          throws Exception;
 	
