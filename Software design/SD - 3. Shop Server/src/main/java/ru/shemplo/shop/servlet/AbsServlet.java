@@ -55,7 +55,7 @@ public abstract class AbsServlet extends HttpServlet {
             fail (resp, SC_INTERNAL_SERVER_ERROR, html, e);
             return;
         }
-		
+        
 		resp.getWriter ().println (html);
 		resp.setStatus (SC_OK);
 	}

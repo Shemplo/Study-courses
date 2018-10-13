@@ -23,9 +23,22 @@ public class DBAccess implements AutoCloseable {
 		return instance;
 	}
 	
+	public static DBAccess asInstanceOf (DBAccess db) {
+	    if (instance != null) {
+	        try   { instance.close (); } 
+	        catch (Exception e) {}
+	    }
+	    
+	    if (instance == null) {
+	        instance = db;
+	    }
+	    
+	    return instance;
+	}
+	
 	private final Connection DB;
 	
-	private DBAccess (final DBType type) throws SQLException {
+	DBAccess (final DBType type) throws SQLException {
 		String dbUrl = System.getProperty ("shop.db.url");
 		if (dbUrl == null || dbUrl.length () == 0) {
 			String text = "Property `shop.db.url` has invalid value (EMPTY)";
@@ -35,6 +48,10 @@ public class DBAccess implements AutoCloseable {
 		String url = String.join (":", "jdbc", type.TYPE, dbUrl);
 		this.DB = DriverManager.getConnection (url);
 	}
+	
+	DBAccess () throws SQLException {
+        this.DB = null;
+    }
 	
 	public ResultSet execute (String query) throws SQLException {
 		return DB.createStatement ().executeQuery (query);
