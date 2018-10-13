@@ -5,12 +5,11 @@ import static ru.shemplo.shop.servlet.html.HTMLBuilder.*;
 import java.util.Map;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 import ru.shemplo.shop.db.DBLib;
 import ru.shemplo.shop.servlet.html.HTMLBuilder;
 
-public class GetProductsServlet extends AbsServlet implements RequestComputer {
+public class GetProductsServlet extends AbsServlet {
 
 	/**
 	 * 
@@ -22,16 +21,13 @@ public class GetProductsServlet extends AbsServlet implements RequestComputer {
 	}
 
 	@Override
-	public void computeRequest (Map <String, String []> params, HTMLBuilder html) {
-		try {
-			String query = DBLib.selectOrderedColumn ("name", "ASC", false);
-			ResultSet result = DB.execute (query);
-			
-			html.addSmallHeader ("Products in database: ");
-			resultToHTML (result, html, "name", "price");
-		} catch (SQLException sqle) { 
-			throw new IllegalStateException (sqle);
-		}
+	public void computeRequest (Map <String, String []> params, HTMLBuilder html) 
+	        throws Exception {
+	    String query = DBLib.selectOrderedColumn ("name", "ASC", false);
+        ResultSet result = DB.execute (query);
+        
+        html.addSmallHeader ("Products in database: ");
+        resultToHTML (result, html, "name", "price");
 	}
 
 }

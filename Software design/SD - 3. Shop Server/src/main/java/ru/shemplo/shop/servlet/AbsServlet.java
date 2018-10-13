@@ -47,28 +47,21 @@ public abstract class AbsServlet extends HttpServlet {
 				return;
 			}
 		}
-		
-		if (this instanceof RequestComputer) {
-			RequestComputer computer = (RequestComputer) this;
-			
-			try {
-				// Delegating control to child object
-				computer.computeRequest (params, html);
-			} catch (Exception e) {
-				fail (resp, SC_INTERNAL_SERVER_ERROR, html, e);
-				return;
-			}
-		} else {
-			String text = "resuest computer not found";
-			Exception exception = new IllegalStateException (text);
-			fail (resp, SC_NOT_IMPLEMENTED, html, exception);
-			
-			return;
-		}
+
+        try {
+            // Delegating control to child object
+            this.computeRequest (params, html);
+        } catch (Exception e) {
+            fail (resp, SC_INTERNAL_SERVER_ERROR, html, e);
+            return;
+        }
 		
 		resp.getWriter ().println (html);
 		resp.setStatus (SC_OK);
 	}
+	
+	protected abstract void computeRequest (Map <String, String []> params, HTMLBuilder html) 
+	          throws Exception;
 	
 	private final void fail (HttpServletResponse resp, int status, 
 			HTMLBuilder html, Exception reason) throws IOException {

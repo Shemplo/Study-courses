@@ -5,7 +5,7 @@ import java.util.Map;
 import ru.shemplo.shop.servlet.html.HTMLBuilder;
 import ru.shemplo.snowball.stuctures.Pair;
 
-public class QueryServlet extends AbsServlet implements RequestComputer {
+public class QueryServlet extends AbsServlet {
 
 	/**
 	 * 
@@ -19,7 +19,8 @@ public class QueryServlet extends AbsServlet implements RequestComputer {
 	}
 
 	@Override
-	public void computeRequest (Map <String, String []> params, HTMLBuilder html) {
+	public void computeRequest (Map <String, String []> params, HTMLBuilder html) 
+	        throws Exception {
 		String command = params.get ("command") [0].toUpperCase ();
 		RequestCommand en = RequestCommand.valueOf (command);
 		en.C.accept (Pair.mp (this.DB, html));
