@@ -1,0 +1,14 @@
+/build/
+/bin/
+/target
+.settings
+
+.classpath
+.project
+
+dependency*
+properties*
+
+*.png
+*.jar
+*.db
