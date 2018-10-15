@@ -2,6 +2,7 @@
 /bin/
 /target
 .settings
+.idea
 
 .classpath
 .project
@@ -12,3 +13,4 @@ properties*
 *.png
 *.jar
 *.db
+*.iml
