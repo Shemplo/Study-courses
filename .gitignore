@@ -1,4 +1,15 @@
+/build/
 /bin/
+/target
+.settings
+.idea
 
 .classpath
 .project
+
+dependency*
+properties*
+
+*.jar
+*.db
+*.iml

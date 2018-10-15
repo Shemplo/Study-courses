@@ -1,7 +1,10 @@
 /build/
 /bin/
 /target
+
+.settings/*
 .settings
+.idea/*
 .idea
 
 .classpath
@@ -10,7 +13,6 @@
 dependency*
 properties*
 
-*.png
 *.jar
 *.db
 *.iml
