@@ -1,8 +1,13 @@
 package ru.shemplo.tasks.mvc.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class Task {
 
-    @SuppressWarnings ("unused")
-    private String todo;
+    private String taskDesctiption;
+    private boolean isDone;
     
 }
