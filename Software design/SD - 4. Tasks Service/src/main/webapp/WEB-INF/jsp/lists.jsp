@@ -46,12 +46,13 @@
 	                       <c:when test="${tasks != null && not empty tasks}">
 	                           <ul>
 	                               <c:forEach var="task" items="${tasks}">
-	                                   <li>
+	                                   <c:set var="styleClass" value="${task.getStatus ().getStyle ()}" />
+	                                   <c:set var="status" value="${task.getStatus ().toString ()}" />
+                                       
+	                                   <li class="${styleClass}">
 	                                       <span>${task.getDescription ()}</span>
-	                                       
-	                                       <c:if test="${task.isActive ()}">
-	                                           <span><b>Status:</b> in process</span>
-	                                       </c:if>
+	                                       <span><b>Till:</b> dd.MM.yyyy HH:mm:ss</span>
+	                                       <span><b>Status:</b> ${status}</span>
 	                                       <button><img src="/resources/gfx/bin.png" /></button>
 	                                   </li>
 	                               </c:forEach>

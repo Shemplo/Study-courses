@@ -20,8 +20,12 @@ public class RequestController {
         
         List <ListOfTasks> lists = new ArrayList <> ();
         lists.add (new ListOfTasks (1, "Uni tasks", 
-            Arrays.asList (new Task ("test", 0)
-        )));
+            Arrays.asList (
+                new Task ("Task that is in progress now", 0), 
+                new Task ("Task that is finished successfully", 1), 
+                new Task ("Task that is failed", 2)
+            )
+        ));
         mav.addObject ("listsOfTasks", lists);
         return mav;
     }
