@@ -10,6 +10,10 @@ import ru.shemplo.tasks.conf.WebAppConfig;
 @SpringBootApplication
 public class Run {
 
+    static {
+        PropertiesLoader.load ("src/main/resources/application.properties");
+    }
+    
     public static void main (String ... args) {
         SpringApplication.run (Run.class, args);
     }
