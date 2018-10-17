@@ -181,11 +181,11 @@ body {
 }
 
 .task-done {
-	background-color: rgba(0,225,0,0.1);
+	background-color: rgba(100,225,100,0.1);
 }
 
 .task-failed {
-    background-color: rgba(225,0,0,0.1);
+    background-color: rgba(225,100,100,0.1);
 }
 
 /******************/

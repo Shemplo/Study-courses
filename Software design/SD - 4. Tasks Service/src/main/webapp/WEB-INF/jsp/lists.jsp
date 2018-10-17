@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE HTML>
@@ -10,6 +11,7 @@
         <title>Tasks page</title>
         
         <link rel="stylesheet" href="/resources/css/lists.css" />
+        <link rel="shortcut icon" href="/resources/gfx/jiraf.png" type="image/x-icon">
     </head>
     
     <body>
@@ -31,7 +33,7 @@
                         
                         <div class="list-control-container">
 	                        <button list="${list.getID ()}" 
-	                                title="${list.getHeader ()}" 
+	                                title="${fn:escapeXml (list.getHeader ())}" 
 	                                class="add-task-button">
 	                           <img src="/resources/gfx/add.png" />
 	                        </button>
@@ -49,8 +51,9 @@
 	                                   <c:set var="styleClass" value="${task.getStatus ().getStyle ()}" />
 	                                   <c:set var="status" value="${task.getStatus ().toString ()}" />
                                        
-	                                   <li class="${styleClass}">
-	                                       <span>${task.getDescription ()}</span>
+	                                   <li task="${task.getID ()}"
+	                                       class="${styleClass}">
+	                                       <span>${fn:escapeXml (task.getDescription ())}</span>
 	                                       <c:if test="${task.hasExpireDate ()}">
 	                                           <span><b>Till:</b> ${task.getExpireDate ()}</span>
 	                                       </c:if>
@@ -67,29 +70,6 @@
 	                    </c:choose>
                     </div>
                 </c:forEach>
-                <div>
-                    <header>University tasks</header>
-                    
-                    <div class="list-control-container">
-                        <button class="add-task-button"><img src="/resources/gfx/add.png" /></button>
-                        <button><img src="/resources/gfx/bin.png" /></button>
-                    </div>
-                    
-                    <ul>
-                        <li>
-                            <span>Do homework of SD till the saturday</span>
-                            <span><b>Status:</b> in process</span>
-                            
-                            <button><img src="/resources/gfx/bin.png" /></button>
-                        </li>
-                        <li>
-                            <span>Write good Diploma work</span>
-                            <span><b>Status:</b> in process</span>
-                            
-                            <button><img src="/resources/gfx/bin.png" /></button>
-                        </li>
-                    </ul>
-                </div>
             </div>
         </c:if>
         <c:if test="${!listsPresent}">
@@ -109,10 +89,23 @@
         <div id="add-task-shadow" class="shadow">
             <div>
                 <header>Add new task</header>
-                <div>Description: <input type="text" /></div>
-                <div>Expire date: <div><input type="date" /> <input type="time" /></div></div>
-                <div>List: <div>University tasks</div></div>
-                <div><span></span><button>add task</button></div>
+                <div>Description: 
+                    <input id="add-task-desc" type="text" />
+                </div>
+                <div>Expire date: 
+                    <div>
+                        <input id="add-task-date" type="date" /> 
+                        <input id="add-task-time" type="time" />
+                    </div>
+                </div>
+                <div>List: 
+                    <div id="add-task-label"></div>
+                    <input id="add-task-list" type="hidden" value="" />
+                </div>
+                <div>
+                    <span id="add-task-error"></span>
+                    <button id="add-task-button">add task</button>
+                </div>
             </div>
         </div>
         

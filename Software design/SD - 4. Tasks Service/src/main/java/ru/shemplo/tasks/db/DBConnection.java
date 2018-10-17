@@ -62,11 +62,11 @@ public class DBConnection implements AutoCloseable {
     }
 	
 	public ResultSet execute (String query) throws SQLException {
-		return DB.createStatement ().executeQuery (query);
+	    return DB.prepareStatement (query).executeQuery ();
 	}
 	
 	public void update (String query) throws SQLException {
-		DB.createStatement ().executeUpdate (query);
+		DB.prepareStatement (query).execute ();
 	}
 
 	@Override

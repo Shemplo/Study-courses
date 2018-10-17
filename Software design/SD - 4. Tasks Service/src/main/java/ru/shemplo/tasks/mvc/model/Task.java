@@ -43,9 +43,11 @@ public class Task {
     @Getter private final String description;
     @Getter private final TaskStatus status;
     @Getter private final Date expire;
+    @Getter private final long ID;
     
     public Task (long id, String desc, Date expire, int status) {
         this.description = desc;
+        this.ID = id;
         
         if (expire != null) {
             Date now = new Date (System.currentTimeMillis ());
