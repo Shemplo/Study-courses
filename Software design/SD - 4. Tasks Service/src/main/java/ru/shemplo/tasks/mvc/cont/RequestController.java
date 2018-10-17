@@ -19,8 +19,9 @@ public class RequestController {
     @GetMapping (path = "/lists")
     public ModelAndView handleTaskLists () {
         ModelAndView mav = new ModelAndView ("lists");
-        
         List <ListOfTasks> lists = db.getAllLists ();
+        
+        lists.forEach (l -> db.getTasksOfList (l.getID ()).forEach (l::addTask));
         mav.addObject ("listsOfTasks", lists);
         return mav;
     }

@@ -51,12 +51,14 @@
                                        
 	                                   <li class="${styleClass}">
 	                                       <span>${task.getDescription ()}</span>
-	                                       <span><b>Till:</b> dd.MM.yyyy HH:mm:ss</span>
+	                                       <c:if test="${task.hasExpireDate ()}">
+	                                           <span><b>Till:</b> ${task.getExpireDate ()}</span>
+	                                       </c:if>
 	                                       <span><b>Status:</b> ${status}</span>
 	                                       <button><img src="/resources/gfx/bin.png" /></button>
 	                                   </li>
 	                               </c:forEach>
-	                           <ul>
+	                           </ul>
 	                       </c:when>
 	                       
 	                       <c:otherwise>

@@ -38,15 +38,15 @@ public class ListOfTasks {
         this.TASKS.add (task);
     }
     
+    public List <Task> getTasks () {
+        return Collections.unmodifiableList (TASKS);
+    }
+    
     public static ListOfTasks valueFrom (ResultSet result) throws SQLException {
         String title = result.getString ("title");
         long id = result.getLong ("id");
         
         return new ListOfTasks (id, title);
-    }
-    
-    public List <Task> getTasks () {
-        return Collections.unmodifiableList (TASKS);
     }
     
 }
