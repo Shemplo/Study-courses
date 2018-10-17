@@ -8,4 +8,4 @@
 * _(4 term, 2017)_ : Assembly, Type theory
 * _(5 term, 2017)_ : Translation methods
 * _(6 term, 2018)_ : Haskell
-* _(7 term, 2018)_ : Software design
+* _(7 term, 2018)_ : Machine learning, Software design
