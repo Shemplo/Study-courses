@@ -17,8 +17,26 @@ var isShadowRoot = function (object) {
 	return false;
 }
 
+var findParentWithAttributes = function (child, attributes) {
+	var parent = child;
+	while (parent) {
+		var allAts = true;
+		for (var i = 0; i < attributes.length; i++) {
+			allAts =  allAts 
+				   && parent.hasAttribute (attributes [i]);
+		}
+		
+		if (allAts) { break; }
+		
+		parent = parent.parentNode;
+	}
+		
+	return parent;
+}
+
 // List of buttons
-var addListButton, addTaskButtons, deleteTaskButtons;
+var addListButton, deleteListButtons, 
+	addTaskButtons, deleteTaskButtons;
 // Each shadow
 var addListShadow, addTaskShadow;
 // Additional objects
@@ -26,6 +44,8 @@ var addTaskLabel, addTaskList, addTaskDesc,
 	addTaskDate, addTaskTime, addTaskError,
 	
 	addListTitle, addListError;
+// Tasks objects
+var tasks;
 
 var hideShadowFunction = function (e) {
 	var obj = e.target;
@@ -35,13 +55,7 @@ var hideShadowFunction = function (e) {
 }
 
 var openAddTaskShadow = function (e) {
-	var clickObj = e.target;
-	while (clickObj 
-	   && !clickObj.hasAttribute ("title") 
-	   && !clickObj.hasAttribute ("list")) {
-		clickObj = clickObj.parentElement;
-	}
-	
+	var clickObj = findParentWithAttributes (e.target, ["title", "list"]);
 	if (!clickObj) { return; }
 	
 	addTaskLabel.innerHTML = escapeHtml (clickObj.getAttribute ("title"));
@@ -89,7 +103,22 @@ var sendAddRequest = function (address, body, errorField) {
 			console.log (error.trim ());
 		} else if (response ['status'] === "done") {
 			location.reload ();
-		}
+		} else { console.log (response); }
+	});
+}
+
+var sendAndReload = function (address, body) {
+	sendRequest (address, body, function (response) {
+		try {
+            response = JSON.parse (response);
+        } catch (exception) { 
+        	console.log (exception); 
+        	return; 
+        }
+		
+		if (response ['status'] === "done") {
+			location.reload ();
+		} else { console.log (response); }
 	});
 }
 
@@ -114,31 +143,34 @@ var addTask = function (e) {
 	sendAddRequest ("/lists/add/task", body, addTaskError);
 }
 
-var deleteTask = function (e) {
-	var parent = e.target.parentNode;
-	while (parent && !parent.hasAttribute ("task")) {
-		parent = parent.parentNode;
-	}
+var deleteList = function (e) {
+	var parent = findParentWithAttributes (e.target, ["list"]);
+	if (!parent) { location.reload (); }
 	
+	var list = parent.getAttribute ("list");
+	var body = { "list": list };
+	
+	sendAndReload ("/lists/delete/list", body);
+}
+
+var deleteTask = function (e) {
+	var parent = findParentWithAttributes (e.target, ["task"]);
 	if (!parent) { location.reload (); }
 	
 	var task = parent.getAttribute ("task");
-	var body = {
-		"task": task
-	};
+	var body = { "task": task };
 	
-	sendRequest ("/lists/delete/task", body, function (response) {
-		try {
-            response = JSON.parse (response);
-        } catch (exception) { 
-        	console.log (exception); 
-        	return; 
-        }
-		
-		if (response ['status'] === "done") {
-			location.reload ();
-		}
-	});
+	sendAndReload ("/lists/delete/task", body);
+}
+
+var toggleTask = function (e) {
+	var task = findParentWithAttributes (e.target, ["task"]);
+	
+	var classes = task.classList.value;
+	if (classes.indexOf ("task-failed") != -1) { return; }
+	
+	var body = { "task": task.getAttribute ("task") };
+	sendAndReload ("/lists/update/task", body);
 }
 
 window.onload = function (e) {
@@ -157,6 +189,9 @@ window.onload = function (e) {
 	addListError = document.getElementById ("add-list-error");
 	document.getElementById ("add-list-button-final").onclick = addList;
 	
+	deleteListButtons = document.getElementsByClassName ("delete-list-button");
+	for (var i = 0; i < deleteListButtons.length; i++) { deleteListButtons [i].onclick = deleteList; }
+	
 	addTaskShadow  = document.getElementById ("add-task-shadow");
 	addTaskError   = document.getElementById ("add-task-error");
 	addTaskLabel   = document.getElementById ("add-task-label");
@@ -171,4 +206,7 @@ window.onload = function (e) {
 	for (var i = 0; i < deleteTaskButtons.length; i++) { deleteTaskButtons [i].onclick = deleteTask; }
 	
 	document.getElementById ("add-task-button").onclick = addTask;
+	
+	tasks = document.getElementsByClassName ("task");
+	for (var i = 0; i < tasks.length; i++) { tasks [i].onclick = toggleTask; }
 };

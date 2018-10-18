@@ -37,7 +37,8 @@
 	                                class="add-task-button">
 	                           <img src="/resources/gfx/add.png" />
 	                        </button>
-	                        <button>
+	                        <button list="${list.getID ()}"
+	                                class="delete-list-button">
 	                           <img src="/resources/gfx/bin.png" />
 	                        </button>
 	                    </div>
@@ -52,7 +53,7 @@
 	                                   <c:set var="status" value="${task.getStatus ().toString ()}" />
                                        
 	                                   <li task="${task.getID ()}"
-	                                       class="${styleClass}">
+	                                       class="task ${styleClass}">
 	                                       <span>${fn:escapeXml (task.getDescription ())}</span>
 	                                       <c:if test="${task.hasExpireDate ()}">
 	                                           <span><b>Till:</b> ${task.getExpireDate ()}</span>

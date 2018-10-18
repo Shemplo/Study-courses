@@ -19,13 +19,17 @@ public class DBAccess {
     
     private final String 
         SQL_SELECT_ALL_LISTS     = "SELECT * FROM `lists` ORDER BY `id`",
-        SQL_SELECT_TASKS_OF_LIST = "SELECT * FROM `tasks` WHERE `list`=':list' ORDER BY `id`",
+        SQL_SELECT_TASKS_BY_LIST = "SELECT * FROM `tasks` WHERE `list`=':list' ORDER BY `id`",
+        SQL_SELECT_TASK          = "SELECT * FROM `tasks` WHERE `id`=':id' LIMIT 1",
         SQL_INSERT_LIST          = "INSERT INTO `lists` (`title`) VALUES (':title')",
+        SQL_DELETE_LIST          = "DELETE FROM `lists` WHERE `id` = ':id' LIMIT 1",
         SQL_INSERT_TASK          = "INSERT INTO `tasks` (`list`, `desc`, `status`) "
                                  + "VALUES (':list', ':desc', '0')",
         SQL_INSERT_EXPIRE_TASK   = "INSERT INTO `tasks` (`list`, `desc`, `expire`, `status`) "
                                  + "VALUE (':list', ':desc', ':expire', '0')",
-        SQL_DELETE_TASK          = "DELETE FROM `tasks` WHERE `id` = ':id'";
+        SQL_DELETE_TASK          = "DELETE FROM `tasks` WHERE `id` = ':id' LIMIT 1",
+        SQL_CHANGE_TASK_STATUS   = "UPDATE `tasks` SET `status` = ':status' "
+                                 + "WHERE `id` = ':id' LIMIT 1";
     
     public static final DateFormat 
         SQL_FORMAT = new SimpleDateFormat ("yyyy-MM-dd HH:mm");
@@ -51,7 +55,7 @@ public class DBAccess {
     
     public List <Task> getTasksOfList (long listID) {
         try {
-            String query = SQL_SELECT_TASKS_OF_LIST
+            String query = SQL_SELECT_TASKS_BY_LIST
                          . replace (":list", "" + listID);
             List <Task> tasks = new ArrayList <> ();
             ResultSet result = db.execute (query);
@@ -66,8 +70,23 @@ public class DBAccess {
         return new ArrayList <> ();
     }
     
+    public Task getTask (long taskID) {
+        try {
+            String query = SQL_SELECT_TASK.replace (":id", "" + taskID);
+            ResultSet result = db.execute (query);
+            
+            if (result.next ()) { return Task.valueFrom (result); }
+        } catch (SQLException sqle) {}
+        
+        return null;
+    }
+    
     public void addList (String title) throws SQLException {
         db.update (SQL_INSERT_LIST.replace (":title", title));
+    }
+    
+    public void deleteList (long listID) throws SQLException {
+        db.update (SQL_DELETE_LIST.replace (":id", "" + listID));
     }
     
     public void addTask (long listID, String description, Date expire) throws SQLException {
@@ -83,6 +102,11 @@ public class DBAccess {
     
     public void deleteTask (long taskID) throws SQLException {
         db.update (SQL_DELETE_TASK.replace (":id", "" + taskID));
+    }
+    
+    public void setTaskStatus (long taskID, int status) throws SQLException {
+        db.update (SQL_CHANGE_TASK_STATUS.replace (":id", "" + taskID)
+                                         .replace (":status", "" + status));
     }
     
 }

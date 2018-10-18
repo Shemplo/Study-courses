@@ -42,12 +42,14 @@ public class RequestController {
             String operName = (operation + "_" + aim).toUpperCase ();
             type = RequestOperation.valueOf (operName);
         } catch (IllegalArgumentException iae) {
-            return error ("Unknown operation `" + operation + "` "
+            return error ("Unknown operation `" + operation + "`/"
                  + "`" + aim + "`").toString ();
         }
         
         JSONObject input = new JSONObject (body);
-        System.out.println (input);
+        System.out.println ("Request " + operation + "/" + aim 
+                         + " " + input);
+        
         return type.handleRequest (db, input)
              . toString ();
     }

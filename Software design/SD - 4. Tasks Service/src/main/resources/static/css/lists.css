@@ -186,6 +186,7 @@ body {
 
 .task-failed {
     background-color: rgba(225,100,100,0.1);
+    cursor: default !important;
 }
 
 /******************/

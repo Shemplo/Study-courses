@@ -1,5 +1,6 @@
 package ru.shemplo.tasks.mvc.cont;
 
+import static ru.shemplo.tasks.mvc.model.Task.TaskStatus.*;
 import static ru.shemplo.tasks.db.DBAccess.*;
 import static ru.shemplo.tasks.mvc.cont.ResponsePresets.*;
 
@@ -16,6 +17,7 @@ import java.text.ParseException;
 import org.json.JSONObject;
 
 import ru.shemplo.tasks.db.DBAccess;
+import ru.shemplo.tasks.mvc.model.Task;
 
 public enum RequestOperation {
 
@@ -33,6 +35,18 @@ public enum RequestOperation {
         
         return done ();
     }, "title"), 
+    
+    DELETE_LIST ((db, r) -> {
+        long listID = r.getLong ("list");
+        
+        try {
+            db.deleteList (listID);
+        } catch (SQLException sqle) {
+            return error (sqle);
+        }
+        
+        return done ();
+    }, "list"),
     
     ADD_TASK ((db, r) -> {
         long listID = r.getLong ("list");
@@ -80,7 +94,29 @@ public enum RequestOperation {
         }
         
         return done ();
-    });
+    }, "task"),
+    
+    UPDATE_TASK ((db, r) -> {
+        long taskID = r.getLong ("task");
+        Task task = db.getTask (taskID);
+        
+        if (task == null) {
+            return error ("Task not found");
+        }
+        
+        if (FAILED.equals (task.getStatus ())) {
+            return error ("Task is failed (this status can't be undone)");
+        }
+        
+        try {
+            int status = (task.getStatus ().ordinal () + 1) % 2;
+            db.setTaskStatus (taskID, status);
+        } catch (SQLException sqle) {
+            return error (sqle);
+        }
+        
+        return done ();
+    }, "task");
     
     private final BiFunction <DBAccess, JSONObject, JSONObject> handler;
     private final List <String> fields;
