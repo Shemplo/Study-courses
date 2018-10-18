@@ -227,6 +227,8 @@ body {
 }
 
 .shadow > div > div:last-of-type {
+	max-width: 400px;
+	
     font-weight: normal;
     color: red;
 }

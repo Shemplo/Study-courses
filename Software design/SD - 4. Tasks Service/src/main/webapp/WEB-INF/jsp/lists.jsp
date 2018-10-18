@@ -29,7 +29,7 @@
             <div id="lists-container">
                 <c:forEach var="list" items="${listsOfTasks}">
                     <div>
-                        <header>${list.getHeader ()}</header>
+                        <header>${fn:escapeXml (list.getHeader ())}</header>
                         
                         <div class="list-control-container">
 	                        <button list="${list.getID ()}" 
@@ -83,8 +83,13 @@
         <div id="add-list-shadow" class="shadow ma">
             <div>
                 <header>Add new list</header>
-                <div>Title: <input type="text" /></div>
-                <div><span></span><button>add list</button></div>
+                <div>Title: 
+                    <input id="add-list-title" type="text" />
+                </div>
+                <div>
+                    <span id="add-list-error"></span>
+                    <button id="add-list-button-final">add list</button>
+                </div>
             </div>
         </div>
         

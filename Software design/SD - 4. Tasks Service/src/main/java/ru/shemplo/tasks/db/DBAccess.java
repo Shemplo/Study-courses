@@ -18,15 +18,16 @@ public class DBAccess {
     private DBConnection db;
     
     private final String 
-        SQL_SELECT_ALL_LISTS     = "SELECT * FROM `lists`",
-        SQL_SELECT_TASKS_OF_LIST = "SELECT * FROM `tasks` WHERE `list`=':list'",
+        SQL_SELECT_ALL_LISTS     = "SELECT * FROM `lists` ORDER BY `id`",
+        SQL_SELECT_TASKS_OF_LIST = "SELECT * FROM `tasks` WHERE `list`=':list' ORDER BY `id`",
+        SQL_INSERT_LIST          = "INSERT INTO `lists` (`title`) VALUES (':title')",
         SQL_INSERT_TASK          = "INSERT INTO `tasks` (`list`, `desc`, `status`) "
                                  + "VALUES (':list', ':desc', '0')",
         SQL_INSERT_EXPIRE_TASK   = "INSERT INTO `tasks` (`list`, `desc`, `expire`, `status`) "
                                  + "VALUE (':list', ':desc', ':expire', '0')",
         SQL_DELETE_TASK          = "DELETE FROM `tasks` WHERE `id` = ':id'";
     
-    private static final DateFormat 
+    public static final DateFormat 
         SQL_FORMAT = new SimpleDateFormat ("yyyy-MM-dd HH:mm");
     
     public DBAccess () {
@@ -65,12 +66,16 @@ public class DBAccess {
         return new ArrayList <> ();
     }
     
+    public void addList (String title) throws SQLException {
+        db.update (SQL_INSERT_LIST.replace (":title", title));
+    }
+    
     public void addTask (long listID, String description, Date expire) throws SQLException {
         String query = expire == null ? SQL_INSERT_TASK : SQL_INSERT_EXPIRE_TASK;
         query = query.replace (":list", "" + listID).replace (":desc", description);
         
         if (expire != null) {
-            query.replace (":expire", SQL_FORMAT.format (expire));
+            query = query.replace (":expire", SQL_FORMAT.format (expire));
         }
         
         db.update (query);
