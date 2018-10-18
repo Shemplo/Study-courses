@@ -6,7 +6,7 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Tasks page</title>
+        <title>JiraF organizer</title>
         
         <link rel="stylesheet" href="/resources/css/index.css" />
         <link rel="shortcut icon" href="/resources/gfx/jiraf.png" type="image/x-icon">
