@@ -33,16 +33,17 @@ public class RequestController {
         return mav;
     }
     
-    @PostMapping (path = "/lists/add/{add-kind}")
+    @PostMapping (path = "/lists/{operation}/{aim}")
     @ResponseBody
-    public String handleAPIRequest (@PathVariable ("add-kind") String kind, 
-                                    @RequestBody String body) {
-        AddKind type = null;
+    public String handleAPIRequestAdd (@PathVariable ("operation") String operation, 
+            @PathVariable ("aim") String aim, @RequestBody String body) {
+        RequestOperation type = null;
         try {
-            type = AddKind.valueOf (kind.toUpperCase ());
+            String operName = (operation + "_" + aim).toUpperCase ();
+            type = RequestOperation.valueOf (operName);
         } catch (IllegalArgumentException iae) {
-            return error ("Unknown kind of object to add")
-                 . toString ();
+            return error ("Unknown operation `" + operation + "` "
+                 + "`" + aim + "`").toString ();
         }
         
         JSONObject input = new JSONObject (body);

@@ -14,15 +14,15 @@ import org.json.JSONObject;
 
 import ru.shemplo.tasks.db.DBAccess;
 
-public enum AddKind {
+public enum RequestOperation {
 
-    LIST ((db, r) -> {
+    ADD_LIST ((db, r) -> {
         @SuppressWarnings ("unused")
         String title = r.getString ("title");
         return done ();
     }, "title"), 
     
-    TASK ((db, r) -> {
+    ADD_TASK ((db, r) -> {
         long listID = r.getLong ("list");
         
         String description = r.getString ("desc").trim ();
@@ -37,12 +37,24 @@ public enum AddKind {
         }
         
         return done ();
-    }, "list", "desc", "?expire");
+    }, "list", "desc", "?expire"),
+    
+    DELETE_TASK ((db, r) -> {
+        long taskID = r.getLong ("task");
+        
+        try {
+            db.deleteTask (taskID);
+        } catch (SQLException sqle) {
+            return error (sqle);
+        }
+        
+        return done ();
+    });
     
     private final BiFunction <DBAccess, JSONObject, JSONObject> handler;
     private final List <String> fields;
     
-    private AddKind (BiFunction <DBAccess, JSONObject, JSONObject> handler, String ... fields) {
+    private RequestOperation (BiFunction <DBAccess, JSONObject, JSONObject> handler, String ... fields) {
         this.fields = Collections.unmodifiableList (Arrays.asList (fields));
         this.handler = handler;
     }

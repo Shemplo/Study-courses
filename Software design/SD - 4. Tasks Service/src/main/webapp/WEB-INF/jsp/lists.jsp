@@ -58,7 +58,9 @@
 	                                           <span><b>Till:</b> ${task.getExpireDate ()}</span>
 	                                       </c:if>
 	                                       <span><b>Status:</b> ${status}</span>
-	                                       <button><img src="/resources/gfx/bin.png" /></button>
+	                                       <button class="delete-task-button">
+	                                           <img src="/resources/gfx/bin.png" />
+	                                       </button>
 	                                   </li>
 	                               </c:forEach>
 	                           </ul>

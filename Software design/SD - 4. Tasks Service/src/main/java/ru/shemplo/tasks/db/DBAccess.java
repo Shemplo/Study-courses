@@ -23,7 +23,8 @@ public class DBAccess {
         SQL_INSERT_TASK          = "INSERT INTO `tasks` (`list`, `desc`, `status`) "
                                  + "VALUES (':list', ':desc', '0')",
         SQL_INSERT_EXPIRE_TASK   = "INSERT INTO `tasks` (`list`, `desc`, `expire`, `status`) "
-                                 + "VALUE (':list', ':desc', ':expire', '0')";
+                                 + "VALUE (':list', ':desc', ':expire', '0')",
+        SQL_DELETE_TASK          = "DELETE FROM `tasks` WHERE `id` = ':id'";
     
     private static final DateFormat 
         SQL_FORMAT = new SimpleDateFormat ("yyyy-MM-dd HH:mm");
@@ -73,6 +74,10 @@ public class DBAccess {
         }
         
         db.update (query);
+    }
+    
+    public void deleteTask (long taskID) throws SQLException {
+        db.update (SQL_DELETE_TASK.replace (":id", "" + taskID));
     }
     
 }

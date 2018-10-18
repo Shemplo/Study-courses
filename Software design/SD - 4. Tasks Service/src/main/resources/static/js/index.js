@@ -13,7 +13,7 @@ var isShadowRoot = function (object) {
 }
 
 // List of buttons
-var addListButton, addTaskButtons;
+var addListButton, addTaskButtons, deleteTaskButtons;
 // Each shadow
 var addListShadow, addTaskShadow;
 // Additional objects
@@ -44,11 +44,11 @@ var openAddTaskShadow = function (e) {
 }
 
 var sendRequest = function (address, content, handler) {
-	var request = new XMLHttpRequest();
-    request.open ("POST", address, true);
-    
-    request.setRequestHeader ("Content-Type", "application/json");
-    request.send (JSON.stringify (content));
+	var request = new XMLHttpRequest ();
+	request.open ("POST", address, true);
+	
+	request.setRequestHeader ("Content-Type", "application/json");
+	request.send (JSON.stringify (content));	
     
     request.onreadystatechange = function (e) {
         if (request.readyState == 4) {
@@ -69,31 +69,51 @@ var addTask = function (e) {
 	
 	sendRequest ("/lists/add/task", body, function (response) {
 		addTaskError.innerHTML = "";
-		
 		try {
             response = JSON.parse (response);
         } catch (exception) {
 			addTaskError.innerHTML = exception;
+			console.log (exception);
 			return;
+        }
+		
+		if (response ['status'] === "error") {
+			var error = "";
+			if (response ['cause'])   { error += response ['cause']; }
+			if (response ['reason'])  { error += " " + response ['reason']; }
+			if (response ['comment']) { error += " ~ " + response ['comment']; }
+			
+			addTaskError.innerHTML = error.trim ();
+			console.log (error.trim ());
+		} else if (response ['status'] === "done") {
+			location.reload ();
+		}
+	});
+}
+
+var deleteTask = function (e) {
+	var parent = e.target.parentNode;
+	while (parent && !parent.hasAttribute ("task")) {
+		parent = parent.parentNode;
+	}
+	
+	if (!parent) { location.reload (); }
+	
+	var task = parent.getAttribute ("task");
+	var body = {
+		"task": task
+	};
+	
+	sendRequest ("/lists/delete/task", body, function (response) {
+		try {
+            response = JSON.parse (response);
+        } catch (exception) { 
+        	console.log (exception); 
+        	return; 
         }
 		
 		if (response ['status'] === "done") {
 			location.reload ();
-		} else if (response ['status'] === "error") {
-			var error = "";
-			if (response ['cause']) {
-				error += response ['cause'];
-			}
-			if (response ['reason']) {
-				error += " " + response ['reason'];
-				error = error.trim ();
-			}
-			if (response ['comment']) {
-				error += " ~ " + response ['comment'];
-				error = error.trim ();
-			}
-			
-			addTaskError.innerHTML = error;
 		}
 	});
 }
@@ -116,9 +136,10 @@ window.onload = function (e) {
 	addTaskList    = document.getElementById ("add-task-list");
 	addTaskDesc    = document.getElementById ("add-task-desc");
 	addTaskButtons = document.getElementsByClassName ("add-task-button");
-	for (var i = 0; i < addTaskButtons.length; i++) {
-		addTaskButtons [i].onclick = openAddTaskShadow;
-	}
+	for (var i = 0; i < addTaskButtons.length; i++) { addTaskButtons [i].onclick = openAddTaskShadow; }
+	
+	deleteTaskButtons = document.getElementsByClassName ("delete-task-button");
+	for (var i = 0; i < deleteTaskButtons.length; i++) { deleteTaskButtons [i].onclick = deleteTask; }
 	
 	document.getElementById ("add-task-button").onclick = addTask;
 };
