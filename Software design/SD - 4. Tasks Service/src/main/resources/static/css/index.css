@@ -1,0 +1,103 @@
+body {
+	position: relative;
+    margin: 0; padding: 0;
+}
+
+#index-container {
+	display: flex; position: fixed;
+	top: 0; right: 0; bottom: 0; left: 0;
+	
+	justify-content: center;
+	align-items: center;
+}
+
+#central-block {
+	text-align: center;
+	
+	font-family: Bookman Old Style;
+    font-size: 12pt;
+}
+
+#central-block > header {
+	width: 250px;
+    margin: 0.25em 0.75em;
+    
+    font-family: Cooper Black;
+    font-weight: bold;
+    font-size: 40pt;
+    
+    user-select: none;
+    
+    border-bottom: 1px solid black;
+}
+
+#central-block > header > img {
+    display: inline-block;
+    
+    width: 54px; height: 54px;
+    margin-left: 0.5em;
+    
+    vertical-align: bottom;
+}
+
+.sub-header {
+	margin: 1.5em 0 0.75em 0;
+	
+	font-weight: bold;
+    font-size: 16pt;
+}
+
+#central-block > ul {
+	position: relative;
+	margin: 0.05em 0 0 0; padding: 0;
+	
+	list-style-position: inside;
+	list-style-type: none;
+	cursor: default;
+}
+
+#central-block > ul > li {
+	max-width: 100%; max-height: auto;
+    margin: 0.25em auto; padding: 0.5em 1.5em;
+    
+    border: 1px double rgba(200,200,200,0.75);
+    
+    transition: all 0.2s ease-in-out;
+}
+
+#central-block > ul > li:nth-of-type(2n + 1) {
+    text-align: left;
+}
+
+#central-block > ul > li:nth-of-type(2n + 1):hover {
+	box-shadow: 2em 0 0px 0px gray;
+    transform: translateX(-2em);
+}
+
+#central-block > ul > li:nth-of-type(2n) {
+    text-align: right;
+}
+
+#central-block > ul > li:nth-of-type(2n):hover {
+	box-shadow: -2em 0 0px 0px gray;
+    transform: translateX(2em);
+}
+
+
+a:link, a:visited {
+	display: inline-block;
+	margin: 0.25em 0 1.0em 0; padding: 0.25em 0.5em;
+	
+	text-decoration: none;
+	font-size: 16pt;
+	color: black;
+	
+	border: 3px double rgba(200,200,200,0.75);
+	
+	transition: all 0.2s linear;
+}
+
+a:hover {
+	background: rgba(200,200,200,0.25);
+	border: 3px solid rgba(200,200,200,0.75);
+}

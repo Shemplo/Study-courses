@@ -23,6 +23,12 @@ public class RequestController {
     @Autowired
     private DBAccess db;
     
+    @GetMapping (path = "/")
+    public ModelAndView handleIndexPage () {
+        ModelAndView mav = new ModelAndView ("index");
+        return mav;
+    }
+    
     @GetMapping (path = "/lists")
     public ModelAndView handleTaskLists () {
         ModelAndView mav = new ModelAndView ("lists");
