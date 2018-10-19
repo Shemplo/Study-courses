@@ -61,7 +61,7 @@ public class RequestController {
     
     @PostMapping (path = "/lists/{operation}/{aim}")
     @ResponseBody
-    public String handleAPIRequestAdd (@PathVariable ("operation") String operation, 
+    public String handleAPIRequest (@PathVariable ("operation") String operation, 
             @PathVariable ("aim") String aim, @RequestBody String body) {
         RequestOperation type = null;
         try {
