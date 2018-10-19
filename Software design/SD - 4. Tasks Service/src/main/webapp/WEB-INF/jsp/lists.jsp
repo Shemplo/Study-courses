@@ -29,11 +29,11 @@
             <div id="lists-container">
                 <c:forEach var="list" items="${listsOfTasks}">
                     <div>
-                        <header>${fn:escapeXml (list.getHeader ())}</header>
+                        <header>${list.getHeader ()}</header>
                         
                         <div class="list-control-container">
 	                        <button list="${list.getID ()}" 
-	                                title="${fn:escapeXml (list.getHeader ())}" 
+	                                title="${list.getHeader ()}" 
 	                                class="add-task-button">
 	                           <img src="/resources/gfx/add.png" />
 	                        </button>
@@ -54,7 +54,7 @@
                                        
 	                                   <li task="${task.getID ()}"
 	                                       class="task ${styleClass}">
-	                                       <span>${fn:escapeXml (task.getDescription ())}</span>
+	                                       <span>${task.getDescription ()}</span>
 	                                       <c:if test="${task.hasExpireDate ()}">
 	                                           <span><b>Till:</b> ${task.getExpireDate ()}</span>
 	                                       </c:if>

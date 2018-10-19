@@ -16,6 +16,7 @@ import java.text.ParseException;
 
 import org.json.JSONObject;
 
+import ru.shemplo.snowball.utils.StringManip;
 import ru.shemplo.tasks.db.DBAccess;
 import ru.shemplo.tasks.mvc.model.Task;
 
@@ -23,6 +24,8 @@ public enum RequestOperation {
 
     ADD_LIST ((db, r) -> {
         String title = r.getString ("title").trim ();
+        title = StringManip.escapeChars (title);
+        
         if (title.length () == 0) {
             return error ("Title can't be empty");
         }
@@ -52,6 +55,8 @@ public enum RequestOperation {
         long listID = r.getLong ("list");
         
         String description = r.getString ("desc").trim ();
+        description = StringManip.escapeChars (description);
+        
         if (description.length () == 0) {
             return error ("Description can't be empty");
         }
