@@ -1,0 +1,32 @@
+body {
+    position: relative;
+    margin: 0; padding: 0;
+}
+
+#index-container {
+    display: flex; position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    
+    justify-content: center;
+    align-items: center;
+}
+
+#central-block {
+    text-align: center;
+    
+    font-family: Bookman Old Style;
+    font-size: 12pt;
+}
+
+#central-block > header {
+    width: 475px;
+    margin: 0.25em 0.75em;
+    
+    font-family: Cooper Black;
+    font-weight: bold;
+    font-size: 24pt;
+    
+    user-select: none;
+    
+    border-bottom: 1px solid black;
+}

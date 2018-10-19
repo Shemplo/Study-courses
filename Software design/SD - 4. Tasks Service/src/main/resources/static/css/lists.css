@@ -8,6 +8,7 @@ body {
     font-family: Cooper Black;
     font-weight: bold;
     font-size: 28pt;
+    cursor: pointer;
     
     user-select: none;
 }

@@ -15,7 +15,7 @@
     </head>
     
     <body>
-        <header id="main-header">
+        <header id="main-header" onclick="location.href='/'">
             <span>JiraF</span><img src="/resources/gfx/jiraf.png" />
         </header>
         
