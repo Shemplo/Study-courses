@@ -83,6 +83,17 @@ body {
     font-size: 10.5pt;
     
     border: 3px double rgba(200,200,200,0.75);
+	
+    /* These are technically the same, but use all three */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+
+    /* Adds a hyphen where the word breaks, if supported (No Blink) */
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
 }
 
 #lists-container > div:last-of-type {
