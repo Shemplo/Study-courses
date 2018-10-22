@@ -154,13 +154,14 @@ _Spring Boot_ позволяет управлять запросами с пом
 Для генерации используется шаблонизатор _[JSTL](https://mvnrepository.com/artifact/javax.servlet.jsp.jstl/jstl-api)_, 
 позволяющий с помощью _HTML_-тегов управлять генерацией.
 
-Полный код: [index.jsp](src/main/webapp/WEB-INF/jsp/index.jsp)
+Полный код: [lists.jsp](src/main/webapp/WEB-INF/jsp/lists.jsp) 
+(+ [index.jsp](src/main/webapp/WEB-INF/jsp/index.jsp), [error.jsp](src/main/webapp/WEB-INF/jsp/error.jsp))
 
 Часть кода, которая генерирует блок с описанием задания:
   ```jsp
   <li task="${task.getID ()}"                                <!-- Стандартный элемент списка -->
       class="task ${styleClass}">
-      <span>${fn:escapeXml (task.getDescription ())}</span>  <!-- Описание задания с экранированными символами  -->
+      <span>${task.getDescription ()}</span>                 <!-- Описание задания с экранированными символами  -->
       <c:if test="${task.hasExpireDate ()}">                 <!-- Проверка условия на наличие даты окончания -->
           <span><b>Till:</b> ${task.getExpireDate ()}</span> <!-- При наличии даты, вывести информацию о ней -->
       </c:if>
