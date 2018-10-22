@@ -82,6 +82,7 @@ public class DBConnection implements AutoCloseable {
 	public void update (String query) throws SQLException {
 	    try {
 	        DB.prepareStatement (query).execute ();
+	        return; // action is done
         } catch (SQLNonTransientConnectionException sqlntce) {
             // Try to reconnect to database
             this.DB = connect ();
