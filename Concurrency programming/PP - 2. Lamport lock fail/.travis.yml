@@ -1,0 +1,14 @@
+language: java
+
+matrix:
+  include:
+    - os: linux
+      sudo: false
+      jdk: oraclejdk8
+      addons:
+        apt:
+          packages:
+            - oracle-java8-installer
+            - oracle-java8-set-default
+
+script: ./gradlew run
