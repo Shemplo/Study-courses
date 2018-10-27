@@ -1,6 +1,7 @@
 package ru.shemplo.ml.lab3;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -12,6 +13,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+
+import javafx.util.Pair;
 
 public class RunKNN {
     
@@ -81,7 +84,7 @@ public class RunKNN {
             TRAIN.add (entry);
         }
         
-        train ();
+        Collections.shuffle (TRAIN); train ();
         
         int testSize = Integer.parseInt (br.readLine ());
         for (int i = 0; i < testSize; i++) {
@@ -123,7 +126,23 @@ public class RunKNN {
         }
     }
     
+    private static int pointer = 0;
+    
     private static double runLeaveOneOut (int k, Metrics metrics, Kernel kernel, int iterations) {
+        List <Pair <Double, Integer>> weights = new ArrayList <> ();
+        pointer = 0;
+        
+        for (int i = 0; i < iterations; i++) {
+            double [] test = TRAIN.get (i);
+            TRAIN.forEach (p -> {
+                double dist = kernel.scale (metrics.distance (test, p));
+                weights.add (new Pair <> (dist, pointer++));
+            });
+        }
+        
+        // Distance from test point to itself == 0 -> it won't be in the head
+        weights.sort ((a, b) -> Double.compare (a.getKey (), b.getKey ()));
+        
         return 0d;
     }
     
