@@ -87,23 +87,5 @@
       <version>${junit.platform.version}</version>
       <scope>test</scope>
     </dependency>
-    
-    <dependency>
-      <groupId>org.xerial</groupId>
-      <artifactId>sqlite-jdbc</artifactId>
-      <version>3.8.11.2</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>9.0.3.v20130506</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>9.0.3.v20130506</version>
-    </dependency>
   </dependencies>
 </project>
