@@ -3,7 +3,8 @@ package ru.shemplo.graphlay.io;
 public enum Parameter {
     
     FORMAT      ("-f",  true),
-    DRAWING_API ("-da", true);
+    DRAWING_API ("-da", true),
+    GRAPH_FILE  ("-gf", false, "test.gf");
     
     public final boolean IS_REQUIRED;
     public final String KEY, DEFAULT;
@@ -14,7 +15,7 @@ public enum Parameter {
     
     private Parameter (String key, boolean req, String def) {
         ParametersData.PARAM_BY_KEY.put (key, this);
-        this.IS_REQUIRED = req;
+        this.IS_REQUIRED = def == null || req;
         this.DEFAULT = def;
         this.KEY = key;
     }
