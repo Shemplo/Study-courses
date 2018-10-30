@@ -1,7 +1,9 @@
 package ru.shemplo.graphlay;
 
-import static ru.shemplo.graphlay.io.Parameter.*;
-import static ru.shemplo.graphlay.GraphFormat.*;
+import static ru.shemplo.graphlay.io.Parameter.DRAWING_API;
+import static ru.shemplo.graphlay.io.Parameter.FORMAT;
+import static ru.shemplo.graphlay.io.Parameter.GRAPH_FILE;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.MissingFormatArgumentException;
@@ -27,7 +29,7 @@ public class RunGrpahLayout {
             throw new MissingFormatArgumentException (sb.toString ());
         }
  
-        GraphFormat format = matchOrDeafault (data.getValue (FORMAT), null);
+        GraphFormat format = GraphFormat.matchOrDeafault (data.getValue (FORMAT), null);
         if (format == null) {
             StringBuilder sb = new StringBuilder ();
             sb.append ("Unknown format of graph. Valid values: ")
@@ -35,13 +37,19 @@ public class RunGrpahLayout {
             throw new MissingFormatArgumentException (sb.toString ());
         }
         
-        
+        RenderType render = RenderType.matchOrDeafault (data.getValue (DRAWING_API), null);
+        if (render == null) {
+            StringBuilder sb = new StringBuilder ();
+            sb.append ("Unknown type of render. Valid values: ")
+              .append (Arrays.toString (RenderType.values ()));
+            throw new MissingFormatArgumentException (sb.toString ());
+        }
         
         GraphReader reader = format.getInstance ();
         Graph graph = reader.read (data.getValue (GRAPH_FILE));
         
         
-        graph.render ();
+        graph.render (render.getInstance ());
     }
     
     private static List <Parameter> checkParameters (ParametersData params) {

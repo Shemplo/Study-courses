@@ -4,11 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import ru.shemplo.graphlay.io.EdgesGraphReader;
 import ru.shemplo.graphlay.io.GraphReader;
 
 public enum GraphFormat {
 
-    EDGES  (() -> null), 
+    EDGES  (() -> new EdgesGraphReader ()),
     MATRIX (() -> null);
 
     private static final Map <String, GraphFormat> MATCHES = new HashMap <> ();
