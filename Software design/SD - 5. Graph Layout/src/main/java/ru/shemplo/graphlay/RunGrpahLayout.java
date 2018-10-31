@@ -47,7 +47,7 @@ public class RunGrpahLayout {
         
         GraphReader reader = format.getInstance ();
         Graph graph = reader.read (data.getValue (GRAPH_FILE));
-        
+        System.out.println (graph);
         
         graph.render (render.getInstance ());
     }

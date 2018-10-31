@@ -4,7 +4,7 @@ public enum Parameter {
     
     FORMAT      ("-f",  true),
     DRAWING_API ("-da", true),
-    GRAPH_FILE  ("-gf", false, "test.gf");
+    GRAPH_FILE  ("-gf", false, "example_edges.gf");
     
     public final boolean IS_REQUIRED;
     public final String KEY, DEFAULT;
