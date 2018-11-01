@@ -80,7 +80,7 @@
   }
 ```
 
-Для отрисовки графа используется объект типа `GraphRender`с интерфейсом:  
+Для отрисовки графа используется объект типа `GraphRender` с интерфейсом:  
 Полностью код: [GraphRender.java](src/main/java/ru/shemplo/graphlay/gfx/GraphRender.java)
 ```java
   public interface GraphRender {
