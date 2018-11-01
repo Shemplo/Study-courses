@@ -41,7 +41,7 @@
 Полностью код: [RenderType.java](src/main/java/ru/shemplo/graphlay/RenderType.java)
 ```java
   public enum RenderType {
-      AWT    (() -> new AWTGraphRender    (800, 600)), // Использовать Java Swing (и java.lang.awt.Canvas) для отрисовки
+      AWT    (() -> new AWTGraphRender    (800, 600)), // Использовать Java Swing (и java.awt.Canvas) для отрисовки
       JAVAFX (() -> new JavaFXGraphRender (800, 600)); // Использовать JavaFX для отрисовки графа
   }
 ```
