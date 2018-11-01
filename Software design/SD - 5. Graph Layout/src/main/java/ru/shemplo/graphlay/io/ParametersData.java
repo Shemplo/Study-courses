@@ -46,13 +46,15 @@ public class ParametersData {
         for (int i = 0; i < tokens.size (); i++) {
             String token = tokens.get (i);
             if (token.charAt (0) == '-') {
-                if (!PARAM_BY_KEY.containsKey (token) 
-                    && i + 1 < tokens.size ()) {
-                    token = tokens.get (++i);
-                    while (i < tokens.size () 
-                           && token.charAt (0) != '-') {
-                        token = tokens.get (i++);
-                    }
+                if (!PARAM_BY_KEY.containsKey (token) && i + 1 < tokens.size ()) {
+                    do {
+                        token = tokens.get (i + 1);
+                        if (token.charAt (0) == '-') {
+                            break;
+                        }
+                        
+                        i += 1;
+                    } while (i < tokens.size ());
                     
                     continue;
                 }

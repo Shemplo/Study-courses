@@ -1,4 +1,4 @@
-orientated: 1
+orientated: 0
 vertexes: 10
 
 1 2
