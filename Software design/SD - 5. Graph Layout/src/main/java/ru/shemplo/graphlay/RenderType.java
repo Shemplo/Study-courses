@@ -4,13 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import ru.shemplo.graphlay.gfx.AWTGraphRender;
 import ru.shemplo.graphlay.gfx.GraphRender;
 import ru.shemplo.graphlay.gfx.JavaFXGraphRender;
 
 public enum RenderType {
 
-    AWT    (() -> null), 
-    JAVAFX (() -> new JavaFXGraphRender (500, 300));
+    AWT    (() -> new AWTGraphRender    (800, 600)), 
+    JAVAFX (() -> new JavaFXGraphRender (800, 600));
     
     private static final Map <String, RenderType> MATCHES = new HashMap <> ();
     

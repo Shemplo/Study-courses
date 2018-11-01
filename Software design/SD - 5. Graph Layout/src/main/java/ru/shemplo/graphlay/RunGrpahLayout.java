@@ -10,6 +10,7 @@ import java.util.MissingFormatArgumentException;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import ru.shemplo.graphlay.gfx.GraphRender;
 import ru.shemplo.graphlay.graph.Graph;
 import ru.shemplo.graphlay.io.GraphReader;
 import ru.shemplo.graphlay.io.Parameter;
@@ -17,6 +18,8 @@ import ru.shemplo.graphlay.io.ParametersData;
 
 public class RunGrpahLayout {
 
+    private static Graph graph;
+    
     public static void main (String ... args) throws Exception {
         ParametersData data = ParametersData.parse (args);
         List <Parameter> missed = checkParameters (data);
@@ -28,7 +31,7 @@ public class RunGrpahLayout {
             sb.append ("Missed arguments: ").append (sj.toString ());
             throw new MissingFormatArgumentException (sb.toString ());
         }
- 
+        
         GraphFormat format = GraphFormat.matchOrDeafault (data.getValue (FORMAT), null);
         if (format == null) {
             StringBuilder sb = new StringBuilder ();
@@ -46,10 +49,18 @@ public class RunGrpahLayout {
         }
         
         GraphReader reader = format.getInstance ();
-        Graph graph = reader.read (data.getValue (GRAPH_FILE));
-        System.out.println (graph);
+        String file = data.getValue (GRAPH_FILE);
+        graph = reader.read (file);
         
-        graph.render (render.getInstance ());
+        Thread t = new Thread (() -> {
+            render.getInstance ();
+        });
+        t.start ();
+        t.join ();
+    }
+    
+    public static void onStageReady (GraphRender render) {
+        graph.render (render);
     }
     
     private static List <Parameter> checkParameters (ParametersData params) {

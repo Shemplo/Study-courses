@@ -1,5 +1,5 @@
 orientated: 1
-vertexes: 4
+vertexes: 10
 
 1 2
 1 4

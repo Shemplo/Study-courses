@@ -46,9 +46,12 @@ public class ParametersData {
         for (int i = 0; i < tokens.size (); i++) {
             String token = tokens.get (i);
             if (token.charAt (0) == '-') {
-                if (!PARAM_BY_KEY.containsKey (token)) {
-                    while (i < tokens.size () && token.charAt (0) != '-') {
-                        token = tokens.get (++i);
+                if (!PARAM_BY_KEY.containsKey (token) 
+                    && i + 1 < tokens.size ()) {
+                    token = tokens.get (++i);
+                    while (i < tokens.size () 
+                           && token.charAt (0) != '-') {
+                        token = tokens.get (i++);
                     }
                     
                     continue;
@@ -66,6 +69,11 @@ public class ParametersData {
         if (current != null && sj.length () > 0) {
             VALUES.put (current.KEY, sj.toString ());
         }
+    }
+    
+    @Override
+    public String toString () {
+        return VALUES.toString ();
     }
     
     public String getValue (Parameter parameter) {

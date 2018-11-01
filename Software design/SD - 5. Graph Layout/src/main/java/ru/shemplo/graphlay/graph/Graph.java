@@ -1,11 +1,13 @@
 package ru.shemplo.graphlay.graph;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import lombok.Getter;
@@ -58,19 +60,21 @@ public class Graph {
         Map <Integer, Pair <Double, Double>> positions = new HashMap <> ();
         List <Integer> vertexes = new ArrayList <> (VERTEXES);
         Collections.sort (vertexes);
+        double r = 25.0;
         
+        Random random = new Random ();
         for (Integer vertex : vertexes) {
             double angle  = getRadiansFor (vertex, vertexes.size ()),
-                   radius = 100.0;
+                   radius = 25.0 + random.nextInt (250);
             double x = Math.cos (angle) * radius,
-                   y = Math.sin (angle) * radius,
-                   r = 5;
+                   y = Math.sin (angle) * radius;
             
             positions.put (vertex, Pair.mp (x, y));
-            render.fillCircle (x, y, r);
         }
         
         // for not orientated
+        render.setStroke (new Color (1.0f, 0, 0.25f, 0.55f));
+        render.setLineWidth (3d);
         for (Pair <Integer, Integer> edge : EDGES) {
             if (!positions.containsKey (edge.F) 
             || !positions.containsKey (edge.S)) {
@@ -80,6 +84,12 @@ public class Graph {
             Pair <Double, Double> from = positions.get (edge.F),
                                   to   = positions.get (edge.S);
             render.strokeLine (from.F, from.S, to.F, to.S);
+        }
+        
+        render.setFill (new Color (1.0f, 0f, 0f, 0.65f));
+        for (Integer vertex : vertexes) {
+            Pair <Double, Double> v = positions.get (vertex);
+            render.fillCircle (v.F, v.S, r);
         }
     }
     
