@@ -1,8 +1,6 @@
 package ru.shemplo.graphlay;
 
-import static ru.shemplo.graphlay.io.Parameter.DRAWING_API;
-import static ru.shemplo.graphlay.io.Parameter.FORMAT;
-import static ru.shemplo.graphlay.io.Parameter.GRAPH_FILE;
+import static ru.shemplo.graphlay.io.Parameter.*;
 
 import java.util.Arrays;
 import java.util.List;

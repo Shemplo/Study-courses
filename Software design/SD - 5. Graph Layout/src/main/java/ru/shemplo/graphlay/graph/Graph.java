@@ -1,6 +1,10 @@
 package ru.shemplo.graphlay.graph;
 
+import static java.lang.Math.*;
+import static ru.shemplo.snowball.utils.ColorManip.*;
+
 import java.awt.Color;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,7 +69,7 @@ public class Graph {
         Random random = new Random ();
         for (Integer vertex : vertexes) {
             double angle  = getRadiansFor (vertex, vertexes.size ()),
-                   radius = 25.0 + random.nextInt (250);
+                   radius = r + random.nextInt ((int) r * 10);
             double x = Math.cos (angle) * radius,
                    y = Math.sin (angle) * radius;
             
@@ -86,9 +90,12 @@ public class Graph {
             render.strokeLine (from.F, from.S, to.F, to.S);
         }
         
-        render.setFill (new Color (1.0f, 0f, 0f, 0.65f));
+        //render.setFill (new Color (1.0f, 0f, 0f, 0.65f));
+        double maxRadius = r * 11 * r * 11;
         for (Integer vertex : vertexes) {
             Pair <Double, Double> v = positions.get (vertex);
+            double radius = v.F * v.F + v.S * v.S, normRadius = radius / maxRadius;
+            render.setFill (getSpectrumColor (normRadius, atan2 (v.F, v.S)));
             render.fillCircle (v.F, v.S, r);
         }
     }
