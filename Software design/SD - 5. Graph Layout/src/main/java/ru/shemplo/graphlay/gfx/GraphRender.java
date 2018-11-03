@@ -14,4 +14,6 @@ public interface GraphRender {
     
     public void setLineWidth (double width);
     
+    public void clear ();
+    
 }

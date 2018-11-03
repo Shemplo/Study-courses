@@ -65,6 +65,7 @@ public class Graph {
         List <Integer> vertexes = new ArrayList <> (VERTEXES);
         Collections.sort (vertexes);
         double r = 25.0;
+        render.clear ();
         
         Random random = new Random ();
         for (Integer vertex : vertexes) {

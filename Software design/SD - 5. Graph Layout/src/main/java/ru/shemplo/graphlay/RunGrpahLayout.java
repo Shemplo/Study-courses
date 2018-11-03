@@ -15,7 +15,7 @@ import ru.shemplo.graphlay.io.Parameter;
 import ru.shemplo.graphlay.io.ParametersData;
 
 public class RunGrpahLayout {
-
+    
     private static Graph graph;
     
     public static void main (String ... args) throws Exception {
@@ -58,6 +58,10 @@ public class RunGrpahLayout {
     }
     
     public static void onStageReady (GraphRender render) {
+        render (render);
+    }
+    
+    public static void render (GraphRender render) {
         graph.render (render);
     }
     

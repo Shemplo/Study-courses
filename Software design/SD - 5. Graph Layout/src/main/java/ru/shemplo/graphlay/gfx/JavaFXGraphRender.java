@@ -3,11 +3,24 @@ package ru.shemplo.graphlay.gfx;
 import java.awt.Color;
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
+
 import ru.shemplo.graphlay.RunGrpahLayout;
 
 public class JavaFXGraphRender extends Application implements GraphRender {
@@ -32,6 +45,22 @@ public class JavaFXGraphRender extends Application implements GraphRender {
         pane.getChildren ().add (CANVAS);
         CANVAS.setHeight (height);
         CANVAS.setWidth (width);
+        
+        
+        ImageView refreshIcon = new ImageView (new Image ("/gfx/refresh.png"));
+        refreshIcon.setFitWidth (32); refreshIcon.setFitHeight (32);
+        Button refresh = new Button ("", refreshIcon);
+        StackPane.setAlignment (refresh, Pos.TOP_RIGHT);
+        StackPane.setMargin (refresh, new Insets (15));
+        pane.getChildren ().add (refresh);
+        refresh.setCursor (Cursor.HAND);
+        refresh.setBorder (new Border (new BorderStroke (
+                Paint.valueOf ("BLACK"), BorderStrokeStyle.SOLID, 
+                new CornerRadii (5), BorderWidths.DEFAULT)));
+        refresh.setBackground (null);
+        refresh.setOnMouseClicked (me -> {
+            RunGrpahLayout.render (this);
+        });
         
         pane.setMinSize (100, 100);
         pane.setOnScroll (se -> {
@@ -86,6 +115,14 @@ public class JavaFXGraphRender extends Application implements GraphRender {
            color.getRed (), color.getGreen (), 
            color.getBlue (), color.getAlpha () / 255.0
         ));
+    }
+
+    @Override
+    public void clear () {
+        Paint paint = context.getFill ();
+        context.setFill (javafx.scene.paint.Color.WHITE);
+        context.fillRect (0, 0, width, height);
+        context.setFill (paint);
     }
 
     
