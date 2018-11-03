@@ -54,7 +54,7 @@ public class ParametersData {
                         }
                         
                         i += 1;
-                    } while (i < tokens.size ());
+                    } while (i + 1 < tokens.size ());
                     
                     continue;
                 }
@@ -76,6 +76,10 @@ public class ParametersData {
     @Override
     public String toString () {
         return VALUES.toString ();
+    }
+    
+    public int getSize () {
+        return VALUES.size ();
     }
     
     public String getValue (Parameter parameter) {
