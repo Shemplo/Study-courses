@@ -1,38 +1,39 @@
 package ru.shemplo.parser.tok;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import static java.lang.Character.*;
 
-public enum TokenizerState implements Predicate <Character>, Function <String, Token> {
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+
+public enum TokenizerState implements BiPredicate <TokenizerState, Character>,
+                                      Function <String, Token> {
     
-    IDENTIFIER (Character::isLetter,
+    IDENTIFIER ((s, c) -> values () [0].equals (s) && isJavaIdentifierPart (c)
+                       || isJavaIdentifierStart (c),
                 null),
     
-    NUMBER     (Character::isDigit,
+    NUMBER     ((s, c) -> isDigit (c),
                 NumberToken::new),
     
-    BRACE      (c -> c.equals ('(') || c.equals (')'),
+    BRACE      ((s, c) -> c.equals ('(') || c.equals (')'),
                 BraceToken::new),
     
-    OPERATION  (c -> c.equals ('+') || c.equals ('-')
+    OPERATION  ((s, c) -> c.equals ('+') || c.equals ('-')
                 || c.equals ('*') || c.equals ('/'),
                 OpToken::new);
     
+    private final BiPredicate <TokenizerState, Character> P;
     private final Function <String, Token> F;
-    private final Predicate <Character> P;
     
-    private TokenizerState (Predicate <Character> predicate,
+    private TokenizerState (BiPredicate <TokenizerState, Character> predicate,
                             Function <String, Token> function) {
         this.P = predicate;
         this.F = function;
     }
 
     @Override
-    public boolean test (Character c) {
-        return P.test (c);
+    public boolean test (TokenizerState state, Character c) {
+        return P.test (state, c);
     }
 
     @Override

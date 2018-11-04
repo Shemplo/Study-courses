@@ -7,4 +7,12 @@ public class OpToken extends AbsToken {
         super (value);
     }
     
+    public OpToken (String value, Token left, Token right) {
+        super ("{" + left + ", " + value + ", " + right + "}");
+    }
+    
+    public String getOperation () {
+        return value ();
+    }
+    
 }

@@ -6,4 +6,8 @@ public class BraceToken extends AbsToken {
         super (value);
     }
     
+    public char getBrace () {
+        return this.value ().charAt (0);
+    }
+    
 }

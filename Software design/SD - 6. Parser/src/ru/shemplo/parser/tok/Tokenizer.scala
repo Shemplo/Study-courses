@@ -15,16 +15,19 @@ class Tokenizer {
         input.toCharArray.zipWithIndex.forall (applyNext);
         applyNext (('$', input.length + 1)); // EOI - End Of Input
         println (tokens);
+        println (2.isInstanceOf [Int]);
     }
+    
+    def getTokens () : util.List [Token] = tokens;
     
     private def applyNext (input : (Char, Int)): Boolean = {
         val (char, index) = input; // unwrapping tuple
         
         val tmpState = char match {
-            case alp if IDENTIFIER.test (alp) => IDENTIFIER;
-            case num if NUMBER.test (num)     => NUMBER;
-            case bra if BRACE.test (bra)      => BRACE;
-            case ope if OPERATION.test (ope)  => OPERATION;
+            case alp if IDENTIFIER.test (state, alp) => IDENTIFIER;
+            case num if NUMBER.test (state, num)     => NUMBER;
+            case bra if BRACE.test (state, bra)      => BRACE;
+            case ope if OPERATION.test (state, ope)  => OPERATION;
             
             case ' ' => return true;
             case '$' => {

@@ -2,9 +2,7 @@ package ru.shemplo.parser.tok
 
 import ru.shemplo.parser.vis.TokenVisitor
 
-abstract class AbsToken (val value : String) extends Token {
-    
-    protected val VALUE : String = value;
+abstract class AbsToken (protected val value : String) extends Token {
     
     def accept (visitor: TokenVisitor): Unit = {
         try {
@@ -19,7 +17,7 @@ abstract class AbsToken (val value : String) extends Token {
     }
     
     override def toString (): String = {
-        return VALUE;
+        return value;
     };
     
 }
