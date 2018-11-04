@@ -3,6 +3,7 @@ package ru.shemplo.parser.tok.tree
 import java.util
 
 import ru.shemplo.parser.tok.{BraceToken, OpToken, Token}
+import ru.shemplo.parser.tok.OpToken._
 
 class TreeBuilder (protected val tokens : util.List [Token]) {
 
@@ -16,8 +17,7 @@ class TreeBuilder (protected val tokens : util.List [Token]) {
         var loop = true
         while (loop && index + 2 < tokens.size ()) {
             tokens get (index + 1) match {
-                case op : OpToken if op.getOperation.equals ("+")
-                                  || op.getOperation.equals ("-") =>
+                case op : OpToken if getPriorityLevel (op) == 0 =>
                     index += 2
                     val right = buildHigh () match {
                         case t: Token => t
@@ -41,8 +41,7 @@ class TreeBuilder (protected val tokens : util.List [Token]) {
         var loop = true
         while (loop && index + 2 < tokens.size ()) {
             tokens get (index + 1) match {
-                case op : OpToken if op.getOperation.equals ("*")
-                                  || op.getOperation.equals ("/") =>
+                case op : OpToken if getPriorityLevel (op) == 1 =>
                     index += 2
                     val right = buildBrace () match {
                         case t: Token => println (t); t
