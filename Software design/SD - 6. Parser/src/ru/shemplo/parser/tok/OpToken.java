@@ -19,9 +19,13 @@ public class OpToken extends AbsToken {
         {"*", "/"}
     };
     
+    public static int getMaxPriority () {
+        return LEVELS.length - 1;
+    }
+    
     public static int getPriorityLevel (OpToken operation) {
         final String value = operation.value ();
-        for (int i = 0; i < LEVELS.length; i++) {
+        for (int i = 0; i <= getMaxPriority (); i++) {
             for (String oper : LEVELS [i]) {
                 if (oper.equals (value)) {
                     return i;
@@ -29,7 +33,7 @@ public class OpToken extends AbsToken {
             }
         }
         
-        return LEVELS.length;
+        return getMaxPriority () + 1;
     }
     
 }

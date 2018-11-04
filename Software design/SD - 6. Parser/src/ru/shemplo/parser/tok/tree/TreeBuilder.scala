@@ -7,59 +7,48 @@ import ru.shemplo.parser.tok.OpToken._
 
 class TreeBuilder (protected val tokens : util.List [Token]) {
 
+    private val maxPriority = getMaxPriority
     private var index : Int = 0
     
-    def build (): Token = buildLow ()
+    def build (): Token = buildByPriority (0)
     
-    private def buildLow (): Token = {
-        var left = buildHigh ()
+    private def buildByPriority (priority: Int): Token = {
+        val isMax = priority >= maxPriority
         
-        var loop = true
-        while (loop && index + 2 < tokens.size ()) {
-            tokens get (index + 1) match {
-                case op : OpToken if getPriorityLevel (op) == 0 =>
-                    index += 2
-                    val right = buildHigh () match {
-                        case t: Token => t
-                        case _ => tokens get index
-                    }
-            
-                    left = new OpToken (op.getOperation, left, right)
-                case _  => loop = false
-            }
-        }
+        var left =
+            if (isMax) buildBrace ()
+            else       buildByPriority (priority + 1)
         
-        left
-    }
-    
-    private def buildHigh (): Token = {
-        var left = buildBrace () match {
+        left = left match {
             case t : Token => t
-            case _ => tokens get index
+            case _         => tokens get index
         }
-        
+    
         var loop = true
         while (loop && index + 2 < tokens.size ()) {
             tokens get (index + 1) match {
-                case op : OpToken if getPriorityLevel (op) == 1 =>
+                case op : OpToken if getPriorityLevel (op) == priority =>
                     index += 2
-                    val right = buildBrace () match {
-                        case t: Token => println (t); t
-                        case _ => tokens get index
+                    val right = buildByPriority (priority + 1) match {
+                        case t: Token => t
+                        case _ =>
+                            println ("Warning: right part of expression" +
+                                     " nof found for " + op.getOperation)
+                            tokens get index
                     }
-                    
+                
                     left = new OpToken (op.getOperation, left, right)
                 case _  => loop = false
             }
         }
-        
+    
         left
     }
     
     private def buildBrace (): Token = {
         tokens get index match {
             case token : BraceToken if token.getBrace == '(' =>
-                index += 1; val exp = buildLow ()
+                index += 1; val exp = buildByPriority (0)
                 
                 tokens get (index + 1) match {
                     case token: BraceToken if token.getBrace == ')' =>
