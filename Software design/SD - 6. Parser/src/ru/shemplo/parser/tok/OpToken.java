@@ -2,16 +2,24 @@ package ru.shemplo.parser.tok;
 
 public class OpToken extends AbsToken {
 
+    public final Token LEFT, RIGHT;
+    public final String OPERRATION;
+    
     public OpToken (String value) {
         super (value);
+        
+        this.LEFT = this.RIGHT = null;
+        this.OPERRATION = value;
     }
     
     public OpToken (String value, Token left, Token right) {
         super ("{" + left + ", " + value + ", " + right + "}");
+        this.LEFT = left; this.RIGHT = right;
+        this.OPERRATION = value;
     }
     
     public String getOperation () {
-        return value ();
+        return OPERRATION;
     }
     
     private static String [][] LEVELS = {

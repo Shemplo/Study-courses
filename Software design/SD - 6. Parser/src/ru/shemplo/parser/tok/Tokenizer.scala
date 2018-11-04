@@ -16,7 +16,7 @@ class Tokenizer {
         applyNext (('$', input.length + 1)); // EOI - End Of Input
     }
     
-    def getTokens : util.List [Token] = tokens;
+    def getTokens : util.List [Token] = tokens
     
     private def applyNext (input : (Char, Int)): Boolean = {
         val (char, index) = input; // unwrapping tuple
@@ -45,7 +45,7 @@ class Tokenizer {
         }
         
         buffer.append (char)
-        return true
+        true
     }
     
     private def flushBuffer (): Unit = {

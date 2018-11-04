@@ -8,16 +8,13 @@ abstract class AbsToken (protected val value : String) extends Token {
         try {
             visitor.getClass
                    .getMethod ("visit", this.getClass)
-                   .invoke (visitor, this);
+                   .invoke (visitor, this)
         } catch {
-            case nsme : NoSuchMethodException => {
-                System.err.println (nsme); return;
-            };
+            case nsme : NoSuchMethodException =>
+                System.err.println (nsme)
         }
     }
     
-    override def toString (): String = {
-        return value;
-    };
+    override def toString: String = value
     
 }

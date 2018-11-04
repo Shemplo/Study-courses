@@ -7,4 +7,8 @@ public class NumberToken extends AbsToken {
         super (value);
     }
     
+    public int getNumber () {
+        return Integer.parseInt (value ());
+    }
+    
 }
