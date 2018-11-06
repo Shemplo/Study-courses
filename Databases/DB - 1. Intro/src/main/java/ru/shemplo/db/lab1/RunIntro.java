@@ -33,6 +33,7 @@ public class RunIntro {
             DB       = br.readLine ().trim ();
         } catch (IOException ioe) {
             System.err.println (ioe);
+            System.exit (1);
         }
     }
     
