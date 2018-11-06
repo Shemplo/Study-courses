@@ -61,6 +61,7 @@ public class RunIntro {
         Connection connection = DriverManager.getConnection (URL, USER, PASSWORD);
         final String BASE_CREATE_QUERY = "CREATE TABLE IF NOT EXISTS :tname (:columns)",
                      BASE_INSERT_QUERY = "INSERT INTO :tname (:names) VALUES (:values)";
+        String previousTable = ""; int previousSize = 1;
         for (int i = 0; i < 10; i++) {
             final int columns = 1 + RANDOM.nextInt (5);
             StringJoiner sj = new StringJoiner (", ");
@@ -74,7 +75,10 @@ public class RunIntro {
                 sb.append (names [j] = GET_STRING.get ()).append (" ")
                   .append ((model [j] = GET_TYPE.get ()) == Type.CHAR 
                           ? "CHAR(50)" : model [j].name ())
-                  .append (RANDOM.nextBoolean () ? " NOT NULL" : "");
+                  .append (RANDOM.nextBoolean () ? " NOT NULL" : "")
+                  .append (j == 0 && model [j] == Type.INT && previousSize > 0
+                        ? " REFERENCES " + previousTable + " (id)" 
+                        : "");
                 sj.add (sb);
             }
             
@@ -83,6 +87,7 @@ public class RunIntro {
                          . replace (":tname", tableName)
                          . replace (":columns", sj.toString ());
             Statement s = connection.createStatement ();
+            // System.out.println (query);
             s.executeUpdate (query);
             
             final int rows = RANDOM.nextInt (40);
@@ -94,7 +99,9 @@ public class RunIntro {
                 sj = new StringJoiner (", ");
                 for (int k = 0; k < model.length; k++) {
                     switch (model [k]) {
-                        case INT : sj.add ("" + RANDOM.nextInt ());        break;
+                        case INT : sj.add ("" + (1 + RANDOM.nextInt (k == 0 ? previousSize : 100))); 
+                        break;
+                        
                         case REAL: sj.add ("" + RANDOM.nextFloat ());      break;
                         default  : sj.add ("'" + GET_STRING.get () + "'"); break;
                     }
@@ -105,8 +112,12 @@ public class RunIntro {
                       . replace (":names", columnsNames)
                       . replace (":values", sj.toString ());
                 s = connection.createStatement ();
+                // System.out.println (query);
                 s.executeUpdate (query);
             }
+            
+            previousSize = Math.max (1, rows);
+            previousTable = tableName;
         }
         connection.close ();
     }
