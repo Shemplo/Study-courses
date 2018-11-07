@@ -1,18 +1,19 @@
 package ru.shemplo.ml.lab3;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.StringTokenizer;
-
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javafx.util.Pair;
 
@@ -26,9 +27,9 @@ public class RunKNN {
                 sum += (a [i] - b [i]) * (a [i] - b [i]); 
             }
             return Math.sqrt (sum);
-        }), 
+        }); 
         
-        MANHATTAN ((a, b) -> 0d);
+        //MANHATTAN ((a, b) -> 0d);
         
         private final BiFunction <double [], double [], Double> FUNCTION;
         
@@ -114,6 +115,7 @@ public class RunKNN {
                     Kernel kernel = Kernel.values () [k];
                     
                     double score = runLeaveOneOut (i, metrics, kernel, 10);
+                    System.out.println (score);
                     if (score > bestScore) {
                         bestMetrics = metrics;
                         bestKernel = kernel;
@@ -126,24 +128,40 @@ public class RunKNN {
         }
     }
     
-    private static int pointer = 0;
-    
     private static double runLeaveOneOut (int k, Metrics metrics, Kernel kernel, int iterations) {
-        List <Pair <Double, Integer>> weights = new ArrayList <> ();
-        pointer = 0;
-        
-        for (int i = 0; i < iterations; i++) {
-            double [] test = TRAIN.get (i);
-            TRAIN.forEach (p -> {
-                double dist = kernel.scale (metrics.distance (test, p));
-                weights.add (new Pair <> (dist, pointer++));
-            });
+        int tp = 0;
+        for (int i = 0; i < Math.min (iterations, TRAIN.size ()); i++) {
+            List <Pair <Double, Integer>> weights = new ArrayList <> ();
+            
+            double [] tmp = TRAIN.get (i),
+                      test = Arrays.copyOf (tmp, tmp.length - 1);
+            for (int j = 0; j < TRAIN.size (); j++) {
+                double dist = kernel.scale (metrics.distance (test, TRAIN.get (j)));
+                weights.add (new Pair <> (dist, (int) TRAIN.get (j) [tmp.length - 1]));                
+            }
+            
+            // Distance from test point to itself == 0 -> it won't be in the head
+            weights.sort ((a, b) -> Double.compare (a.getKey (), b.getKey ()));
+            
+            Map <Integer, Double> sums = new HashMap <> ();
+            int maxIndex = -1; double maxRate = 0;
+            for (int j = 0; j < Math.min (k, weights.size ()); j++) {
+                Pair <Double, Integer> pair = weights.get (j);
+                sums.putIfAbsent (pair.getValue (), 0d);
+                
+                int id = pair.getValue ();
+                sums.compute (id, (ind, v) -> v + pair.getKey ());
+                if (sums.get (id) > maxRate) {
+                    maxRate = sums.get (id);
+                    maxIndex = j;
+                }
+            }
+            
+            System.out.println (sums);
+            if ((int) (tmp [tmp.length - 1]) == maxIndex) { tp++; }
         }
         
-        // Distance from test point to itself == 0 -> it won't be in the head
-        weights.sort ((a, b) -> Double.compare (a.getKey (), b.getKey ()));
-        
-        return 0d;
+        return (0.0 + tp) / iterations;
     }
     
 }
