@@ -38,6 +38,14 @@ public class RunKNN {
                 dist += abs (a [i] - b [i]); 
             }
             return dist;
+        }),
+        
+        CHEBYSHEV ((a, b) -> {
+            double dist = 0;
+            for (int i = 0; i < Math.min (a.length, b.length); i++) {
+                dist = Math.max (dist, abs (a [i] - b [i]));
+            }
+            return dist;
         });
         
         private final BiFunction <double [], double [], Double> FUNCTION;
@@ -56,7 +64,8 @@ public class RunKNN {
         
         UNIFORM  (d -> abs (d) <= 1 ? 1.0d : 0.0d),
         TRIANGLE (d -> abs (d) <= 1 ? 1 - abs (d) : 0.0d),
-        EXPONENT (d -> 1 / abs (d));
+        EXPONENT (d -> abs (d) > 0 ? 1 / abs (d) : 1.0d),
+        TRICUBE  (d -> abs (d) <= 1 ? 0.86419753 * pow (1 - pow (d, 3), 3) : 0.0d);
         
         private final Function <Double, Double> FUNCTION;
         
@@ -82,7 +91,6 @@ public class RunKNN {
     }
     
     private static void solve (BufferedReader br) throws IOException {
-        @SuppressWarnings ("unused")
         int features  = Integer.parseInt (br.readLine ()),
             classes   = Integer.parseInt (br.readLine ()),
             trainSize = Integer.parseInt (br.readLine ());
@@ -103,7 +111,7 @@ public class RunKNN {
         
         //normalize (TRAIN, null, features);
         Collections.shuffle (TRAIN); 
-        train ();
+        train (classes);
         
         int testSize = Integer.parseInt (br.readLine ());
         for (int i = 0; i < testSize; i++) {
@@ -193,8 +201,8 @@ public class RunKNN {
     private static double  bestWindow;
     private static int     bestK;
     
-    private static void train () {
-        int neighboursNumber = 20, windowsNumber = 20,
+    private static void train (int classes) {
+        int neighboursNumber = 20, windowsNumber = 15,
             metricsNumber = Metrics.values ().length,
             kernelNumber = Kernel.values ().length;
         
@@ -206,7 +214,8 @@ public class RunKNN {
                     Kernel kernel = Kernel.values () [k];
                     for (int w = 1; w <= windowsNumber; w++) {
                         double window = 0.1 + (5 - 0.1) / windowsNumber * w;
-                        double score = runLeaveOneOut (i, window, metrics, kernel, 100);
+                        double score = runLeaveOneOut (i, window, 
+                                  metrics, kernel, 100, classes);
                         if (score > bestScore) {
                             bestMetrics = metrics;
                             bestKernel = kernel;
@@ -258,26 +267,54 @@ public class RunKNN {
     }
     
     private static double runLeaveOneOut (int k, double window, 
-            Metrics metrics, Kernel kernel, int iterations) {
-        int tp = 0; iterations = Math.min (iterations, TRAIN.size ());
+            Metrics metrics, Kernel kernel, int iterations, int classes) {
+        double [][] matrix = new double [classes][classes];
+        iterations = Math.min (iterations, TRAIN.size ());
+        
         for (int i = 0; i < iterations; i++) {
             double [] tmp = TRAIN.get (i), test = Arrays.copyOf (tmp, tmp.length - 1);
             Map <Integer, Double> 
                 sums = runClassification (test, i, k, window, metrics, kernel);
             
-            int maxIndex = -1; double maxRate = Double.MIN_VALUE;
+            int maxIndex = -1; double maxRate = -1;
             for (Integer key : sums.keySet ()) {
                 if (maxRate < sums.get (key)) {
                     maxRate = sums.get (key);
-                    maxIndex = key;
+                    maxIndex = key - 1;
                 }
             }
             
             //System.out.println (sums + " " + maxIndex + " " + (int) (tmp [tmp.length - 1]));
-            if ((int) (tmp [tmp.length - 1]) == maxIndex) { tp++; }
+            //if ((int) (tmp [tmp.length - 1]) == maxIndex) { tp++; }
+            matrix [maxIndex][(int) tmp [tmp.length - 1] - 1] += 1;
         }
         
-        return (0.0 + tp) / iterations;
+        return f1 (matrix);
+    }
+    
+    private static double f1 (double [][] matrix) {
+        double [] columns = new double [matrix.length],
+                  lines   = new double [matrix.length];
+        double total = 0, score = 0;
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix [i].length; j++) {
+                columns [j] += matrix [i][j];
+                lines [i] += matrix [i][j];
+                total += matrix [i][j];
+            }
+        }
+        
+        for (int i = 0; i < matrix.length; i++) {
+            double tp = matrix [i][i];
+            double precision = (tp == 0) ? 0 : (tp / columns [i]),
+                   recall    = (tp == 0) ? 0 : (tp / lines [i]);
+            if (Math.abs (precision + recall) >= 1e-4) {
+                score += 2 * (precision * recall) 
+                       / (precision + recall) * lines [i];
+            }
+        }
+        
+        return score / total;
     }
     
 }
