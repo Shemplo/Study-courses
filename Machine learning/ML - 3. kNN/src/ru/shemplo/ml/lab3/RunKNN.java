@@ -1,10 +1,13 @@
 package ru.shemplo.ml.lab3;
 
+import static java.lang.Math.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,9 +30,15 @@ public class RunKNN {
                 sum += (a [i] - b [i]) * (a [i] - b [i]); 
             }
             return Math.sqrt (sum);
-        }); 
+        }),
         
-        //MANHATTAN ((a, b) -> 0d);
+        MANHATTAN ((a, b) -> {
+            double dist = 0;
+            for (int i = 0; i < Math.min (a.length, b.length); i++) { 
+                dist += abs (a [i] - b [i]); 
+            }
+            return dist;
+        });
         
         private final BiFunction <double [], double [], Double> FUNCTION;
         
@@ -45,7 +54,9 @@ public class RunKNN {
     
     private static enum Kernel {
         
-        UNIFORM (d -> Math.abs (d) <= 1 ? d : 0);
+        UNIFORM  (d -> abs (d) <= 1 ? 1.0d : 0.0d),
+        TRIANGLE (d -> abs (d) <= 1 ? 1 - abs (d) : 0.0d),
+        EXPONENT (d -> 1 / abs (d));
         
         private final Function <Double, Double> FUNCTION;
         
@@ -59,7 +70,9 @@ public class RunKNN {
         
     }
     
-    private static List <double []> TRAIN = new ArrayList <> ();
+    private static List <double []> TRAIN = new ArrayList <> (),
+                                    CLEAR = new ArrayList <> (),
+                                    TEST  = new ArrayList <> ();
 
     public static void main (String ... args) throws IOException {
         try (
@@ -69,9 +82,11 @@ public class RunKNN {
     }
     
     private static void solve (BufferedReader br) throws IOException {
+        @SuppressWarnings ("unused")
         int features  = Integer.parseInt (br.readLine ()),
             classes   = Integer.parseInt (br.readLine ()),
             trainSize = Integer.parseInt (br.readLine ());
+        
         for (int i = 0; i < trainSize; i++) {
             StringTokenizer st = new StringTokenizer (br.readLine ());
             double [] entry = new double [features + 1];
@@ -84,8 +99,11 @@ public class RunKNN {
             entry [entry.length - 1] = answer;
             TRAIN.add (entry);
         }
+        CLEAR.addAll (TRAIN); // backup
         
-        Collections.shuffle (TRAIN); train ();
+        //normalize (TRAIN, null, features);
+        Collections.shuffle (TRAIN); 
+        train ();
         
         int testSize = Integer.parseInt (br.readLine ());
         for (int i = 0; i < testSize; i++) {
@@ -93,17 +111,90 @@ public class RunKNN {
             double [] entry = new double [features];
             
             for (int j = 0; j < features; j++) {
-                double feature = Double.parseDouble (st.nextToken ());
+                entry [j] = Double.parseDouble (st.nextToken ());
+            }
+            
+            TEST.add (entry);
+        }
+        
+        TRAIN.clear (); TRAIN.addAll (CLEAR);
+        //normalize (TEST, TRAIN, features);
+        
+        for (int i = 0; i < testSize; i++) {
+            List <Pair <Double, Integer>> weights = getWeights (TEST.get (i), -1, 
+                                    bestK, bestWindow, bestMetrics, bestKernel);
+            StringBuilder sb = new StringBuilder ();
+            sb.append (bestK).append (" ");
+            for (int j = 0; j < bestK; j++) {
+                Pair <Double, Integer> pair = weights.get (j);
+                sb.append (pair.getValue () + 1).append (" ")
+                  .append (pair.getKey ()).append (" ");
+            }
+            System.out.println (sb.toString ());
+        }
+    }
+    
+    @SuppressWarnings ("unused")
+    private static void normalize (List <double []> data, 
+            List <double []> support, int features) {
+        double [][] bounds = new double [features][3];
+        for (int i = 0; i < features; i++) {
+            bounds [i][0] = Double.MIN_VALUE;
+            bounds [i][1] = Double.MAX_VALUE;
+        }
+        
+        for (int i = 0; i < data.size (); i++) {
+            double [] entry = data.get (i);
+            for (int j = 0; j < features; j++) {
+                bounds [j][0] = Math.max (bounds [j][0], entry [j]);
+                bounds [j][1] = Math.min (bounds [j][1], entry [j]);
+                bounds [j][2] += entry [j];
+            }
+        }
+        
+        int total = data.size ();
+        
+        if (support != null) {
+            for (int i = 0; i < support.size (); i++) {
+                double [] entry = support.get (i);
+                for (int j = 0; j < features; j++) {
+                    bounds [j][0] = Math.max (bounds [j][0], entry [j]);
+                    bounds [j][1] = Math.min (bounds [j][1], entry [j]);
+                    bounds [j][2] += entry [j];
+                }
+            }
+            
+            total += support.size ();
+        }
+        
+        for (int i = 0; i < data.size (); i++) {
+            for (int j = 0; j < features; j++) {
+                double value = data.get (i) [j]; 
+                value = (value - bounds [j][2] / total) 
+                      / (bounds [j][0] - bounds [j][1]);
+                data.get (i) [j] = value;
+            }
+        }
+        
+        if (support != null) {
+            for (int i = 0; i < support.size (); i++) {
+                for (int j = 0; j < features; j++) {
+                    double value = support.get (i) [j]; 
+                    value = (value - bounds [j][2] / total) 
+                          / (bounds [j][0] - bounds [j][1]);
+                    support.get (i) [j] = value;
+                }
             }
         }
     }
     
     private static Metrics bestMetrics; 
-    private static Kernel bestKernel;
-    private static int kBest;
+    private static Kernel  bestKernel;
+    private static double  bestWindow;
+    private static int     bestK;
     
     private static void train () {
-        int neighboursNumber = 20,
+        int neighboursNumber = 20, windowsNumber = 20,
             metricsNumber = Metrics.values ().length,
             kernelNumber = Kernel.values ().length;
         
@@ -113,51 +204,76 @@ public class RunKNN {
                 Metrics metrics = Metrics.values () [j];
                 for (int k = 0; k < kernelNumber; k++) {
                     Kernel kernel = Kernel.values () [k];
-                    
-                    double score = runLeaveOneOut (i, metrics, kernel, 10);
-                    System.out.println (score);
-                    if (score > bestScore) {
-                        bestMetrics = metrics;
-                        bestKernel = kernel;
-                        kBest = i;
-                        
-                        bestScore = score;
+                    for (int w = 1; w <= windowsNumber; w++) {
+                        double window = 0.1 + (5 - 0.1) / windowsNumber * w;
+                        double score = runLeaveOneOut (i, window, metrics, kernel, 100);
+                        if (score > bestScore) {
+                            bestMetrics = metrics;
+                            bestKernel = kernel;
+                            bestWindow = window;
+                            bestK = i;
+                            
+                            bestScore = score;
+                        }
                     }
                 }
             }
         }
+        
+        /*
+        System.out.println ("Best: " + bestScore + " " + bestK + " " + bestWindow 
+                         + " " + bestMetrics + " " + bestKernel);*/
     }
     
-    private static double runLeaveOneOut (int k, Metrics metrics, Kernel kernel, int iterations) {
-        int tp = 0;
-        for (int i = 0; i < Math.min (iterations, TRAIN.size ()); i++) {
-            List <Pair <Double, Integer>> weights = new ArrayList <> ();
+    private static List <Pair <Double, Integer>> getWeights (double [] point, 
+            int ignore, int k, double window, Metrics metrics, Kernel kernel) {
+        List <Pair <Double, Integer>> weights = new ArrayList <> ();
+        for (int j = 0; j < TRAIN.size (); j++) {
+            if (ignore == j) { continue; } // skipping test point
+            double distance = metrics.distance (point, TRAIN.get (j));
+            double weight  = kernel.scale (distance / window);
+            weights.add (new Pair <> (weight, j));
+        }
+        
+        weights.sort ((a, b) -> -Double.compare (a.getKey (), b.getKey ())); // Descending
+        return weights;
+    }
+    
+    private static Map <Integer, Double> runClassification (double [] point, 
+            int ignore, int k, double window, Metrics metrics, Kernel kernel) {
+        List <Pair <Double, Integer>> weights = getWeights (point, ignore, k, window, metrics, kernel);
+        Map <Integer, Double> sums = new HashMap <> ();
+        
+        for (int j = 0; j < Math.min (k, weights.size ()); j++) {
+            Pair <Double, Integer> pair = weights.get (j);
+            double [] train = TRAIN.get (pair.getValue ());
+            int cluster = (int) train [train.length - 1];
+            sums.putIfAbsent (cluster, 0d);
             
-            double [] tmp = TRAIN.get (i),
-                      test = Arrays.copyOf (tmp, tmp.length - 1);
-            for (int j = 0; j < TRAIN.size (); j++) {
-                double dist = kernel.scale (metrics.distance (test, TRAIN.get (j)));
-                weights.add (new Pair <> (dist, (int) TRAIN.get (j) [tmp.length - 1]));                
-            }
+            sums.compute (cluster, 
+                (ind, v) -> v + pair.getKey ());
+        }
+        
+        return sums;
+    }
+    
+    private static double runLeaveOneOut (int k, double window, 
+            Metrics metrics, Kernel kernel, int iterations) {
+        int tp = 0; iterations = Math.min (iterations, TRAIN.size ());
+        for (int i = 0; i < iterations; i++) {
+            double [] tmp = TRAIN.get (i), test = Arrays.copyOf (tmp, tmp.length - 1);
+            Map <Integer, Double> 
+                sums = runClassification (test, i, k, window, metrics, kernel);
             
-            // Distance from test point to itself == 0 -> it won't be in the head
-            weights.sort ((a, b) -> Double.compare (a.getKey (), b.getKey ()));
-            
-            Map <Integer, Double> sums = new HashMap <> ();
-            int maxIndex = -1; double maxRate = 0;
-            for (int j = 0; j < Math.min (k, weights.size ()); j++) {
-                Pair <Double, Integer> pair = weights.get (j);
-                sums.putIfAbsent (pair.getValue (), 0d);
-                
-                int id = pair.getValue ();
-                sums.compute (id, (ind, v) -> v + pair.getKey ());
-                if (sums.get (id) > maxRate) {
-                    maxRate = sums.get (id);
-                    maxIndex = j;
+            int maxIndex = -1; double maxRate = Double.MIN_VALUE;
+            for (Integer key : sums.keySet ()) {
+                if (maxRate < sums.get (key)) {
+                    maxRate = sums.get (key);
+                    maxIndex = key;
                 }
             }
             
-            System.out.println (sums);
+            //System.out.println (sums + " " + maxIndex + " " + (int) (tmp [tmp.length - 1]));
             if ((int) (tmp [tmp.length - 1]) == maxIndex) { tp++; }
         }
         
