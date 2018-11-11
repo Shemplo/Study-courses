@@ -109,7 +109,7 @@ public class RunKNN {
         }
         CLEAR.addAll (TRAIN); // backup
         
-        //normalize (TRAIN, null, features);
+        //normalize (TRAIN, new ArrayList <> (), features);
         Collections.shuffle (TRAIN); 
         train (classes);
         
@@ -146,6 +146,7 @@ public class RunKNN {
     private static void normalize (List <double []> data, 
             List <double []> support, int features) {
         double [][] bounds = new double [features][3];
+        int total = data.size () + support.size ();
         for (int i = 0; i < features; i++) {
             bounds [i][0] = Double.MIN_VALUE;
             bounds [i][1] = Double.MAX_VALUE;
@@ -160,19 +161,13 @@ public class RunKNN {
             }
         }
         
-        int total = data.size ();
-        
-        if (support != null) {
-            for (int i = 0; i < support.size (); i++) {
-                double [] entry = support.get (i);
-                for (int j = 0; j < features; j++) {
-                    bounds [j][0] = Math.max (bounds [j][0], entry [j]);
-                    bounds [j][1] = Math.min (bounds [j][1], entry [j]);
-                    bounds [j][2] += entry [j];
-                }
+        for (int i = 0; i < support.size (); i++) {
+            double [] entry = support.get (i);
+            for (int j = 0; j < features; j++) {
+                bounds [j][0] = Math.max (bounds [j][0], entry [j]);
+                bounds [j][1] = Math.min (bounds [j][1], entry [j]);
+                bounds [j][2] += entry [j];
             }
-            
-            total += support.size ();
         }
         
         for (int i = 0; i < data.size (); i++) {
@@ -184,14 +179,12 @@ public class RunKNN {
             }
         }
         
-        if (support != null) {
-            for (int i = 0; i < support.size (); i++) {
-                for (int j = 0; j < features; j++) {
-                    double value = support.get (i) [j]; 
-                    value = (value - bounds [j][2] / total) 
-                          / (bounds [j][0] - bounds [j][1]);
-                    support.get (i) [j] = value;
-                }
+        for (int i = 0; i < support.size (); i++) {
+            for (int j = 0; j < features; j++) {
+                double value = support.get (i) [j]; 
+                value = (value - bounds [j][2] / total) 
+                      / (bounds [j][0] - bounds [j][1]);
+                support.get (i) [j] = value;
             }
         }
     }
@@ -240,7 +233,10 @@ public class RunKNN {
         for (int j = 0; j < TRAIN.size (); j++) {
             if (ignore == j) { continue; } // skipping test point
             double distance = metrics.distance (point, TRAIN.get (j));
-            double weight  = kernel.scale (distance / window);
+            double weight   = kernel.scale (distance / window);
+            if (ignore == -1) {
+                System.out.println (distance + " " + weight);
+            }
             weights.add (new Pair <> (weight, j));
         }
         
