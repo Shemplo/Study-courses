@@ -1,5 +1,6 @@
 package ru.shemplo.coding.matrixes;
 
+import static ru.shemplo.snowball.utils.BitManip.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -154,6 +155,15 @@ public class RunMatrixes {
         return result;
     }
     
+    private static Integer mulVectorOnVector (Integer [] f, Integer [] s) {
+        int result = 0;
+        for (int i = 0; i < f.length; i++) {
+            result += f [i] * s [i];
+        }
+        
+        return new Integer (result % MOD);
+    }
+    
     private static Integer mulColOnMatrix (Integer [] vector, Integer [][] matrix, int column) {
         int result = 0;
         for (int i = 0; i < vector.length; i++) {
@@ -217,8 +227,8 @@ public class RunMatrixes {
     }
     
     private static Integer [] getComplexityProfile () {
-        Integer [] profile = new Integer [n + 1];
-        profile [0] = profile [n] = 1;
+        Integer [] profile = new Integer [n + 2];
+        profile [0] = profile [n + 1] = 1;
         int [] over = new int [k];
         
         for (int i = 0; i < k; i++) {
@@ -229,17 +239,47 @@ public class RunMatrixes {
             }
         }
         
-        for (int i = 1; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             int notActive = 0;
             for (int j = 0; j < k; j++) {
                 notActive += i >= over [j] ? 1 : 0;
             }
             
             int pow = Math.max (0, Math.min (i, k) - notActive + 1);
-            profile [i] = 1 << pow;
+            profile [i + 1] = 1 << pow;
         }
         
         return profile;
+    }
+    
+    private static void generateSchemeByG () {
+        int [] over = new int [k];
+        
+        for (int i = 0; i < k; i++) {
+            for (int j = 0; j < n; j++) {
+                if (GinMSF [i][j] != 0) {
+                    over [i] = j;
+                }
+            }
+        }
+        
+        List <List <String>> layers = new ArrayList <> ();
+        for (int i = 0; i < n; i++) {
+            List <String> layer = new ArrayList <> ();
+            layers.add (layer);
+            
+            int notActive = 0;
+            for (int j = 0; j < k; j++) {
+                notActive += i >= over [j] ? 1 : 0;
+            }
+            
+            int height = Math.max (0, Math.min (i, k) - notActive + 1);
+            int nodes = 1 << height;
+            
+            for (int j = 0; j < nodes; j++) {
+                int from = (j << 1) & fillLast (height - 1, 1);
+            }
+        }
     }
     
 }
