@@ -1,6 +1,5 @@
 package ru.shemplo.coding.matrixes;
 
-import static ru.shemplo.snowball.utils.BitManip.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,7 +20,7 @@ public class RunMatrixes {
         {1, 0, 0, 1, 1, 1, 0, 0, 1, 1},
         {1, 0, 1, 0, 1, 1, 0, 1, 0, 1}
     };
-    private static Integer [][] G, HinSCF, GinMSF;
+    private static Integer [][] g, HinSCF, GinMSF;
     
     private static int n, k, nmk;
     private static double R;
@@ -44,20 +43,20 @@ public class RunMatrixes {
         printMatrix ("H", H);
         printMatrix ("H in SCF", HinSCF);
         
-        G = new Integer [k][n];
-        for (int i = 0; i < G.length; i++) {
-            for (int j = 0; j < G [i].length; j++) {
-                G [i][j] = new Integer (0);
+        g = new Integer [k][n];
+        for (int i = 0; i < g.length; i++) {
+            for (int j = 0; j < g [i].length; j++) {
+                g [i][j] = new Integer (0);
             }
         }
         
-        for (int i = 0; i < G.length; i++) {
-            G [i][i] = 1;
+        for (int i = 0; i < g.length; i++) {
+            g [i][i] = 1;
             for (int j = 0; j < HinSCF.length; j++) {
-                G [i][k + j] = HinSCF [j][i];
+                g [i][k + j] = HinSCF [j][i];
             }
         }
-        printMatrix ("G in SCF", G);
+        printMatrix ("G in SCF", g);
         
         Integer [] message = new Integer [k];
         for (int i = 0; i < message.length; i++) {
@@ -68,7 +67,7 @@ public class RunMatrixes {
         
         Integer [] code = new Integer [n];
         for (int i = 0; i < code.length; i++) {
-            code [i] = mulColOnMatrix (message, G, i);
+            code [i] = mulColOnMatrix (message, g, i);
         }
         System.out.println ("Code:");
         System.out.println (Arrays.toString (code));
@@ -77,36 +76,10 @@ public class RunMatrixes {
                          + "lineary independent columns in H");
         System.err.flush ();
         
-        Map <Integer, Integer []> sindroms = new HashMap <> ();
-        sindroms.put (0, new Integer [n]);
-        Arrays.fill (sindroms.get (0), 0);
+        Map <Integer, Integer []> sindroms = generateSyndromTable (H);
         
-        for (int i = 0; i < n; i++) {
-            StringBuilder sb = new StringBuilder ();
-            for (int j = 0; j < nmk; j++) {
-                sb.append (H [j][i]);
-            }
-            
-            Integer sindrome = Integer.parseInt (sb.toString (), 2);
-            sindroms.put (sindrome, new Integer [n]);
-            Arrays.fill (sindroms.get (sindrome), 0);
-            sindroms.get (sindrome) [i] = 1;
-        }
-        
-        List <Integer> ready = new ArrayList <> (sindroms.keySet ());
-        for (int i = 0; i < ready.size (); i++) {
-            for (int j = i; j < ready.size (); j++) {
-                Integer f = ready.get (i), s = ready.get (j);
-                if (sindroms.containsKey (f ^ s)) { continue; }
-                
-                Integer [] composition = addVector2Vector (sindroms.get (f), 
-                                                           sindroms.get (s));
-                sindroms.put (f ^ s, composition);
-            }
-        }
-        
-        int totalSindroms = 1 << nmk;
-        for (int i = 0; i < totalSindroms; i++) {
+        int totalSyndroms = 1 << nmk;
+        for (int i = 0; i < totalSyndroms; i++) {
             String sindrome = Integer.toBinaryString (i);
             Integer [] fix = sindroms.get (i);
             if (fix == null) { continue; }
@@ -116,7 +89,7 @@ public class RunMatrixes {
             System.out.println (String.format ("%" + nmk + "s | ║%s║", 
                                            sindrome, sj.toString ()));
         }
-        System.err.println ("The rest of missed sindroms necessary to do by hands");
+        System.err.println ("The rest of missed syndroms necessary to do by hands");
         System.err.flush ();
         
         transformG2MSF ();
@@ -127,7 +100,7 @@ public class RunMatrixes {
         System.out.println (Arrays.toString (profile));
     }
     
-    private static void printMatrix (String name, Integer [][] matrix) {
+    public static void printMatrix (String name, Integer [][] matrix) {
         if (name != null && name.length () > 0) {
             int h = matrix.length, w = matrix [0].length;
             System.out.println (String.format ("%s [%dx%d]:", name, h, w));
@@ -140,7 +113,7 @@ public class RunMatrixes {
         });
     }
     
-    private static void addRow2Row (Integer [][] matrix, int row, int dest) {
+    public static void addRow2Row (Integer [][] matrix, int row, int dest) {
         for (int i = 0; i < matrix [row].length; i++) {
             matrix [dest][i] = (matrix [dest][i] + matrix [row][i]) % MOD;
         }
@@ -204,7 +177,7 @@ public class RunMatrixes {
     private static void transformG2MSF () {
         GinMSF = new Integer [k][];
         for (int i = 0; i < k; i++) {
-            GinMSF [i] = Arrays.copyOf (G [i], n);
+            GinMSF [i] = Arrays.copyOf (g [i], n);
         }
         
         printMatrix ("G tmp", GinMSF);
@@ -252,34 +225,37 @@ public class RunMatrixes {
         return profile;
     }
     
-    private static void generateSchemeByG () {
-        int [] over = new int [k];
+    public static Map <Integer, Integer []> generateSyndromTable (final Integer [][] H) {
+        Map <Integer, Integer []> syndroms = new HashMap <> ();
+        int nmk = H.length, n = H [0].length;
+        syndroms.put (0, new Integer [n]);
+        Arrays.fill (syndroms.get (0), 0);
         
-        for (int i = 0; i < k; i++) {
-            for (int j = 0; j < n; j++) {
-                if (GinMSF [i][j] != 0) {
-                    over [i] = j;
-                }
-            }
-        }
-        
-        List <List <String>> layers = new ArrayList <> ();
         for (int i = 0; i < n; i++) {
-            List <String> layer = new ArrayList <> ();
-            layers.add (layer);
-            
-            int notActive = 0;
-            for (int j = 0; j < k; j++) {
-                notActive += i >= over [j] ? 1 : 0;
+            StringBuilder sb = new StringBuilder ();
+            for (int j = 0; j < nmk; j++) {
+                sb.append (H [j][i]);
             }
             
-            int height = Math.max (0, Math.min (i, k) - notActive + 1);
-            int nodes = 1 << height;
-            
-            for (int j = 0; j < nodes; j++) {
-                int from = (j << 1) & fillLast (height - 1, 1);
+            Integer sindrome = Integer.parseInt (sb.toString (), 2);
+            syndroms.put (sindrome, new Integer [n]);
+            Arrays.fill (syndroms.get (sindrome), 0);
+            syndroms.get (sindrome) [i] = 1;
+        }
+        
+        List <Integer> ready = new ArrayList <> (syndroms.keySet ());
+        for (int i = 0; i < ready.size (); i++) {
+            for (int j = i; j < ready.size (); j++) {
+                Integer f = ready.get (i), s = ready.get (j);
+                if (syndroms.containsKey (f ^ s)) { continue; }
+                
+                Integer [] composition = addVector2Vector (syndroms.get (f), 
+                                                           syndroms.get (s));
+                syndroms.put (f ^ s, composition);
             }
         }
+        
+        return syndroms;
     }
     
 }
