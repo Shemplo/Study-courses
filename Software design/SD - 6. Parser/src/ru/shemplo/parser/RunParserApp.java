@@ -25,7 +25,6 @@ public class RunParserApp {
         EvaluateVisitor evaluator = new EvaluateVisitor ();
         root.accept (evaluator);
         System.out.println (evaluator.getValue ());
-        
     }
     
 }
