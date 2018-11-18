@@ -1,9 +1,9 @@
 package ru.shemplo.tf.ntwk;
 
+import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import java.io.IOException;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -13,7 +13,6 @@ import com.vk.api.sdk.client.ClientResponse;
 import com.vk.api.sdk.client.TransportClient;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.UserActor;
-import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
 import com.vk.api.sdk.queries.newsfeed.NewsfeedSearchQuery;
@@ -44,6 +43,7 @@ public class VKSession implements NetworkSession {
 		TransportClient transportClient = HttpTransportClient.getInstance (); 
 		this.client = new VkApiClient (transportClient);
 		
+		/*
 		try {
 			client.account ().getInfo (ACTOR).execute ();
 		} catch (ClientException | ApiException es) {
@@ -51,6 +51,7 @@ public class VKSession implements NetworkSession {
 			
 			throw new IOException (es);
 		}
+		*/
 	}
 
 	@Override

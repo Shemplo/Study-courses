@@ -13,7 +13,7 @@ public class DefaultTimeProvider implements TimeProvider {
     
     @Override
     public Long getCurrentTime () {
-        return 32L;
+        return System.currentTimeMillis ();
     }
     
 }
