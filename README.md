@@ -3,9 +3,35 @@
 
 ### Distribution by year
 
-* _(2 term, 2016)_ : C/C++
-* _(3 term, 2016)_ : Advanced java, Android, Math logic
-* _(4 term, 2017)_ : Assembly, Type theory
-* _(5 term, 2017)_ : Concurrency programming, Translation methods
-* _(6 term, 2018)_ : Haskell
-* _(7 term, 2018)_ : Databases, Machine learning, Software design
+* **_2 term, 2016_** : 
+  * _C/C++_  
+    < description >
+* **_3 term, 2016_** : 
+  * _Advanced java_  
+    < description >
+  * _Android_  
+    < description >
+  * _Math logic_  
+    < description >
+* **_4 term, 2017_** : 
+  * _Assembly_  
+    < description >
+  * _Type theory_  
+    < description >
+* **_5 term, 2017_** : 
+  * _Concurrency programming_  
+    < description >
+  * _Translation methods_  
+    < description >
+* **_6 term, 2018_** : 
+  * _Haskell_  
+    < description >
+* **_7 term, 2018_** : 
+  * _Databases_  
+    < description >
+  * _Coding theory_  
+    < description >
+  * _Machine learning_  
+    < description >
+  * _Software design_  
+    < description >
