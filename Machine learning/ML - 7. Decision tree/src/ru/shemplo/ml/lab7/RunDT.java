@@ -104,7 +104,7 @@ public class RunDT {
                 
                 this.score = 1 - entries.values ().stream ()
                            . mapToDouble (v -> (double) v)
-                           . map         (v -> v / entries.size ())
+                           . map         (v -> v / this.dataset.size ())
                            . map         (v -> v * v)
                            . sum         ();
             }
@@ -206,8 +206,8 @@ public class RunDT {
                     for (int i = 0; i < list.size () - 1; i++) {
                         Double [] current = list.get (i), next = list.get (i + 1);
                         double fValue = ((double) (next [2] + current [2])) / 2;
+                        right.applyChanges (current [3].intValue ());
                         left.applyChanges (current [3].intValue ());
-                        right.applyChanges (next [3].intValue ());
                         
                         double uScore = score
                                       - ((double) left.size) / dataset.size () * left.getScore ()
