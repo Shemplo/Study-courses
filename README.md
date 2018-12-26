@@ -31,6 +31,8 @@
     < description >
   * _Coding theory_  
     < description >
+  * _Computer networks_  
+    < will appear soon >
   * _Machine learning_  
     < description >
   * _Software design_  
