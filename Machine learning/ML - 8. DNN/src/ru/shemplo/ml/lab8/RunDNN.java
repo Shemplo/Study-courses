@@ -14,7 +14,7 @@ public class RunDNN {
     
     private static final double     startTime = System.currentTimeMillis ();
     private static final List <Obj> dataset   = new ArrayList <> ();
-    private static final Random     R         = new Random (2015);
+    private static final Random     R         = new Random (239);
     
     private static final List <Double> averages  = new ArrayList <> (),
                                        standatrs = new ArrayList <> ();
@@ -37,6 +37,8 @@ public class RunDNN {
             for (int i = 0; i < layersSize.length; i++) {
                 layersSize [i] = Integer.parseInt (st.nextToken ());
             }
+            
+            Collections.shuffle (dataset);
             
             t = Integer.parseInt (br.readLine ());
             for (int i = 0; i < t; i++) {
@@ -247,7 +249,7 @@ public class RunDNN {
     
     public static void train () {
         double time = System.currentTimeMillis ();
-        while (time - startTime < 9000) {
+        while (time - startTime < 8900) {
             for (Obj obj : dataset) {
                 network.trainForward   (obj);
                 network.trainBackward  (obj.classID);
