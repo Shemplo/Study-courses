@@ -32,7 +32,7 @@
   * _Coding theory_  
     < description >
   * _Computer networks_  
-    < will appear soon >
+    < description >
   * _Machine learning_  
     < description >
   * _Software design_  
