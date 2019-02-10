@@ -1,105 +1,96 @@
 package ru.shemplo.profiler;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
-import org.objectweb.asm.*;
-
+import ru.shemplo.profiler.asm.ClassPatcher;
+import ru.shemplo.snowball.annot.Snowflake;
+import ru.shemplo.snowball.annot.Wind;
+import ru.shemplo.snowball.annot.processor.Snowball;
 import ru.shemplo.snowball.utils.ClasspathUtils;
 
-public class Profiler {
+@Wind (blow = {ClassPatcher.class})
+public class Profiler extends Snowball {
     
-    public static void main (String ... args) throws Exception {
-        JarFile file = new JarFile ("profiler.test.jar");
-        JarEntry mainClass = ClasspathUtils.getEntriesFromJAR (file).stream ()
-                           . filter (e -> e.getName ().endsWith ("Main.class"))
-                           . findFirst ().orElse (null);
+    public static void main (String ... args) throws Exception { shape (args); }
+    
+    private ExtendedClassLoader classLoader;
+    private ClassPatcher classPatcher;
+    
+    @Snowflake (manual = true)
+    private String mainClass;
+    
+    @Override
+    protected void onShaped (String ... args) {
+        try {
+            JarFile jar = new JarFile ("profiler.test.jar");
+            profileJarFile (jar);
+        } catch (IOException ioe) {
+            
+        }
+    }
+    
+    public void profileJarFile (JarFile jar) {
+        mainClass = getMainClass (jar);
+        
+        List <JarEntry> classFiles = ClasspathUtils.getEntriesFromJAR (jar).stream ()
+                                   . filter  (e ->  e.getName ().endsWith (".class"))
+                                   . filter  (e -> !e.getName ().contains ("package-info"))
+                                   . collect (Collectors.toList ());
+        classFiles.forEach (f -> {
+            byte [] content = classPatcher.patch (readAllBytes (jar, f));
+            String className = f.getName ().replace (".class", "")
+                             . replace ('/', '.');
+            classLoader.defineClass (className, content);
+        });
+        
+        try {
+            Class <?> type = classLoader.loadClass (mainClass);
+            type.getDeclaredMethod ("main", String [].class)
+                .invoke (null, (Object) new String [] {});
+        } catch (ClassNotFoundException cnfe) {
+            cnfe.printStackTrace ();
+        } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException
+              | InvocationTargetException | SecurityException es) {
+            es.printStackTrace();
+        }
+    }
+    
+    private String getMainClass (JarFile jar) {
+        String mainClass = ClasspathUtils.getMainClassFromJar (jar)
+                         . orElse (null);
+
+        if (mainClass == null) {
+           final String message = "Main class not found";
+           throw new IllegalStateException (message);
+        }
+        
+        return mainClass;
+    }
+    
+    private byte [] readAllBytes (JarFile jar, JarEntry entry) {
         try (
             ByteArrayOutputStream baos = new ByteArrayOutputStream ();
-            InputStream is = file.getInputStream (mainClass);
-            OutputStream os = new FileOutputStream ("Main.class");
+            InputStream           is   = jar.getInputStream (entry);
         ) {
-            byte [] buffer = new byte [4096];
-            int read = 0;
+            byte [] buffer = new byte [1024 * 4];
+            int read = -1;
             
-            while ((read = is.read (buffer, 0, buffer.length)) != -1) {
+            while ((read = is.read (buffer)) != -1) {
                 baos.write (buffer, 0, read);
             }
             
-            byte [] bytes = baos.toByteArray ();
-            ClassReader cr = new ClassReader (bytes);
-            ClassWriter cw = new ClassWriter (cr, ClassWriter.COMPUTE_FRAMES);
-            
-            ClassVisitor cv = new MyClassVisitor (cw);
-            cr.accept (cv, ClassReader.EXPAND_FRAMES);
-             
-            MyClassLoader classLoader = new MyClassLoader ();
-            Class <?> token = classLoader.defineClass ("ru.shemplo.profiler.Main", cw.toByteArray ());
-            
-            os.write (cw.toByteArray ());
-            
-            token.getDeclaredMethod ("main", String [].class).invoke (null, (Object) new String [0]);
-            token.getDeclaredMethod ("methodA", String.class).invoke (null, "test");
-            //token.getMethod ("main", String [].class).invoke (null, new Object [] {});
+            return baos.toByteArray ();
+        } catch (IOException ioe) {
+            throw new IllegalStateException (ioe);
         }
-        
-    }
-    
-    private static class MyClassVisitor extends ClassVisitor {
-        
-        public MyClassVisitor (ClassVisitor visitor) {
-            super (Opcodes.ASM5, visitor);
-        }
-        
-        @Override
-        public MethodVisitor visitMethod (int access, String name, String desc, 
-                                          String signature, String [] exceptions) {
-            MethodVisitor superMV = super.visitMethod (access, name, desc, 
-                                                   signature, exceptions);
-            return new MyMethodVisitor (superMV);
-        }
-        
-    }
-    
-    private static class MyMethodVisitor extends MethodVisitor {
-        
-        public MyMethodVisitor (MethodVisitor visitor) {
-            super (Opcodes.ASM5, visitor);
-            
-            //Label l0 = new Label ();
-            //super.visitLabel (l0);
-            String namePS = PrintStream.class.getName ().replace ('.', '/'),
-                   nameS  = System.class.getName ().replace ('.', '/');
-            super.visitFieldInsn  (Opcodes.GETSTATIC, nameS, "out", "L" + namePS + ";");
-            super.visitIntInsn    (Opcodes.BIPUSH, 2); // It's just a byte but not integer :(
-            super.visitMethodInsn (Opcodes.INVOKEVIRTUAL, namePS, "println", "(I)V", false);
-        }
-        
-        @Override
-        public void visitInsn (int opcode) {
-            if (opcode == Opcodes.RETURN) {
-                //Label l1 = new Label ();
-                //super.visitLabel (l1);
-                String namePS = PrintStream.class.getName ().replace ('.', '/'),
-                       nameS  = System.class.getName ().replace ('.', '/');
-                super.visitFieldInsn  (Opcodes.GETSTATIC, nameS, "out", "L" + namePS + ";");
-                super.visitIntInsn    (Opcodes.BIPUSH, 3); // It's just a byte but not integer :(
-                super.visitMethodInsn (Opcodes.INVOKEVIRTUAL, namePS, "println", "(I)V", false);
-            }
-            
-            super.visitInsn (opcode);
-        }
-        
-    }
-    
-    private static class MyClassLoader extends ClassLoader {
-        
-        public Class <?> defineClass (String name, byte [] bytes) {
-            return defineClass (name, bytes, 0, bytes.length);
-        }
-        
     }
     
 }
