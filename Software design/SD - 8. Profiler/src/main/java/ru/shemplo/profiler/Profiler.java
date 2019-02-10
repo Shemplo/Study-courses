@@ -1,8 +1,6 @@
 package ru.shemplo.profiler;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
 
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -21,6 +19,7 @@ public class Profiler {
         try (
             ByteArrayOutputStream baos = new ByteArrayOutputStream ();
             InputStream is = file.getInputStream (mainClass);
+            OutputStream os = new FileOutputStream ("Main.class");
         ) {
             byte [] buffer = new byte [4096];
             int read = 0;
@@ -39,8 +38,10 @@ public class Profiler {
             MyClassLoader classLoader = new MyClassLoader ();
             Class <?> token = classLoader.defineClass ("ru.shemplo.profiler.Main", cw.toByteArray ());
             
-            System.out.println (token.getDeclaredMethod ("main", String [].class)
-                                     .invoke (Profiler.class, (Object) new String [0]));
+            os.write (cw.toByteArray ());
+            
+            token.getDeclaredMethod ("main", String [].class).invoke (null, (Object) new String [0]);
+            token.getDeclaredMethod ("methodA", String.class).invoke (null, "test");
             //token.getMethod ("main", String [].class).invoke (null, new Object [] {});
         }
         
@@ -57,10 +58,6 @@ public class Profiler {
                                           String signature, String [] exceptions) {
             MethodVisitor superMV = super.visitMethod (access, name, desc, 
                                                    signature, exceptions);
-            /*
-            MethodVisitor extended = super.visitMethod (access, name, desc, 
-                                                    signature, exceptions);*/
-            //extended = new MyMethodVisitor (superMV, extended);
             return new MyMethodVisitor (superMV);
         }
         
@@ -71,13 +68,28 @@ public class Profiler {
         public MyMethodVisitor (MethodVisitor visitor) {
             super (Opcodes.ASM5, visitor);
             
-            Label l0 = new Label ();
-            super.visitLabel (l0);
+            //Label l0 = new Label ();
+            //super.visitLabel (l0);
             String namePS = PrintStream.class.getName ().replace ('.', '/'),
                    nameS  = System.class.getName ().replace ('.', '/');
             super.visitFieldInsn  (Opcodes.GETSTATIC, nameS, "out", "L" + namePS + ";");
-            super.visitIntInsn    (Opcodes.BIPUSH, 1); // It's just a byte but not integer :(
+            super.visitIntInsn    (Opcodes.BIPUSH, 2); // It's just a byte but not integer :(
             super.visitMethodInsn (Opcodes.INVOKEVIRTUAL, namePS, "println", "(I)V", false);
+        }
+        
+        @Override
+        public void visitInsn (int opcode) {
+            if (opcode == Opcodes.RETURN) {
+                //Label l1 = new Label ();
+                //super.visitLabel (l1);
+                String namePS = PrintStream.class.getName ().replace ('.', '/'),
+                       nameS  = System.class.getName ().replace ('.', '/');
+                super.visitFieldInsn  (Opcodes.GETSTATIC, nameS, "out", "L" + namePS + ";");
+                super.visitIntInsn    (Opcodes.BIPUSH, 3); // It's just a byte but not integer :(
+                super.visitMethodInsn (Opcodes.INVOKEVIRTUAL, namePS, "println", "(I)V", false);
+            }
+            
+            super.visitInsn (opcode);
         }
         
     }
