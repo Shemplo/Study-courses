@@ -67,9 +67,17 @@ public class Profiler extends Snowball {
             String className = f.getName ().replace (".class", "")
                              . replace ('/', '.');
             
-            try (OutputStream os = new FileOutputStream (toName (f.getName ()))) {
+            File file = new File ("generated", toName (f.getName ()));
+            try {
+                if (!file.getParentFile ().exists ()) {
+                    file.getParentFile ().mkdir ();
+                }
+                if (!file.exists ()) { file.createNewFile (); }                
+            } catch (IOException ioe) { ioe.printStackTrace (); }
+            
+            try (OutputStream os = new FileOutputStream (file)) {
                 os.write (content);
-            } catch (IOException ioe) {}
+            } catch (IOException ioe) { ioe.printStackTrace (); }
             
             classLoader.defineClass (className, content);
         });
@@ -85,7 +93,7 @@ public class Profiler extends Snowball {
         } catch (IllegalAccessException | IllegalArgumentException 
               | NoSuchMethodException | InvocationTargetException 
               | SecurityException es) {
-            es.printStackTrace();
+            es.printStackTrace ();
             System.exit (1);
         }
         

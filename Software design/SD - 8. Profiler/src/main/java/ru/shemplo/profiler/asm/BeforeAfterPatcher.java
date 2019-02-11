@@ -29,6 +29,10 @@ public class BeforeAfterPatcher implements ClassPatcher {
     @Override
     public byte [] patch (byte [] bytes) {
         ClassReader cr = new ClassReader (bytes);
+        if (cr.getClassName ().contains ("snowball")) { // XXX: rid of annotations
+            return bytes;
+        }
+        
         ClassWriter cw = new ClassWriter (cr, ClassWriter.COMPUTE_FRAMES);
         
         BAClassVisitor cv = new BAClassVisitor (cw, cr.getClassName ());
@@ -62,10 +66,11 @@ public class BeforeAfterPatcher implements ClassPatcher {
         public MethodVisitor visitMethod (int access, String name, String descriptor, 
                                           String signature, String [] exceptions) {
             MethodVisitor mv = super.visitMethod (access, name, descriptor, signature, exceptions);
-            boolean isStatic = (access & ACC_STATIC) == ACC_STATIC;
+            boolean isStatic   = (access & ACC_STATIC) == ACC_STATIC,
+                    isAbstract = (access & ACC_ABSTRACT) == ACC_ABSTRACT;
             
             if (name.equals ("<clinit>")) { initialized = true; }
-            if (name.contains ("lambda$")) { return mv; }
+            if (name.contains ("lambda$") || isAbstract) { return mv; }
             
             return new BAMethodVisitor (mv, CLASS_NAME, name, typeOfArguments (descriptor), 
                                         isStatic);

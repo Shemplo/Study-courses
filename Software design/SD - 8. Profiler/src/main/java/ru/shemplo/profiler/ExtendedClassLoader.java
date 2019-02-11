@@ -6,7 +6,15 @@ import ru.shemplo.snowball.annot.Snowflake;
 public class ExtendedClassLoader extends ClassLoader {
     
     public Class <?> defineClass (String name, byte [] bytes) {
-        return defineClass (name, bytes, 0, bytes.length);
+        try {
+            return defineClass (name, bytes, 0, bytes.length); 
+        } catch (Error e) {
+            try {
+                return loadClass (name);
+            } catch (ClassNotFoundException e1) {}
+        }
+        
+        return null;
     }
     
 }
