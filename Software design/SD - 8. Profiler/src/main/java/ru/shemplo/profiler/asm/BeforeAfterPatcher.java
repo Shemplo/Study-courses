@@ -45,16 +45,15 @@ public class BeforeAfterPatcher implements ClassPatcher {
             
             super.visitField (ACC_PRIVATE + ACC_STATIC + ACC_FINAL, VAR_NAME, 
                               VAR_DESC, null, null).visitEnd ();
+            String snowballCName = SnowballContext.class.getName ().replace ('.', '/'), 
+                   snowballName  = Snowball.class.getName ().replace ('.', '/');
             
             MethodVisitor mv = visitMethod (ACC_STATIC, "<clinit>", 
                                             "()V", null, null);
             mv.visitCode ();
             
             Label l0 = new Label ();
-            mv.visitLabel (l0);
-            
-            String snowballCName = SnowballContext.class.getName ().replace ('.', '/'), 
-                   snowballName  = Snowball.class.getName ().replace ('.', '/');
+            mv.visitLabel      (l0);
             mv.visitMethodInsn (INVOKESTATIC, snowballName, "getContext", 
                                 "()L" + snowballCName + ";", false);
             mv.visitLdcInsn    (Type.getType ("L" + SCLASS_NAME + ";"));
@@ -167,7 +166,8 @@ public class BeforeAfterPatcher implements ClassPatcher {
         
         @Override
         public void visitInsn (int opcode) {
-            if (RETURN_CODES.contains (opcode)) {
+            if (!METHOD_NAME.equals ("<clinit>") && !METHOD_NAME.equals ("<init>")
+                    && RETURN_CODES.contains (opcode)) {
                 //  __eventLogger.onMethodFinished (*CLASS_NAME*, *METHOD_NAME*);
                 final String desc = "(Ljava/lang/String;Ljava/lang/String;)V";
                 
@@ -175,7 +175,7 @@ public class BeforeAfterPatcher implements ClassPatcher {
                 visitLabel      (l0);
                 visitFieldInsn  (GETSTATIC, CLASS_NAME, VAR_NAME, VAR_DESC);
                 visitLdcInsn    (CLASS_NAME);
-                visitLdcInsn    (CLASS_NAME);
+                visitLdcInsn    (METHOD_NAME);
                 visitMethodInsn (INVOKEINTERFACE, SCLASS_NAME, "onMethodFinished", desc, true);
             }
             
