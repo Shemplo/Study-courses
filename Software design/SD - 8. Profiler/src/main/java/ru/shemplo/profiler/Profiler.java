@@ -3,10 +3,7 @@ package ru.shemplo.profiler;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Stack;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -20,6 +17,7 @@ import ru.shemplo.profiler.log.EventLogger;
 import ru.shemplo.snowball.annot.Snowflake;
 import ru.shemplo.snowball.annot.Wind;
 import ru.shemplo.snowball.annot.processor.Snowball;
+import ru.shemplo.snowball.stuctures.Pair;
 import ru.shemplo.snowball.utils.ClasspathUtils;
 
 @Wind (blow = {ClassPatcher.class, EventLogger.class})
@@ -62,10 +60,11 @@ public class Profiler extends Snowball {
                                    . filter  (e ->  e.getName ().endsWith (".class"))
                                    . filter  (e -> !e.getName ().contains ("package-info"))
                                    . collect (Collectors.toList ());
+        Queue <Pair <String, byte []>> classes = new LinkedList <> ();
         classFiles.forEach (f -> {
-            byte [] content = classPatcher.patch (readAllBytes (jar, f));
-            String className = f.getName ().replace (".class", "")
-                             . replace ('/', '.');
+            byte [] content  = classPatcher.patch (readAllBytes (jar, f));
+            String className = toName (f.getName ().replace (".class", ""));
+            System.out.println (className);
             
             File file = new File ("generated", toName (f.getName ()));
             try {
@@ -79,8 +78,17 @@ public class Profiler extends Snowball {
                 os.write (content);
             } catch (IOException ioe) { ioe.printStackTrace (); }
             
-            classLoader.defineClass (className, content);
+            classes.add (Pair.mp (className, content));
         });
+        
+        while (!classes.isEmpty ()) {
+            Pair <String, byte []> pair = classes.poll ();
+            try {
+                classLoader.defineClass (pair.F, pair.S);
+            } catch (NoClassDefFoundError ncdfe) {
+                classes.add (pair);
+            }
+        }
         
         try {
             System.out.println (">> Running main class of JAR file <<");
