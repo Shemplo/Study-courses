@@ -1,6 +1,7 @@
 package ru.shemplo.profiler;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 
 import java.util.*;
@@ -44,15 +45,43 @@ public class Profiler extends Snowball {
     
     @Override
     protected void onShaped (String ... args) {
+        assert args.length > 0;
+        
+        final String fileName = args [0];
+        args = subarray (args, 1);
+        
         try {
-            JarFile jar = new JarFile ("profiler.test.jar");
-            profileJarFile (jar);
+            File file = new File (fileName);
+            if (!file.canRead ()) {
+                String message = "Failed to read JAR file";
+                throw new IllegalStateException (message);
+            }
+            
+            JarFile jar = new JarFile (file);
+            profileJarFile (jar, args);
         } catch (IOException ioe) {
             
         }
     }
     
-    public void profileJarFile (JarFile jar) {
+    @SuppressWarnings ("unchecked")
+    private <T> T [] subarray (T [] array, int from) {
+        if (from >= array.length && array.length > 0) {
+            final Class <?> token = array [0].getClass ();
+            return (T []) Array.newInstance (token, 0);
+        }
+        
+        if (from < array.length && array.length > 0) {
+            final Class <?> token = array [0].getClass ();
+            T [] tmp = (T []) Array.newInstance (token, array.length - from);
+            System.arraycopy (array, from, tmp, 0, tmp.length);
+            return tmp;
+        }
+        
+        return null;
+    }
+    
+    public void profileJarFile (JarFile jar, String [] args) {
         mainClass = getMainClass (jar);
         
         System.out.println (">> Reading JAR file <<");
@@ -94,7 +123,7 @@ public class Profiler extends Snowball {
             System.out.println (">> Running main class of JAR file <<");
             Class <?> type = classLoader.loadClass (mainClass);
             type.getDeclaredMethod ("main", String [].class)
-                .invoke (null, (Object) new String [] {});
+                .invoke (null, (Object) args);
         } catch (ClassNotFoundException cnfe) {
             cnfe.printStackTrace ();
             System.exit (1);
