@@ -1,6 +1,7 @@
 package ru.shemplo.profiler.asm;
 
 import static org.objectweb.asm.Opcodes.*;
+import static ru.shemplo.profiler.Profiler.*;
 import static ru.shemplo.snowball.stuctures.Pair.*;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.objectweb.asm.*;
 
+import lombok.Getter;
 import ru.shemplo.profiler.log.EventLogger;
 import ru.shemplo.snowball.annot.Snowflake;
 import ru.shemplo.snowball.annot.processor.Snowball;
@@ -20,8 +22,7 @@ import ru.shemplo.snowball.stuctures.Pair;
 @Snowflake (priority = 0)
 public class BeforeAfterPatcher implements ClassPatcher {
     
-    private static final String SCLASS_NAME = EventLogger.class.getName ()
-                                            . replace ('.', '/'),
+    private static final String SCLASS_NAME = toPath (EventLogger.class.getName ()),
                                 VAR_DESC    = String.format ("L%s;", SCLASS_NAME),
                                 VAR_NAME    = "__eventLogger";
     
@@ -30,40 +31,31 @@ public class BeforeAfterPatcher implements ClassPatcher {
         ClassReader cr = new ClassReader (bytes);
         ClassWriter cw = new ClassWriter (cr, ClassWriter.COMPUTE_FRAMES);
         
-        ClassVisitor cv = new BAClassVisitor (cw, cr.getClassName ());
+        BAClassVisitor cv = new BAClassVisitor (cw, cr.getClassName ());
         cr.accept (cv, ClassReader.EXPAND_FRAMES);
+        
+        if (!cv.isInitialized ()) { // No fields in original class need initialization
+            MethodVisitor clinit = cv.visitMethod (ACC_STATIC, "<clinit>", 
+                                                   "()V", null, null);
+            clinit.visitCode (); // Simulating end on `clinit` method
+            clinit.visitInsn (RETURN);
+            clinit.visitEnd  ();
+        }
+        
         return cw.toByteArray ();
     }
     
     private class BAClassVisitor extends ClassVisitor {
         
+        @Getter private boolean initialized = false;
         private final String CLASS_NAME;
         
         public BAClassVisitor (ClassVisitor classVisitor, String className) {
             super (ASM7, classVisitor);
             CLASS_NAME = className;
             
-            super.visitField (ACC_PRIVATE + ACC_STATIC + ACC_FINAL, VAR_NAME, 
-                              VAR_DESC, null, null).visitEnd ();
-            String snowballCName = SnowballContext.class.getName ().replace ('.', '/'), 
-                   snowballName  = Snowball.class.getName ().replace ('.', '/');
-            
-            MethodVisitor mv = visitMethod (ACC_STATIC, "<clinit>", 
-                                            "()V", null, null);
-            mv.visitCode ();
-            
-            Label l0 = new Label ();
-            mv.visitLabel      (l0);
-            mv.visitMethodInsn (INVOKESTATIC, snowballName, "getContext", 
-                                "()L" + snowballCName + ";", false);
-            mv.visitLdcInsn    (Type.getType ("L" + SCLASS_NAME + ";"));
-            mv.visitMethodInsn (INVOKEVIRTUAL, snowballCName, "getSnowflakeFor", 
-                                "(Ljava/lang/Class;)Ljava/lang/Object;", false);
-            mv.visitTypeInsn   (CHECKCAST, SCLASS_NAME);
-            mv.visitFieldInsn  (PUTSTATIC, className, VAR_NAME, VAR_DESC);
-            mv.visitInsn       (RETURN);
-            mv.visitMaxs       (2, 0);
-            mv.visitEnd        ();
+            visitField (ACC_PRIVATE + ACC_STATIC + ACC_FINAL, VAR_NAME, 
+                        VAR_DESC, null, null).visitEnd ();
         }
         
         @Override
@@ -71,6 +63,9 @@ public class BeforeAfterPatcher implements ClassPatcher {
                                           String signature, String [] exceptions) {
             MethodVisitor mv = super.visitMethod (access, name, descriptor, signature, exceptions);
             boolean isStatic = (access & ACC_STATIC) == ACC_STATIC;
+            
+            if (name.equals ("<clinit>")) { initialized = true; }
+            if (name.contains ("lambda$")) { return mv; }
             
             return new BAMethodVisitor (mv, CLASS_NAME, name, typeOfArguments (descriptor), 
                                         isStatic);
@@ -149,7 +144,7 @@ public class BeforeAfterPatcher implements ClassPatcher {
                             // long & double takes 2 positions on stack
                             shift += 1; 
                         }
-                        String owner = args.get (i).F.getName ().replace ('.', '/'),
+                        String owner = toPath (args.get (i).F.getName ()),
                                desc  = String.format ("(%s)L%s;", letter, owner);
                         visitMethodInsn (INVOKESTATIC, owner, "valueOf", desc, false);
                     } else {
@@ -177,6 +172,20 @@ public class BeforeAfterPatcher implements ClassPatcher {
                 visitLdcInsn    (CLASS_NAME);
                 visitLdcInsn    (METHOD_NAME);
                 visitMethodInsn (INVOKEINTERFACE, SCLASS_NAME, "onMethodFinished", desc, true);
+            } else if (METHOD_NAME.equals ("<clinit>") && RETURN_CODES.contains (opcode)) {
+                String snowballCName = toPath (SnowballContext.class.getName ()), 
+                       snowballName  = toPath (Snowball.class.getName ());
+                
+                Label l0 = new Label ();
+                visitLabel      (l0);
+                visitMethodInsn (INVOKESTATIC, snowballName, "getContext", 
+                                 "()L" + snowballCName + ";", false);
+                visitLdcInsn    (Type.getType ("L" + SCLASS_NAME + ";"));
+                visitMethodInsn (INVOKEVIRTUAL, snowballCName, "getSnowflakeFor", 
+                                 "(Ljava/lang/Class;)Ljava/lang/Object;", false);
+                visitTypeInsn   (CHECKCAST, SCLASS_NAME);
+                visitFieldInsn  (PUTSTATIC, CLASS_NAME, VAR_NAME, VAR_DESC);
+                visitMaxs       (2, 0);
             }
             
             super.visitInsn (opcode);

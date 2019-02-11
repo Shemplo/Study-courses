@@ -3,14 +3,18 @@ package ru.shemplo.profiler;
 
 public class Main {
     
+    private static Helper helper = new Helper ();
+    
     public static void main (String ... args) {
-        for (int i = 0; i < 10; i++) {
-            methodA ("Iteration: " + i, i, (long) i, i % 2 == 0, (double) i, (float) i);
+        for (int i = 16; i < 32; i++) {
+            String string = helper.randomString (i);
+            printString (string);
+            printString (helper.reverse (string));
         }
     }
     
-    public static void methodA (String value, int a, long b, boolean c, double d, float f) {
-        System.out.println (value + " " + a + " " + b + " " + c + " " + d + " " + f);
+    private static final void printString (String value) {
+        System.out.println ("> " + value);
     }
     
 }

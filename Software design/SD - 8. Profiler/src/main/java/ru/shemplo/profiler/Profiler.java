@@ -3,12 +3,19 @@ package ru.shemplo.profiler;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Stack;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import ru.shemplo.profiler.asm.ClassPatcher;
+import ru.shemplo.profiler.log.Event;
+import ru.shemplo.profiler.log.Event.EventType;
 import ru.shemplo.profiler.log.EventLogger;
 import ru.shemplo.snowball.annot.Snowflake;
 import ru.shemplo.snowball.annot.Wind;
@@ -20,8 +27,19 @@ public class Profiler extends Snowball {
     
     public static void main (String ... args) throws Exception { shape (args); }
     
+    public static String toName (String path) {
+        return path.replace ('/', '.');
+    }
+    
+    public static String toPath (String className) {
+        return className.replace ('.', '/');
+    }
+    
+    
+    
     private ExtendedClassLoader classLoader;
     private ClassPatcher classPatcher;
+    private EventLogger eventLogger;
     
     @Snowflake (manual = true)
     private String mainClass;
@@ -39,6 +57,7 @@ public class Profiler extends Snowball {
     public void profileJarFile (JarFile jar) {
         mainClass = getMainClass (jar);
         
+        System.out.println (">> Reading JAR file <<");
         List <JarEntry> classFiles = ClasspathUtils.getEntriesFromJAR (jar).stream ()
                                    . filter  (e ->  e.getName ().endsWith (".class"))
                                    . filter  (e -> !e.getName ().contains ("package-info"))
@@ -47,20 +66,56 @@ public class Profiler extends Snowball {
             byte [] content = classPatcher.patch (readAllBytes (jar, f));
             String className = f.getName ().replace (".class", "")
                              . replace ('/', '.');
+            
+            try (OutputStream os = new FileOutputStream (toName (f.getName ()))) {
+                os.write (content);
+            } catch (IOException ioe) {}
+            
             classLoader.defineClass (className, content);
         });
         
         try {
+            System.out.println (">> Running main class of JAR file <<");
             Class <?> type = classLoader.loadClass (mainClass);
             type.getDeclaredMethod ("main", String [].class)
                 .invoke (null, (Object) new String [] {});
         } catch (ClassNotFoundException cnfe) {
             cnfe.printStackTrace ();
+            System.exit (1);
         } catch (IllegalAccessException | IllegalArgumentException 
               | NoSuchMethodException | InvocationTargetException 
               | SecurityException es) {
             es.printStackTrace();
+            System.exit (1);
         }
+        
+        System.out.println (">> Computing statistics <<");
+        final List  <Event>   trace = new ArrayList <> (); 
+        final Stack <Integer> stack = new Stack <> ();
+        AtomicInteger counter = new AtomicInteger ();
+        eventLogger.getEvents ().stream ()
+                   .sorted  ((a, b) -> Double.compare (a.getTime (), b.getTime ()))
+                   .forEach (event -> {
+                       if (event.getEventType ().equals (EventType.START)) {
+                           stack.push (counter.getAndIncrement ());
+                           trace.add  (event);
+                       } else {
+                           final Integer index = stack.pop ();
+                           Event start = trace.get (index);
+                           
+                           assert start.getMethodName ().equals (event.getMethodName ());
+                           assert start.getClassName ().equals (event.getClassName ());
+                           double time = (double) event.getTime () - start.getTime ();
+                           start.setTime (time / 1_000_000); // to ms
+                           start.setDepth (stack.size ());
+                       }
+                   });
+        trace.forEach (event -> {
+            String offset = new String (new char [event.getDepth () * 4]).replace ('\0', ' ');
+            System.out.println (String.format (Locale.ENGLISH, "%s> %s # %s - %.2f [ms]", offset, 
+                                               event.getClassName (), event.getMethodName (), 
+                                               event.getTime ()));
+        });
     }
     
     private String getMainClass (JarFile jar) {

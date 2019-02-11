@@ -1,14 +1,17 @@
 package ru.shemplo.profiler.log;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NonNull;
 
 @Data
-@AllArgsConstructor
 public class Event {
     
-    private final String className, methodName;
-    private final Object [] arguments;
-    private final long time;
+    public static enum EventType { START, FINISH }
+    
+    @NonNull private String className, methodName;
+    @NonNull private Object [] arguments;
+    @NonNull private EventType eventType;
+    @NonNull private Double time;
+    private int depth;
     
 }
