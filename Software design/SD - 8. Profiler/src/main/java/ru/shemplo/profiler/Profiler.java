@@ -1,8 +1,6 @@
 package ru.shemplo.profiler;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 
 import java.util.List;
@@ -11,12 +9,13 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 import ru.shemplo.profiler.asm.ClassPatcher;
+import ru.shemplo.profiler.log.EventLogger;
 import ru.shemplo.snowball.annot.Snowflake;
 import ru.shemplo.snowball.annot.Wind;
 import ru.shemplo.snowball.annot.processor.Snowball;
 import ru.shemplo.snowball.utils.ClasspathUtils;
 
-@Wind (blow = {ClassPatcher.class})
+@Wind (blow = {ClassPatcher.class, EventLogger.class})
 public class Profiler extends Snowball {
     
     public static void main (String ... args) throws Exception { shape (args); }
@@ -57,8 +56,9 @@ public class Profiler extends Snowball {
                 .invoke (null, (Object) new String [] {});
         } catch (ClassNotFoundException cnfe) {
             cnfe.printStackTrace ();
-        } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException
-              | InvocationTargetException | SecurityException es) {
+        } catch (IllegalAccessException | IllegalArgumentException 
+              | NoSuchMethodException | InvocationTargetException 
+              | SecurityException es) {
             es.printStackTrace();
         }
     }
