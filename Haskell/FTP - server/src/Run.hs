@@ -12,13 +12,20 @@ import Data.List.Split as DLS
 -- import Foreign.Ptr as FP
 -- import Data.Word as DW
 import Data.Text as DT
+import Text.Read
 
 import System.Directory
 import System.FilePath
 import System.IO
 
-data RepresentType = I | A | E | L Int
-    deriving (Show)
+data ControlCommand = AUTH | USER | PASS | SYST
+                    | PWD | TYPE | PASV | LIST
+                    | STOR | RETR | CWD | MKD
+                    | RMD
+    deriving (Show, Read)
+
+data RepresentType = I | A -- | E | L Int
+    deriving (Show, Read)
 
 data Connection = Connection {
     socketDescriptorC :: Socket,
@@ -26,7 +33,7 @@ data Connection = Connection {
     password          :: Maybe String,
     connected         :: Bool,
     directory         :: FilePath,
-    representation    :: Maybe String,
+    representation    :: Maybe RepresentType,
     transporter       :: Maybe DataTransporter
 } deriving (Show)
 
@@ -134,15 +141,12 @@ processMessage conn (command:tokens) = case command of
         return conn
     "TYPE" -> do
         let Connection {socketDescriptorC = sockd} = conn
-        let typeValue = Prelude.head tokens
-        if (typeValue == "I") || (typeValue == "A")
-        then do
-            _ <- writeMessage sockd 200 ("Set type to " ++ typeValue)
-            return conn {representation = Just typeValue}
-        else do
-            _ <- writeMessage sockd 504 ("Command not implemented for that parameter (" 
-                                         ++ typeValue ++ ")")
-            return conn
+        let value = readMaybe $ Prelude.head tokens
+        case value of
+            j@(Just _) -> writeMessage sockd 200 ("Set type to " ++ (show j))
+            Nothing -> writeMessage sockd 504 $ "Unknown type (" ++ (show value) ++ ")"
+
+        return conn {representation = value}
     "PASV" -> do
         trans <- runServer 0 $ openDataTransportSocket conn
         return conn {transporter = Just trans}
@@ -347,57 +351,43 @@ prepareFilePathForTransport path = do
                 _ -> undefined
     return value
 
---                                    | Change to RepresentType
-readAndSaveFile :: DataTransporter -> String -> FilePath -> IO ()
+
+getPutFunction :: RepresentType -> (Handle -> String -> IO ())
+getPutFunction representType = case representType of
+    A -> hPutStrLn
+    I -> hPutStr
+
+readAndSaveFile :: DataTransporter -> RepresentType -> FilePath -> IO ()
 readAndSaveFile DataTransporter {socketDescriptorDT = sockd2} 
                 representType path = do
     fileOut <- openBinaryFile path WriteMode
     print $ "File \"" ++ path ++ "\" opened"
-    case representType of
-        "I" -> do
-            bytes <- copyAllBytes sockd2 fileOut
-            print $ "Read " ++ (show bytes) ++ " bytes"
-            return ()
 
-            where copyAllBytes :: Socket -> Handle -> IO Int
-                  copyAllBytes sockd out = do
-                     message <- readMessage sockd
-                     let len = Prelude.length message
-                     result <- if len == 0 then return 0
-                               else do 
-                                    _    <- hPutStr out message
-                                    next <- copyAllBytes sockd out
-                                    return $ len + next
-                     return result
-        "A" -> do
-            bytes <- copyAllBytes sockd2 fileOut
-            print $ "Read " ++ (show bytes) ++ " bytes"
-            return ()
+    bytes <- copyAllBytes sockd2 fileOut
+    print $ "Read " ++ (show bytes) ++ " bytes"
 
-            where copyAllBytes :: Socket -> Handle -> IO Int
-                  copyAllBytes sockd out = do
-                     message <- readMessage sockd
-                     let len = Prelude.length message
-                     result <- if len == 0 then return 0
-                               else do 
-                                    _    <- hPutStrLn out message
-                                    next <- copyAllBytes sockd out
-                                    return $ len + next
-                     return result
-        _   -> do
-            print "WTF???"
-            return ()
     _ <- close sockd2
     hClose fileOut
 
+    where copyAllBytes :: Socket -> Handle -> IO Int
+          copyAllBytes sockd out = do
+                message <- readMessage sockd
+                let len = Prelude.length message
+                result <- if len == 0 then return 0
+                          else do 
+                            _    <- (getPutFunction representType) out message
+                            next <- copyAllBytes sockd out
+                            return $ len + next
+                return result
 
-writeFile :: DataTransporter -> String -> FilePath -> IO ()
+
+writeFile :: DataTransporter -> RepresentType -> FilePath -> IO ()
 writeFile DataTransporter {socketDescriptorDT = sockd2} 
           representType path = do
     fileIn <- openBinaryFile path ReadMode
     print $ "File \"" ++ path ++ "\" opened"
     case representType of
-        "I" -> do
+        I -> do
             bytes <- copyAllBytes fileIn sockd2
             _ <- writeTransportMessage sockd2 ""
             print $ "Read " ++ (show bytes) ++ " bytes"
@@ -413,7 +403,7 @@ writeFile DataTransporter {socketDescriptorDT = sockd2}
                                     next <- copyAllBytes source sockd
                                     return $ len + next
                      return result
-        "A" -> do
+        A -> do
             bytes <- copyAllBytes fileIn sockd2
             _ <- writeTransportMessage sockd2 ""
             print $ "Read " ++ (show bytes) ++ " bytes"
@@ -431,8 +421,5 @@ writeFile DataTransporter {socketDescriptorDT = sockd2}
                                     return $ len + next
                                 else return 0
                      return result
-        _   -> do
-            print "WTF???"
-            return ()
     _ <- close sockd2
     hClose fileIn
