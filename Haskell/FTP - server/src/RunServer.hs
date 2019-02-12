@@ -228,8 +228,7 @@ openDataTransportSocket Connection {socketDescriptorC = sockd} sock =
 
 
 locateFilePath :: FilePath -> IO FilePath
-locateFilePath path = do
-    current <- getCurrentDirectory
+locateFilePath path = getCurrentDirectory >>= \current ->
     return ((current </> "ftp") ++ path)
 
 
