@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 -- {-# LANGUAGE OverloadedStrings #-}
 
-module Run where
+module RunServer where
 
 import Network.Socket as S
 
@@ -10,7 +10,6 @@ import Data.Text as DT (strip, pack, unpack)
 import Network.Socket.ByteString as BS
 import Control.Concurrent (forkIO)
 import Data.List.Split as DLS
-import Control.Exception
 -- import Foreign.Ptr as FP
 -- import Data.Word as DW
 import Text.Read
@@ -60,30 +59,32 @@ socketHandler :: Socket -> IO ()
 socketHandler sock = do
     (sockd, _) <- accept sock
     let conn = Connection sockd Nothing Nothing True "/" Nothing Nothing
-    _ <- forkIO $ putStrLn "Client connected!" -- new thread for socket
-      >> makeHandshake    conn
-      >> listenConnection conn
+    _ <- forkIO $ print "Client connected!" -- new thread for socket
+      >> makeHandshake conn >> listenConnection conn
     socketHandler sock
 
 
 makeHandshake :: Connection -> IO ()
-makeHandshake Connection {socketDescriptorC = sockd} = 
-    writeMessage sockd 220 "Welcome to Haskell FTP server" >>
+makeHandshake Connection {socketDescriptorC = sockd} =
+    writeMessage sockd 220 "Welcome to Haskell FTP server" >> 
     print "Handshake made"
 
 
 readMessage :: Socket -> IO String
-readMessage sockd = BS.recv sockd (1024 * 4) >>= return . B8.unpack
+readMessage sockd = BS.recv sockd (1024 * 4) >>= 
+    return . B8.unpack
 
 
 writeMessage :: Socket -> Int -> String -> IO ()
-writeMessage sockd code comment = return msg >>= writeTransportMessage sockd
+writeMessage sockd code comment = 
+    return msg >>= writeTransportMessage sockd
     where msg = (show code) ++ " " ++ comment
 
 
 writeTransportMessage :: Socket -> String -> IO ()
-writeTransportMessage sockd msg = bracket (return msg) f print
-    where f = BS.send sockd . B8.pack
+writeTransportMessage sockd message = 
+    (BS.send sockd $ B8.pack msg) >> print msg
+    where msg = message ++ "\r\n"
 
 
 listenConnection :: Connection -> IO ()
@@ -147,8 +148,8 @@ processMessage conn@Connection {socketDescriptorC = sockd, directory = dir}
             j@(Just _) -> writeMessage sockd 200 ("Set type to " ++ (show j))
             Nothing -> writeMessage sockd 504 $ "Unknown type (" ++ (show value) ++ ")"
         return conn {representation = value}
+    RETR -> __doFileIO RunServer.writeFile
     STOR -> __doFileIO readAndSaveFile
-    RETR -> __doFileIO Run.writeFile
     CWD  -> do
         result <- case (dir, first) of
             (now, ".")  -> return now
@@ -172,20 +173,8 @@ processMessage conn@Connection {socketDescriptorC = sockd, directory = dir}
             then writeMessage sockd 257 $ "\"" ++ localPath ++ "\" created"
             else writeMessage sockd 550 $ "MKD \"" ++ localPath ++ "\" failed"
         return conn
-    RMD -> do
-        localPath <- locateFilePath $ dir </> first
-        exists <- doesDirectoryExist localPath
-        if not exists
-        then writeMessage sockd 500 $ "\"" ++ localPath ++ "\" doesn't exist"
-        else do
-            _       <- removeDirectoryRecursive localPath
-            exists2 <- doesDirectoryExist localPath
-
-            if not exists2 -- Checking that directory removed successfully
-            then writeMessage sockd 250 $ "\"" ++ localPath ++ "\" completely removed"
-            else writeMessage sockd 550 $ "RMD \"" ++ localPath ++ "\" failed"
-        return conn
-    DELE -> writeMessage sockd 502 "Command not implemented" >> return conn
+    RMD  -> __doRM doesDirectoryExist removeDirectoryRecursive
+    DELE -> __doRM doesFileExist removeFile 
     _ -> undefined -- impossible by RFC 959
 
     where __doFileIO :: (DataTransporter -> RepresentType -> FilePath -> IO ()) 
@@ -203,6 +192,14 @@ processMessage conn@Connection {socketDescriptorC = sockd, directory = dir}
 
             case result of Nothing -> writeMessage sockd 450 "Requested file action not taken" >> return conn
                            Just io -> io
+          __doRM :: (FilePath -> IO Bool) -> (FilePath -> IO ()) -> IO Connection
+          __doRM fT fR = (locateFilePath $ dir </> first) >>= \path ->
+                let notExistsMessage = "\"" ++ path ++ "\" doesn't exist" in
+                fT path >>= \exists -> (case exists of
+                    True  -> fR path >> fT path >>= \exists2 -> case exists2 of
+                        True  -> writeMessage sockd 550 $ "DELE command failed"
+                        False -> writeMessage sockd 250 $ "\"" ++ path ++ "\" completely removed"
+                    False -> writeMessage sockd 500 $ notExistsMessage) >> return conn
 
 
 processAuthorization :: Connection -> IO Connection
@@ -210,28 +207,24 @@ processAuthorization conn@Connection {socketDescriptorC = sockd,
                                       login    = Just loginValue, 
                                       password = Just passwordValue} = do
     let verdict = (loginValue == "root") && (passwordValue == "123")
-    
+
     if verdict
     then writeMessage sockd 230 "User logged in, proceed"
     else writeMessage sockd 230 "Not logged in"
-
     return conn {connected = verdict}
 
-processAuthorization conn@Connection {login = _, password = _} = return conn
+processAuthorization conn = return conn
 
 
+-- TODO: get host address from socket
 openDataTransportSocket :: Connection -> Socket -> IO DataTransporter
-openDataTransportSocket Connection {socketDescriptorC = sockd} 
-                        sock = do
-    port <- socketPort sock
-    let intPort = toInteger port
-
-    -- TODO: get host address from socket
-    _ <- writeMessage sockd 227 ("Entering Passive Mode (127,0,0,1," 
-                                 ++ (show $ intPort `div` 256) ++ "," 
-                                 ++ (show $ intPort `mod` 256) ++ ")")
-    (sockd2, _) <- accept sock
-    return $ DataTransporter sockd2 Nothing
+openDataTransportSocket Connection {socketDescriptorC = sockd} sock =
+    socketPort sock >>= \port -> let intPort = toInteger port in do
+        writeMessage sockd 227 ("Entering Passive Mode (127,0,0,1," 
+                                ++ (show $ intPort `div` 256) ++ "," 
+                                ++ (show $ intPort `mod` 256) ++ ")")
+        (sockd2, _) <- accept sock
+        return $ DataTransporter sockd2 Nothing
 
 
 locateFilePath :: FilePath -> IO FilePath
@@ -268,74 +261,50 @@ prepareFilePathForTransport path = do
                                   "Feb 18 1997", name]
 
 
-getPutFunction :: RepresentType -> (Handle -> String -> IO ())
-getPutFunction representType = case representType of
-    A -> hPutStrLn
-    I -> hPutStr
-
 readAndSaveFile :: DataTransporter -> RepresentType -> FilePath -> IO ()
 readAndSaveFile DataTransporter {socketDescriptorDT = sockd2} 
                 representType path = do
-    fileOut <- openBinaryFile path WriteMode
-    print $ "File \"" ++ path ++ "\" opened"
+    openBinaryFile path WriteMode <* print logMessage >>= \file ->
+            __copyAllBytes sockd2 file <* hClose file >>= \bytes ->
+                print ("Read " ++ (show bytes) ++ " bytes") >> 
+                    close sockd2
 
-    bytes <- copyAllBytes sockd2 fileOut
-    print $ "Read " ++ (show bytes) ++ " bytes"
-
-    _ <- close sockd2
-    hClose fileOut
-
-    where copyAllBytes :: Socket -> Handle -> IO Int
-          copyAllBytes sockd out = do
+    where __copyAllBytes :: Socket -> Handle -> IO Int
+          __copyAllBytes sockd out = do
                 message <- readMessage sockd
                 let len = Prelude.length message
-                result <- if len == 0 then return 0
-                          else do 
-                            _    <- (getPutFunction representType) out message
-                            next <- copyAllBytes sockd out
-                            return $ len + next
-                return result
+                if len == 0 then return 0
+                else __getPutFunction out message >>
+                    fmap (len +) (__copyAllBytes sockd out)
+          __getPutFunction :: (Handle -> String -> IO ())
+          __getPutFunction = case representType of
+                A -> hPutStrLn
+                I -> hPutStr
+
+          logMessage = "File \"" ++ path ++ "\" opened"
 
 
 writeFile :: DataTransporter -> RepresentType -> FilePath -> IO ()
 writeFile DataTransporter {socketDescriptorDT = sockd2} 
           representType path = do
-    fileIn <- openBinaryFile path ReadMode
-    print $ "File \"" ++ path ++ "\" opened"
-    case representType of
-        I -> do
-            bytes <- copyAllBytes fileIn sockd2
-            _ <- writeTransportMessage sockd2 ""
-            print $ "Read " ++ (show bytes) ++ " bytes"
-            return ()
+    openBinaryFile path ReadMode <* print logMessage >>= \file ->
+        __copyAllBytes file sockd2 <* hClose file >>= \bytes ->
+            print ("Read " ++ (show bytes) ++ " bytes") >> 
+                close sockd2
 
-            where copyAllBytes :: Handle -> Socket -> IO Int
-                  copyAllBytes source sockd = do
-                     message <- hGetContents source
-                     let len = Prelude.length message
-                     result <- if len == 0 then return 0
-                               else do 
-                                    _    <- BS.send sockd $ B8.pack message
-                                    next <- copyAllBytes source sockd
-                                    return $ len + next
-                     return result
-        A -> do
-            bytes <- copyAllBytes fileIn sockd2
-            _ <- writeTransportMessage sockd2 ""
-            print $ "Read " ++ (show bytes) ++ " bytes"
-            return ()
+    where __copyAllBytes :: Handle -> Socket -> IO Int
+          __copyAllBytes src sockd = __readByType src >>= \content -> 
+            let len = length content in
+            if len > 0 then (BS.send sockd $ B8.pack (content ++ __suffixByType)) >>
+                fmap (len +) (__copyAllBytes src sockd)
+            else return 0
+          __readByType :: Handle -> IO String
+          __readByType src = case representType of
+            A -> hIsEOF src >>= \eof -> if not eof then hGetLine src else return ""
+            I -> hGetContents src
+          __suffixByType :: String
+          __suffixByType = case representType of
+            A -> "\r\n"
+            _ -> ""
 
-            where copyAllBytes :: Handle -> Socket -> IO Int
-                  copyAllBytes source sockd = do
-                     eof <- hIsEOF source
-                     result <- if not eof
-                                then do
-                                    message <- hGetLine source
-                                    let len = Prelude.length message
-                                    _    <- writeTransportMessage sockd message
-                                    next <- copyAllBytes source sockd
-                                    return $ len + next
-                                else return 0
-                     return result
-    close sockd2
-    hClose fileIn
+          logMessage = "File \"" ++ path ++ "\" opened"
