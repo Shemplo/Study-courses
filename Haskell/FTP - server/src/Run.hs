@@ -6,12 +6,13 @@ module Run where
 import Network.Socket as S
 
 import qualified Data.ByteString.Char8 as B8
+import Data.Text as DT (strip, pack, unpack)
 import Network.Socket.ByteString as BS
 import Control.Concurrent (forkIO)
 import Data.List.Split as DLS
+import Control.Exception
 -- import Foreign.Ptr as FP
 -- import Data.Word as DW
-import Data.Text as DT
 import Text.Read
 
 import System.Directory
@@ -21,7 +22,7 @@ import System.IO
 data ControlCommand = AUTH | USER | PASS | SYST
                     | PWD | TYPE | PASV | LIST
                     | STOR | RETR | CWD | MKD
-                    | RMD
+                    | RMD | CDUP | DELE
     deriving (Show, Read)
 
 data RepresentType = I | A -- | E | L Int
@@ -44,9 +45,7 @@ data DataTransporter = DataTransporter {
 
 
 main :: IO ()
-main = do
-    _ <- runServer 21 socketHandler
-    return ()
+main = runServer 21 socketHandler
 
 
 runServer :: PortNumber -> (Socket -> IO t) -> IO t
@@ -54,44 +53,37 @@ runServer port handler = do
     sock <- S.socket S.AF_INET S.Stream S.defaultProtocol
     S.bind sock $ S.SockAddrInet port 0
     S.listen sock S.maxListenQueue
-
-    res <- handler sock
-    close sock
-    return res
+    (handler sock) <* (close sock)
 
 
 socketHandler :: Socket -> IO ()
 socketHandler sock = do
     (sockd, _) <- accept sock
     let conn = Connection sockd Nothing Nothing True "/" Nothing Nothing
-    _ <- forkIO $ putStrLn "Client connected!"
+    _ <- forkIO $ putStrLn "Client connected!" -- new thread for socket
       >> makeHandshake    conn
       >> listenConnection conn
     socketHandler sock
 
 
 makeHandshake :: Connection -> IO ()
-makeHandshake Connection {socketDescriptorC = sockd} = do
-    _ <- BS.send sockd $ B8.pack "220 Welcome to Haskell FTP server\r\n"
+makeHandshake Connection {socketDescriptorC = sockd} = 
+    writeMessage sockd 220 "Welcome to Haskell FTP server" >>
     print "Handshake made"
 
 
 readMessage :: Socket -> IO String
-readMessage sockd = do
-    msg <- BS.recv sockd (1024 * 4)
-    return $ B8.unpack msg
+readMessage sockd = BS.recv sockd (1024 * 4) >>= return . B8.unpack
 
 
 writeMessage :: Socket -> Int -> String -> IO ()
-writeMessage sockd code comment = do
-    let msg = (show code) ++ " " ++ comment
-    writeTransportMessage sockd msg
+writeMessage sockd code comment = return msg >>= writeTransportMessage sockd
+    where msg = (show code) ++ " " ++ comment
 
 
 writeTransportMessage :: Socket -> String -> IO ()
-writeTransportMessage sockd comment = do
-    _ <- BS.send sockd $ B8.pack (comment ++ "\r\n")
-    print (comment ++ "\r\n")
+writeTransportMessage sockd msg = bracket (return msg) f print
+    where f = BS.send sockd . B8.pack
 
 
 listenConnection :: Connection -> IO ()
@@ -112,166 +104,105 @@ listenConnection conn@Connection {socketDescriptorC = sockd} = do
 handleMessage :: Connection -> String -> IO Connection
 handleMessage conn msg = do
     let tokens = DLS.splitOn " " $ unpack $ strip $ pack msg
-    print tokens -- for debug only
-    processMessage conn tokens
+    print tokens
+
+    case readEither $ head tokens of
+        Left _ -> do
+            let Connection {socketDescriptorC = sockd} = conn
+            writeMessage sockd 500 "Syntax error, command unrecognized"
+            return conn {connected = False}
+        Right command -> do
+            processMessage conn (tail tokens) command
     
 
-processMessage :: Connection -> [String] -> IO Connection
-processMessage conn (command:tokens) = case command of
-    "AUTH" -> do 
-        let Connection {socketDescriptorC = sockd} = conn
-        _ <- writeMessage sockd 502 "Command not implemented" 
-        return conn -- TLS and SSL is not supported
-    "USER" -> do
-        let Connection {socketDescriptorC = sockd} = conn
-        let loginValue = Prelude.head tokens
-        _ <- writeMessage sockd 331 "User name okay, need password"
-        processAuthorization conn {login = Just loginValue}
-    "PASS" -> do
-        let passwordValue = Prelude.head tokens
-        processAuthorization conn {password = Just passwordValue}
-    "SYST" -> do
-        let Connection {socketDescriptorC = sockd} = conn
-        _ <- writeMessage sockd 215 "Unix Type: L8"
-        return conn
-    "PWD"  -> do
-        let Connection {socketDescriptorC = sockd,
-                        directory = dir} = conn
-        _ <- writeMessage sockd 257 ("\"" ++ dir ++ "\" created")
-        return conn
-    "TYPE" -> do
-        let Connection {socketDescriptorC = sockd} = conn
-        let value = readMaybe $ Prelude.head tokens
+processMessage :: Connection -> [String] -> ControlCommand -> IO Connection
+processMessage conn@Connection {socketDescriptorC = sockd, directory = dir} 
+               [] command = case command of
+    PWD  -> writeMessage sockd 257 ("\"" ++ dir ++ "\" created") >> return conn
+    SYST -> writeMessage sockd 215 "Unix Type: L8" >> return conn
+    PASV -> (runServer 0 $ openDataTransportSocket conn) >>= \trans -> 
+            return conn {transporter = Just trans}
+    LIST -> do
+        let Connection {transporter = transporterDesc} = conn
+        let result = transporterDesc >>= \desc -> Just $ do -- :: Maybe (IO connection)
+                writeMessage sockd 150 $ "Ready to list directory \"" ++ dir ++ "\""
+                writeListOfFiles desc dir -- Sending all files and dirs in current
+                writeMessage sockd 226 "Closing data connection"
+                return conn {transporter = Nothing}
+
+        case result of Nothing -> writeMessage sockd 450 "Requested file action not taken" >> return conn
+                       Just io -> io
+    CDUP -> writeMessage sockd 502 "Command not implemented" >> return conn
+    _    -> undefined -- impossible by RFC 959
+
+processMessage conn@Connection {socketDescriptorC = sockd, directory = dir} 
+               (first:_) command = case command of
+    AUTH -> writeMessage sockd 502 "Command not implemented" >> return conn -- TLS and SSL is not supported
+    USER -> writeMessage sockd 331 "User name okay, need password"
+         >> processAuthorization conn {login    = Just first}
+    PASS -> processAuthorization conn {password = Just first}
+    TYPE -> do
+        let value = readMaybe first
         case value of
             j@(Just _) -> writeMessage sockd 200 ("Set type to " ++ (show j))
             Nothing -> writeMessage sockd 504 $ "Unknown type (" ++ (show value) ++ ")"
-
         return conn {representation = value}
-    "PASV" -> do
-        trans <- runServer 0 $ openDataTransportSocket conn
-        return conn {transporter = Just trans}
-    "LIST" -> do
-        let Connection {transporter = transporterDesc,
-                        socketDescriptorC = sockd,
-                        directory = dir}  = conn
-
-        result <- case transporterDesc of
-                    Just desc -> do -- Make listing of files
-                        let message = "Ready to list directory \"" ++ dir ++ "\""
-                        writeMessage sockd 150 message
-
-                        writeListOfFiles desc dir
-
-                        writeMessage sockd 226 "Closing data connection"
-                        return conn {transporter = Nothing}
-                    Nothing   -> do -- DataTransporter is not initialized
-                        writeMessage sockd 450 "Requested file action not taken"
-                        return conn
-        return result
-    "STOR" -> do
-        let Connection {transporter = transporterDesc,
-                        socketDescriptorC = sockd,
-                        representation = represT,
-                        directory = dir}  = conn
-        let fileName = Prelude.head tokens
-
-        result <- case (transporterDesc, represT) of
-                    (Just desc, Just repres) -> do -- Make downloading of file
-                        let message = "Ready to download \"" ++ fileName ++ "\""
-                        writeMessage sockd 150 message
-
-                        localPath <- locateFilePath dir
-                        let filePath = localPath </> fileName
-                        readAndSaveFile desc repres $ filePath
-
-                        writeMessage sockd 226 "Closing data connection"
-                        return conn {transporter = Nothing}
-                    (_, _) -> do -- DataTransporter or RepresentType is not initialized
-                        writeMessage sockd 450 "Requested file action not taken"
-                        return conn
-        return result
-    "RETR" -> do
-        let Connection {transporter = transporterDesc,
-                        socketDescriptorC = sockd,
-                        representation = represT,
-                        directory = dir}  = conn
-        let fileName = Prelude.head tokens
-
-        result <- case (transporterDesc, represT) of
-                    (Just desc, Just repres) -> do -- Make uploading of file
-                        let message = "Ready to upload \"" ++ fileName ++ "\""
-                        writeMessage sockd 150 message
-
-                        localPath <- locateFilePath dir
-                        let filePath = localPath </> fileName
-                        Run.writeFile desc repres $ filePath
-
-                        writeMessage sockd 226 "Closing data connection"
-                        return conn {transporter = Nothing}
-                    (_, _) -> do -- DataTransporter or RepresentType is not initialized
-                        writeMessage sockd 450 "Requested file action not taken"
-                        return conn
-        return result
-    "CWD"  -> do
-        let destinationValue = Prelude.head tokens
-        let Connection {socketDescriptorC = sockd,
-                        directory = dir} = conn
-        result <- case (dir, destinationValue) of
+    STOR -> __doFileIO readAndSaveFile
+    RETR -> __doFileIO Run.writeFile
+    CWD  -> do
+        result <- case (dir, first) of
             (now, ".")  -> return now
             (now, "..") -> do
-                let splitted = splitPath now
-                let up = Prelude.take (max ((Prelude.length splitted) - 1) 1) splitted
+                let splitted = splitPath now -- FIXME: need optimization
+                let up = take (max (length splitted - 1) 1) splitted
                 return $ joinPath up
             (now, path) -> return $ now </> path
-        _ <- writeMessage sockd 250 ("\"" ++ result ++ "\" is current directory")
+        writeMessage sockd 250 ("\"" ++ result ++ "\" is current directory")
         return conn {directory = result}
-    "MKD"  -> do
-        let destinationValue = Prelude.head tokens
-        let Connection {socketDescriptorC = sockd,
-                        directory = dir} = conn
-
-        localPath <- locateFilePath dir
-        let path = localPath </> destinationValue
-        exists <- doesDirectoryExist path
+    MKD -> do
+        localPath <- locateFilePath $ dir </> first
+        exists <- doesDirectoryExist localPath
         if exists
-        then writeMessage sockd 550 $ "\"" ++ path ++ "\" already exists"
+        then writeMessage sockd 550 $ "\"" ++ localPath ++ "\" already exists"
         else do
-            _       <- createDirectory path
-            exists2 <- doesDirectoryExist path
+            _       <- createDirectory localPath
+            exists2 <- doesDirectoryExist localPath
 
             if exists2 -- Checking that directory created successfully
-            then writeMessage sockd 257 $ "\"" ++ path ++ "\" created"
-            else writeMessage sockd 550 $ "MKD \"" ++ path ++ "\" failed"
+            then writeMessage sockd 257 $ "\"" ++ localPath ++ "\" created"
+            else writeMessage sockd 550 $ "MKD \"" ++ localPath ++ "\" failed"
         return conn
-    "RMD"  -> do
-        let destinationValue = Prelude.head tokens
-        let Connection {socketDescriptorC = sockd,
-                        directory = dir} = conn
-
-        localPath <- locateFilePath dir
-        let path = localPath </> destinationValue
-        exists <- doesDirectoryExist path
+    RMD -> do
+        localPath <- locateFilePath $ dir </> first
+        exists <- doesDirectoryExist localPath
         if not exists
-        then writeMessage sockd 500 $ "\"" ++ path ++ "\" doesn't exist"
+        then writeMessage sockd 500 $ "\"" ++ localPath ++ "\" doesn't exist"
         else do
-            _       <- removeDirectoryRecursive path
-            exists2 <- doesDirectoryExist path
+            _       <- removeDirectoryRecursive localPath
+            exists2 <- doesDirectoryExist localPath
 
             if not exists2 -- Checking that directory removed successfully
-            then writeMessage sockd 250 $ "\"" ++ path ++ "\" completely removed"
-            else writeMessage sockd 550 $ "RMD \"" ++ path ++ "\" failed"
+            then writeMessage sockd 250 $ "\"" ++ localPath ++ "\" completely removed"
+            else writeMessage sockd 550 $ "RMD \"" ++ localPath ++ "\" failed"
         return conn
-    ""     -> do
-        return conn {connected = False}
-    _      -> do
-        let Connection {socketDescriptorC = sockd} = conn
-        _ <- writeMessage sockd 500 "Syntax error, command unrecognized" 
-        return conn
+    DELE -> writeMessage sockd 502 "Command not implemented" >> return conn
+    _ -> undefined -- impossible by RFC 959
 
-processMessage conn [] = do
-    let Connection {socketDescriptorC = sockd} = conn
-    _ <- writeMessage sockd 500 "Syntax error, command unrecognized" 
-    return conn
+    where __doFileIO :: (DataTransporter -> RepresentType -> FilePath -> IO ()) 
+                     -> IO Connection
+          __doFileIO f = do
+            let Connection {transporter = transporterD, representation = represT} = conn
+            let result = transporterD >>= \desc -> Just $ do
+                    writeMessage sockd 150 $ "Ready to upload \"" ++ first ++ "\""
+                    localPath <- locateFilePath $ dir </> first
+                    case represT of
+                        Just repres -> (f desc repres $ localPath)
+                                    >> writeMessage sockd 226 "Closing data connection"
+                        Nothing -> writeMessage sockd 450 "Requested file action not taken"
+                    return conn {transporter = Nothing}
+
+            case result of Nothing -> writeMessage sockd 450 "Requested file action not taken" >> return conn
+                           Just io -> io
 
 
 processAuthorization :: Connection -> IO Connection
@@ -327,29 +258,14 @@ prepareFilePathForTransport path = do
     isD <- doesDirectoryExist path
     isF <- doesFileExist path
 
-    value <- case (isD, isF) of
-                (True, _) -> do
-                    let template = "drwxr-xr-- 1"
-                    let owner    = "root root"
-                    let name     = Prelude.last $ splitPath path
-                    size <- getFileSize path
-                    print path
-                    print name
-
-                    let result = (template ++ " " ++ owner ++ " " ++ (show size) 
-                                  ++ " " ++ "Feb 18 1997" ++ " " ++ name)
-                    return result
-                (_, True) -> do
-                    let template = "-rwxr-xr-- 1"
-                    let owner    = "root root"
-                    let name     = takeFileName path
-                    size <- getFileSize path
-
-                    let result = (template ++ " " ++ owner ++ " " ++ (show size) 
-                                  ++ " " ++ "Feb 18 1997" ++ " " ++ name)
-                    return result
-                _ -> undefined
-    return value
+    case (isD, isF) of
+        (True, _) -> __compose "drwxr-xr-- 1" $ last $ splitPath path
+        (_, True) -> __compose "-rwxr-xr-- 1" $ takeFileName path
+        _         -> undefined
+    where __compose :: String -> String -> IO String
+          __compose prefix name = (getFileSize path) >>= \size -> 
+                return $ unwords [prefix, "root root", show size, 
+                                  "Feb 18 1997", name]
 
 
 getPutFunction :: RepresentType -> (Handle -> String -> IO ())
@@ -421,5 +337,5 @@ writeFile DataTransporter {socketDescriptorDT = sockd2}
                                     return $ len + next
                                 else return 0
                      return result
-    _ <- close sockd2
+    close sockd2
     hClose fileIn
