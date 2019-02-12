@@ -18,7 +18,7 @@ tested-with:         GHC == 8.0.1
 
 library
   hs-source-dirs:      src
-  exposed-modules:     RunServer
+  exposed-modules:     FTPCommon RunServer RunClient
   ghc-options:         -Wall
   build-depends:       base >= 4.9 && < 5,
                        network,
@@ -26,5 +26,6 @@ library
                        split,
                        text,
                        directory,
-                       filepath
+                       filepath,
+                       megaparsec
   default-language:    Haskell2010

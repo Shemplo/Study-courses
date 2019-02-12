@@ -4,6 +4,7 @@
 module RunServer where
 
 import Network.Socket as S
+import FTPCommon
 
 import qualified Data.ByteString.Char8 as B8
 import Data.Text as DT (strip, pack, unpack)
@@ -17,15 +18,6 @@ import Text.Read
 import System.Directory
 import System.FilePath
 import System.IO
-
-data ControlCommand = AUTH | USER | PASS | SYST
-                    | PWD | TYPE | PASV | LIST
-                    | STOR | RETR | CWD | MKD
-                    | RMD | CDUP | DELE
-    deriving (Show, Read)
-
-data RepresentType = I | A -- | E | L Int
-    deriving (Show, Read)
 
 data Connection = Connection {
     socketDescriptorC :: Socket,
