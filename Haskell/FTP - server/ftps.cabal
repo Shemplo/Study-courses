@@ -24,5 +24,7 @@ library
                        network,
                        bytestring,
                        split,
-                       text
+                       text,
+                       directory,
+                       filepath
   default-language:    Haskell2010
