@@ -13,19 +13,19 @@ copyright:           2019 Plotnikov Andrey
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
-cabal-version:       >=1.10
+cabal-version:       >= 1.10
 tested-with:         GHC == 8.0.1
 
+--executable FTPServer
 library
   hs-source-dirs:      src
   exposed-modules:     FTPCommon RunServer RunClient
   ghc-options:         -Wall
-  build-depends:       base >= 4.9 && < 5,
+  build-depends:       base,
                        network,
                        bytestring,
                        split,
                        text,
                        directory,
-                       filepath,
-                       megaparsec
+                       filepath
   default-language:    Haskell2010

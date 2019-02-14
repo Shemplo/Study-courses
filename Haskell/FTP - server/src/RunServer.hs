@@ -62,23 +62,6 @@ makeHandshake Connection {socketDescriptorC = sockd} =
     print "Handshake made"
 
 
-readMessage :: Socket -> IO String
-readMessage sockd = BS.recv sockd (1024 * 4) >>= 
-    return . B8.unpack
-
-
-writeMessage :: Socket -> Int -> String -> IO ()
-writeMessage sockd code comment = 
-    return msg >>= writeTransportMessage sockd
-    where msg = (show code) ++ " " ++ comment
-
-
-writeTransportMessage :: Socket -> String -> IO ()
-writeTransportMessage sockd message = 
-    (BS.send sockd $ B8.pack msg) >> print msg
-    where msg = message ++ "\r\n"
-
-
 listenConnection :: Connection -> IO ()
 listenConnection conn@Connection {socketDescriptorC = sockd} = do
     msg <- readMessage sockd
@@ -202,7 +185,7 @@ processAuthorization conn@Connection {socketDescriptorC = sockd,
 
     if verdict
     then writeMessage sockd 230 "User logged in, proceed"
-    else writeMessage sockd 230 "Not logged in"
+    else writeMessage sockd 530 "Not logged in"
     return conn {connected = verdict}
 
 processAuthorization conn = return conn
