@@ -1,10 +1,20 @@
+{-# LANGUAGE TemplateHaskell  #-}
+
 module FTPCommon where
 
 import qualified Data.ByteString.Char8 as B8
 import Data.Text as DT (strip, pack, unpack)
 import Network.Socket.ByteString as BS
+import Control.Lens as CL (makeLenses)
 import Data.List.Split as DLS
 import Network.Socket as S
+
+data DataTransporter = DataTransporter {
+    _socketDescriptorDT :: Socket,
+    _task               :: Maybe String
+} deriving (Show)
+
+makeLenses ''DataTransporter
 
 data ControlCommand = AUTH | USER | PASS | SYST
                     | PWD | TYPE | PASV | LIST

@@ -29,11 +29,6 @@ data Connection = Connection {
     transporter       :: Maybe DataTransporter
 } deriving (Show)
 
-data DataTransporter = DataTransporter {
-    socketDescriptorDT :: Socket,
-    task               :: Maybe String
-} deriving (Show)
-
 
 main :: IO ()
 main = runServer 21 socketHandler
@@ -208,7 +203,7 @@ locateFilePath path = getCurrentDirectory >>= \current ->
 
 
 writeListOfFiles :: DataTransporter -> FilePath -> IO ()
-writeListOfFiles DataTransporter {socketDescriptorDT = sockd2} 
+writeListOfFiles DataTransporter {_socketDescriptorDT = sockd2} 
                  path = do
     localPath <- locateFilePath path
     listD <- listDirectory localPath
@@ -236,7 +231,7 @@ prepareFilePathForTransport path = do
 
 
 readAndSaveFile :: DataTransporter -> RepresentType -> FilePath -> IO ()
-readAndSaveFile DataTransporter {socketDescriptorDT = sockd2} 
+readAndSaveFile DataTransporter {_socketDescriptorDT = sockd2} 
                 representType path = do
     openBinaryFile path WriteMode <* print logMessage >>= \file ->
             __copyAllBytes sockd2 file <* hClose file >>= \bytes ->
@@ -259,7 +254,7 @@ readAndSaveFile DataTransporter {socketDescriptorDT = sockd2}
 
 
 writeFile :: DataTransporter -> RepresentType -> FilePath -> IO ()
-writeFile DataTransporter {socketDescriptorDT = sockd2} 
+writeFile DataTransporter {_socketDescriptorDT = sockd2} 
           representType path = do
     openBinaryFile path ReadMode <* print logMessage >>= \file ->
         __copyAllBytes file sockd2 <* hClose file >>= \bytes ->

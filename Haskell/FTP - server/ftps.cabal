@@ -27,5 +27,6 @@ library
                        split,
                        text,
                        directory,
-                       filepath
+                       filepath,
+                       lens
   default-language:    Haskell2010
