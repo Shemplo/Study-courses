@@ -37,7 +37,6 @@
     < description >
   * _Software design_  
     < description >
-    
- * **_8 term, 2019_** :
-  * _Software desing_
+* **_8 term, 2019_** :  
+  * _Software desing_  
     < description >
