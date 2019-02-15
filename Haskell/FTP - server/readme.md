@@ -67,3 +67,4 @@ This application is formed as `library` becase I didn't want to create separated
 * Server will be always runned at _21_ port
 * In most cases error in client will require restart of it
 * On server available authorization only for `root/123`
+* Only shared folder `ftp` for server is available (impossible to go upper it)
