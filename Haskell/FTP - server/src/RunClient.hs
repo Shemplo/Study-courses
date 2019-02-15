@@ -8,7 +8,7 @@ import Network.Socket as S
 --import FTPCommon
 
 import Data.Text as DT (strip, pack, unpack, uncons, replace)
-import Control.Lens as CL ((^.), (%~), (&), makeLenses)
+import Control.Lens as CL ((^.), (.~), (&), makeLenses, both)
 import Data.List.Split as DLS
 import Data.Maybe as DM
 
@@ -67,6 +67,7 @@ interpretLine state line = do
         _      -> print "Unknown command, try ? for help"
                >> return state
 
+
 executeLine :: ClientState -> IO ConsoleCommand -> Maybe (IO ClientState)
 executeLine state commandIO = Just $ commandIO >>= 
     \command -> case command of
@@ -85,18 +86,26 @@ executeLine state commandIO = Just $ commandIO >>=
             readMessageWithCode sockd >>= \(code, message) -> case code of
                 331 -> writeTransportMessage sockd ("PASS " ++ pass)
                     >> readMessageWithCode sockd >>= \(code2, message2) -> case code2 of
-                        230 -> writeTransportMessage sockd "PWD /"
-                            >> return (state & logined %~ (\_ -> True))
+                        230 -> writeTransportMessage sockd "PWD"
+                            >> readMessage sockd -- read answer for PWD
+                            >> return (state & logined .~ True)
                         _   -> print ("Login (PASS) failed: " ++ message2)
                             >> __closeConnection state
                 _   -> print ("Login (USER) failed: " ++ message) 
                     >> __closeConnection state)
 
-        List -> __doIfLogined state (\_ -> (__initTransporter state) >>= \st ->
+        List -> __doIfLogined state (\sockd -> (__initTransporter state) >>= \st ->
             case st ^. transporter of
-                Just trans -> undefined
-                Nothing    -> print "Transporter is not initialized"
-                           >> return st)
+                Just trans -> let sockdt = trans ^. socketDescriptorDT in 
+                    writeTransportMessage sockd "LIST" >> 
+                    readMessageWithCode sockd >>= \(code, message) -> do 
+                        case code of
+                            150 -> readMessage sockd >> readAllMessages sockdt >>= \list -> 
+                                (sequence $ fmap print list) >> return ()
+                            _   -> print ("Transportation (LIST) failed: " ++ message)
+                        close sockdt >> return st {_transporter = Nothing}
+                Nothing -> print "Transporter is not initialized"
+                        >> return st)
     where
         __closeConnection :: ClientState -> IO ClientState
         __closeConnection st = __doIfConnected st (\sockd -> (writeTransportMessage sockd "") >> 
@@ -115,12 +124,20 @@ executeLine state commandIO = Just $ commandIO >>=
         __initTransporter :: ClientState -> IO ClientState
         __initTransporter st = __doIfLogined st (\sockd ->
             writeTransportMessage sockd "TYPE I" >>
+            readMessage sockd >> -- read answer fro TYPE
             writeTransportMessage sockd "PASV" >>
             readMessageWithCode sockd >>= \(code, message) -> case code of
                 227 -> let replF = replace (pack ")") (pack "") in
                     let cmessage = unpack $ replF $ strip $ pack message in
-                    let mtokens = DLS.splitOn "," cmessage in
-                    print mtokens >> return st
+                    case DLS.splitOn "," cmessage of
+                        [_, _, _, _, hd, tl] -> do
+                            sock <- S.socket S.AF_INET S.Stream S.defaultProtocol
+                            SockAddrInet _ curAddr <- getPeerName sockd
+                            let port = (read hd) * 256 + (read tl)
+                            
+                            connect sock $ SockAddrInet port curAddr
+                            return st {_transporter = Just $ DataTransporter sock Nothing}
+                        _ -> print "Failed parse port" >> return st
                 _ -> print ("Server doesn't support passive mod, " ++
                     "but PORT in not implemented")
                   >> return st)
