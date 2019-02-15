@@ -258,22 +258,20 @@ writeFile DataTransporter {_socketDescriptorDT = sockd2}
           representType path = do
     openBinaryFile path ReadMode <* print logMessage >>= \file ->
         __copyAllBytes file sockd2 <* hClose file >>= \bytes ->
-            print ("Read " ++ (show bytes) ++ " bytes") >> 
+            print ("Written " ++ (show bytes) ++ " bytes") >> 
                 close sockd2
 
     where __copyAllBytes :: Handle -> Socket -> IO Int
           __copyAllBytes src sockd = __readByType src >>= \content -> 
             let len = length content in
-            if len > 0 then (BS.send sockd $ B8.pack (content ++ __suffixByType)) >>
-                fmap (len +) (__copyAllBytes src sockd)
-            else return 0
+            case representType of
+                A -> if len > 0 then (BS.send sockd $ B8.pack (content ++ "\r\n")) >>
+                        fmap (len +) (__copyAllBytes src sockd)
+                     else return 0
+                I -> (BS.send sockd $ B8.pack content) >> return len
           __readByType :: Handle -> IO String
           __readByType src = case representType of
             A -> hIsEOF src >>= \eof -> if not eof then hGetLine src else return ""
             I -> hGetContents src
-          __suffixByType :: String
-          __suffixByType = case representType of
-            A -> "\r\n"
-            _ -> ""
 
           logMessage = "File \"" ++ path ++ "\" opened"
