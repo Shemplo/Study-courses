@@ -9,8 +9,6 @@ import Control.Lens as CL (makeLenses)
 import Data.List.Split as DLS
 import Network.Socket as S
 
-import System.Directory
-import System.FilePath
 import System.IO
 
 data DataTransporter = DataTransporter {

@@ -8,15 +8,15 @@ import Network.Socket as S
 --import FTPCommon
 
 import Data.Text as DT (strip, pack, unpack, uncons, replace)
-import Control.Lens as CL ((^.), (.~), (&), makeLenses, both)
+import Control.Lens as CL ((^.), (.~), (&), makeLenses)
 import Data.List.Split as DLS
-import Data.Maybe as DM
 
 import FTPCommon
 
 data ConsoleCommand = Open AddrInfo | Close | Exit
                     | Login String String | State
-                    | List
+                    | List | CurDir FilePath 
+                    | MakeDir FilePath | RemoveDir FilePath
     deriving (Show)
 
 data ClientState = ClientState {
@@ -34,6 +34,9 @@ parseCommand line = case DLS.splitOn " " line of
     ["open", address]       -> Just $ __resolveAddress address "21" >>= return . Open
     ["open"]                -> Just $ __resolveAddress "127.0.0.1" "21" >>= return . Open
     ["login", login, pass]  -> Just $ return $ Login login pass
+    ["removed", dir]        -> Just $ return $ RemoveDir dir
+    ["maked", dir]          -> Just $ return $ MakeDir dir
+    ["cd", path]            -> Just $ return $ CurDir path
     ["close"]               -> Just $ return Close
     ["state"]               -> Just $ return State
     ["exit"]                -> Just $ return Exit
@@ -106,6 +109,21 @@ executeLine state commandIO = Just $ commandIO >>=
                         close sockdt >> return st {_transporter = Nothing}
                 Nothing -> print "Transporter is not initialized"
                         >> return st)
+
+        CurDir path -> __doIfLogined state (\sockd ->
+            writeTransportMessage sockd ("CWD " ++ path) >> 
+            readMessage sockd >>
+            return state)
+
+        MakeDir dir -> __doIfLogined state (\sockd ->
+            writeTransportMessage sockd ("MKD " ++ dir) >> 
+            readMessage sockd >>
+            return state)
+        RemoveDir dir -> __doIfLogined state (\sockd ->
+            writeTransportMessage sockd ("RMD " ++ dir) >> 
+            readMessage sockd >>
+            return state)
+
     where
         __closeConnection :: ClientState -> IO ClientState
         __closeConnection st = __doIfConnected st (\sockd -> (writeTransportMessage sockd "") >> 
