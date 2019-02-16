@@ -55,9 +55,9 @@ public class TestPatcher {
         initializer.rememberContext (new Object [0]);
         
         ClassWriter writer = new ClassWriter (0);
-        writer.visit             (V1_8, ACC_PUBLIC + ACC_SUPER, CLASS_NAME, 
-                                  null, "java/lang/Object", null);
-        writer.visitSource       (CLASS_NAME.concat (".java"), null);
+        writer.visit              (V1_8, ACC_PUBLIC + ACC_SUPER, CLASS_NAME, 
+                                   null, "java/lang/Object", null);
+        writer.visitSource        (CLASS_NAME.concat (".java"), null);
                                  
         MethodVisitor method = writer.visitMethod 
                                   (ACC_PUBLIC, "<init>", "()V", null, null);
