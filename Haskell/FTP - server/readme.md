@@ -1,7 +1,7 @@
 ## FTP Server & Client on Haskell
 > Server & client are compatibile with [RFC 959](https://tools.ietf.org/html/rfc959)
 
-### Opportunities
+### Features
 
 **Notice!** there is no full support of mentioned _RFC_. Implemented only part of all command words and strategies. 
 But they allow to compute basic requirements for _FTP_: navigation in remote file system, transporting files between hosts.
