@@ -6,7 +6,7 @@ public class Main {
     private static Helper helper = new Helper ();
     
     public static void main (String ... args) {
-        for (int i = 16; i < 32; i++) {
+        for (int i = 4; i < 8; i++) {
             String string = helper.randomString (i);
             printString (string);
             printString (helper.reverse (string));
