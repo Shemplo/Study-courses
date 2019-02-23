@@ -25,10 +25,10 @@
     < description >
 * **_6 term, 2018_** : 
   * _Haskell_  
-    < description >
+    Homeworks on basic (and advanced) structures of _Haskell_ and custom _FTP server_ with _client_
 * **_7 term, 2018_** : 
   * _Databases_  
-    < description >
+    Simple application for interaction with _MySQL-server_ via _jdbc_
   * _Coding theory_  
     < description >
   * _Computer networks_  
