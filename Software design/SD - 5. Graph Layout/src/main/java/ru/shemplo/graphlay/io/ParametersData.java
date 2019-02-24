@@ -1,6 +1,6 @@
 package ru.shemplo.graphlay.io;
 
-import static ru.shemplo.snowball.utils.fun.StreamUtils.*;
+import static ru.shemplo.snowball.utils.fp.StreamUtils.*;
 
 import java.util.Arrays;
 import java.util.HashMap;

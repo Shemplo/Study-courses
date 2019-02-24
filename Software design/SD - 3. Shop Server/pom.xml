@@ -105,5 +105,11 @@
       <artifactId>jetty-servlet</artifactId>
       <version>9.0.3.v20130506</version>
     </dependency>
+    
+    <dependency>
+        <groupId>ru.shemplo</groupId>
+        <artifactId>snowball</artifactId>
+        <version>0.0.2</version>
+    </dependency>
   </dependencies>
 </project>

@@ -1,6 +1,6 @@
 package ru.shemplo.graphlay.io;
 
-import static ru.shemplo.snowball.utils.fun.StreamUtils.whilst;
+import static ru.shemplo.snowball.utils.fp.StreamUtils.whilst;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

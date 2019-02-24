@@ -32,7 +32,7 @@
               <transformers>
                 <transformer
                   implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>ru.shemplo.profiler.Profiler</mainClass>
+                  <mainClass>ru.shemplo.actor.aggregator.RunSearchAggregator</mainClass>
                 </transformer>
               </transformers>
             </configuration>
@@ -95,7 +95,7 @@
     <dependency>
       <groupId>ru.shemplo</groupId>
       <artifactId>snowball</artifactId>
-      <version>1.2.1</version>
+      <version>1.2.2</version>
     </dependency>
     
     <dependency>

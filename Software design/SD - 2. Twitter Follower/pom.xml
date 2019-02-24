@@ -121,5 +121,11 @@
        <artifactId>restito</artifactId>
        <version>0.8.2</version>
     </dependency>
+    
+    <dependency>
+        <groupId>ru.shemplo</groupId>
+        <artifactId>snowball</artifactId>
+        <version>0.0.2</version>
+    </dependency>
   </dependencies>
 </project>

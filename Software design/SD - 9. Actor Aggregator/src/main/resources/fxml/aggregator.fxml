@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.HBox?>
+
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="ru.shemplo.actor.aggregator.gui.WindowController">
+    <padding>
+        <Insets top="5" right="5" bottom="5" left="5"/>
+    </padding>
+
+    <HBox spacing="5">
+        <!-- Left column == search results -->
+        <ListView HBox.hgrow="ALWAYS"
+                  fx:id="resultsList" />
+
+        <!-- Right column == filed & history -->
+        <VBox spacing="5">
+            <Label text="Search query:">
+                <VBox.margin>
+                    <Insets top="5" right="5" bottom="5" left="5"/>
+                </VBox.margin>
+            </Label>
+
+            <HBox spacing="5">
+                <VBox.margin>
+                    <Insets right="5" bottom="5" left="5"/>
+                </VBox.margin>
+
+                <TextField HBox.hgrow="ALWAYS"
+                           fx:id="searchQuery"
+                           minWidth="250"/>
+                <Button fx:id="searchButton"
+                        text="Search"/>
+            </HBox>
+
+            <ListView VBox.vgrow="ALWAYS"
+                      fx:id="historyList" />
+        </VBox>
+    </HBox>
+</StackPane>
