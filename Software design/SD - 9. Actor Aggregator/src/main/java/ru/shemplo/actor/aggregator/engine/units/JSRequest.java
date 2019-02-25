@@ -5,6 +5,8 @@ import lombok.Data;
 @Data
 public class JSRequest {
 
+    private JSResponse response;
+
     private final String query;
     
 }

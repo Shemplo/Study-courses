@@ -8,6 +8,7 @@ import java.util.List;
 
 import lombok.Data;
 import lombok.NonNull;
+import ru.shemplo.actor.aggregator.engine.JSActorDescriptor;
 
 @Data
 public class JSResponse {
@@ -18,21 +19,15 @@ public class JSResponse {
         private final String title, description;
         private final URL link;
         
+        private final JSActorDescriptor source;
+        
     }
     
-    private final    JSRequest request;
     @NonNull private Long      finishTime;
     @NonNull private Boolean   justFinished;
     private final List <JSResponseRow> rows;
     
     public JSResponse mergeIn (JSResponse response) {
-        if (!this.request.equals (response.request)) {
-            System.err.println ("Mismatched requests (merge stopped)");
-            System.err.flush ();
-            
-            return this;
-        }
-        
         finishTime = Math.max (finishTime, response.finishTime);
         rows.addAll (response.rows);
         Collections.shuffle (rows);
@@ -40,9 +35,9 @@ public class JSResponse {
         return this;
     }
     
-    public static JSResponse empty (JSRequest request) {
+    public static JSResponse empty () {
         final List <JSResponseRow> rows = new ArrayList <> ();
-        return new JSResponse (request, 0L, true, rows);
+        return new JSResponse (0L, true, rows);
     }
     
 }

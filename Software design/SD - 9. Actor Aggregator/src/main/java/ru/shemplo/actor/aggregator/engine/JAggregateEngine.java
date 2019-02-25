@@ -4,6 +4,7 @@ import java.time.Duration;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import akka.actor.AbstractActorWithTimers;
@@ -22,7 +23,8 @@ public class JAggregateEngine extends AbstractActorWithTimers implements AutoClo
     @Override
     public void preStart () throws Exception {
         AStream.make (Arrays.asList (JSActorDescriptor.values ()).stream ())
-               .map (d -> d.apply (getContext ().getSystem ()))
+               .map     (d -> d.apply (getContext ().getSystem ()))
+               .filter  (Objects::nonNull)
                .forEach (children::add);
     }
     
@@ -38,12 +40,15 @@ public class JAggregateEngine extends AbstractActorWithTimers implements AutoClo
     public Receive createReceive () {
         return receiveBuilder ()
              . match (JSRequest.class, req -> {
+                 // Actualizing real number of search actors
+                 this.barrier = children.size ();
+                 
                  // Saving reference where send the answer in future
                  this.answerDestination = getSender ();
                  
                  // Initializing empty response object (will be used for accumulation)
                  // TODO: return this object as Future and update it in resultList
-                 this.response = JSResponse.empty (req);
+                 this.response = JSResponse.empty ();
                  
                  // Delegation request to children (they know what to do)
                  children.forEach (child -> {

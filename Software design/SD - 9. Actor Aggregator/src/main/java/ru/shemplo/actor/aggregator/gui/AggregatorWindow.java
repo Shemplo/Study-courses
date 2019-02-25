@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import akka.actor.ActorSystem;
@@ -24,6 +25,10 @@ public class AggregatorWindow extends Application {
         URL layoutFile = this.getClass ().getResource ("/fxml/aggregator.fxml");
         rootParent = FXMLLoader.load (layoutFile);
         scene = new Scene (rootParent);
+        
+        URL styles = ClassLoader.getSystemResource ("css/aggregator.css");
+        rootParent.getStylesheets ().add (styles.toExternalForm ());
+        stage.getIcons ().add (new Image ("/gfx/www.png"));
         
         stage.setTitle ("Search snowball");
         stage.setScene (scene);

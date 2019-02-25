@@ -38,7 +38,7 @@ public abstract class AbsJSActor extends AbstractActor {
             List <JSResponseRow> rows = parseResponse (body);
             final Long time = System.currentTimeMillis ();
             
-            JSResponse response = new JSResponse (request, time, true, rows);
+            JSResponse response = new JSResponse (time, true, rows);
             getSender ().forward (response, getContext ());
         } catch (UnirestException ue) {
             ue.printStackTrace ();

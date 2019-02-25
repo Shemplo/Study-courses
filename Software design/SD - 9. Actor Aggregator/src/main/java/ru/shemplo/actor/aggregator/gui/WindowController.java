@@ -1,11 +1,15 @@
 package ru.shemplo.actor.aggregator.gui;
 
+import static ru.shemplo.snowball.utils.fp.FunctionalUtils.*;
+import static ru.shemplo.snowball.utils.fp.FunctionalUtils.Case.*;
+
 import java.net.URL;
 
 import java.util.ResourceBundle;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -23,6 +27,7 @@ import ru.shemplo.actor.aggregator.engine.JAggregateEngine;
 import ru.shemplo.actor.aggregator.engine.units.JSRequest;
 import ru.shemplo.actor.aggregator.engine.units.JSResponse;
 import ru.shemplo.actor.aggregator.engine.units.JSResponse.JSResponseRow;
+import scala.util.Try;
 
 public class WindowController implements Initializable {
 
@@ -32,7 +37,7 @@ public class WindowController implements Initializable {
     private final AtomicInteger requestsCounter = new AtomicInteger ();
     
     @FXML private ListView <JSResponseRow> resultsList;
-    @FXML private ListView <JSResponse> historyList;
+    @FXML private ListView <JSRequest> historyList;
     
     @FXML private TextField searchQuery;
     @FXML private Button searchButton;
@@ -52,6 +57,12 @@ public class WindowController implements Initializable {
                 sendSearchRequest ();
             }
         });
+        
+        historyList.setCellFactory (__ -> new HistoryListCell (this));
+        historyList.editableProperty ().set (false);
+        
+        resultsList.setCellFactory (__ -> new ResponseListCell ());
+        resultsList.editableProperty ().set (false);
     }
     
     private void sendSearchRequest () {
@@ -64,16 +75,35 @@ public class WindowController implements Initializable {
         }
         
         ActorRef actor = actors.actorOf (ENGINE_PROPS, getNextActorName ());
-        Patterns.ask (actor, new JSRequest (query), 10000L)
-                .onComplete (__ -> {
-                    System.out.println (__);
-                    return __;
-                }, actors.dispatcher ());
+        final JSRequest request = new JSRequest (query);
+        historyList.getItems ().add (request);
+        
+        Patterns.ask (actor, request, 10000L).onComplete (
+            response -> switch$ (response,
+                caseOf (r -> r instanceof Try, Try::get, r -> {
+                    if (r instanceof JSResponse) {
+                        JSResponse resp = (JSResponse) r;
+                        request.setResponse (resp);
+                        historyList.refresh ();
+                    }
+                    
+                    return r;
+                })), 
+            actors.dispatcher ());
     }
     
     private String getNextActorName () {
         return String.format ("search-actor-%d", 
             requestsCounter.getAndIncrement ());
+    }
+    
+    public void showResponse (JSResponse response) {
+        if (response == null) { return; }
+        
+        Platform.runLater (() -> {
+            resultsList.getItems ().clear (); // Clear previous response
+            resultsList.getItems ().addAll (response.getRows ());
+        });
     }
     
 }

@@ -68,7 +68,8 @@ public class YandexJSActor extends AbsJSActor {
                 }
 
                 final URL link = new URL (url);
-                rows.add (new JSResponseRow (title, headline, link));
+                final JSActorDescriptor source = JSActorDescriptor.YANDEX_ACTOR;
+                rows.add (new JSResponseRow (title, headline, link, source));
             }
         } catch (XMLStreamException xmlse) {
             xmlse.printStackTrace ();

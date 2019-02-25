@@ -1,0 +1,23 @@
+.query-title {
+	-fx-font-size: 12pt;
+}
+
+.query-status {
+	-fx-font-size: 9pt;
+}
+
+.response-title {
+	-fx-font-size: 12pt;
+}
+
+.response-link {
+    -fx-underline: true;
+    -fx-font-size: 9pt;
+    -fx-text-fill: blue;
+    -fx-cursor   : HAND;
+}
+
+.response-src {
+	-fx-text-fill: gray;
+    -fx-font-size: 9pt;
+}

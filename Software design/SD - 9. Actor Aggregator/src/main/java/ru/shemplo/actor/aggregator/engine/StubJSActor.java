@@ -19,9 +19,11 @@ public class StubJSActor extends AbstractActor {
                  Thread.sleep (1000 + new Random ().nextInt (10000));
                  
                  Long time = System.currentTimeMillis ();
-                 getSender ().forward (new JSResponse (req, time, true, Arrays.asList (
+                 final JSActorDescriptor source = JSActorDescriptor.STUB_ACTOR;
+                 getSender ().forward (new JSResponse (time, true, Arrays.asList (
                      new JSResponseRow (req.getQuery (), "Stub answer", 
-                                        new URL ("http://localhost"))
+                                        new URL ("http://localhost"), 
+                                        source)
                  )), getContext ());
              })
              . build ();

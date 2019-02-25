@@ -1,27 +1,40 @@
 package ru.shemplo.actor.aggregator.engine;
 
 import static akka.actor.Props.*;
+import static ru.shemplo.actor.aggregator.RunSearchAggregator.*;
 
+import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum JSActorDescriptor implements Function <ActorSystem, ActorRef> {
     
-    YANDEX_ACTOR (YandexJSActor.class),
-    GOOGLE_ACTOR (GoogleJSActor.class),
-    STUB_ACTOR   (StubJSActor.class)
+    YANDEX_ACTOR ("Yandex",  YandexJSActor.class, conf -> conf.containsKey ("yandex.key")),
+    GOOGLE_ACTOR ("Google",  GoogleJSActor.class, conf -> conf.containsKey ("google.key")),
+    STUB_ACTOR   ("My Stub", StubJSActor.class,   __ -> true)
     ;
     
-    private final Class <? extends AbstractActor> token;
+    @Getter private final String title;
+    
+    private final Class <? extends AbstractActor>  token;
+    private final Predicate <Map <String, Object>> activate;
 
     @Override
     public ActorRef apply (ActorSystem system) {
-        return system.actorOf (create (token));
+        Map <String, Object> config = getConfiguration ();
+        
+        if (activate.test (config)) {
+            return system.actorOf (create (token));            
+        }
+        
+        return null;
     }
     
 }

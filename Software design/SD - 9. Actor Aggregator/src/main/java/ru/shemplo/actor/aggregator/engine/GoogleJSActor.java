@@ -18,7 +18,8 @@ public class GoogleJSActor extends AbsJSActor {
 
     @Override
     protected URL makeGetRequestURL (JSRequest request) {
-        final String template = "https://www.googleapis.com/customsearch/v1?q=%s&cx=%s&num=5&key=%s";
+        final String template = "https://www.googleapis.com/customsearch/v1?"
+                              + "q=%s&cx=%s&num=10&key=%s";
         
         String query = null;
         try { query = URLEncoder.encode (request.getQuery (), "UTF-8"); } 
@@ -51,7 +52,8 @@ public class GoogleJSActor extends AbsJSActor {
             try   { link = new URL (url); } 
             catch (MalformedURLException e) {}
             
-            rows.add (new JSResponseRow (title, description, link));
+            final JSActorDescriptor source = JSActorDescriptor.GOOGLE_ACTOR;
+            rows.add (new JSResponseRow (title, description, link, source));
         }
         
         return rows;

@@ -29,6 +29,13 @@ public class RunSearchAggregator {
         InputStream is = new FileInputStream (file);
         configuration = new Yaml ().load (is);
         
+        if (configuration == null) {
+            System.err.println ("Configuration file `search-configuration.yml`"
+                                + " not found or it's empty");
+            System.err.println ("Empty configuration will be used");
+            configuration = new HashMap <> ();
+        }
+        
         // Making from {a={b=foo,c=bar}} -> {a.b=foo, a.c=bar}
         configuration = flatConfigurationKeys (configuration);
         

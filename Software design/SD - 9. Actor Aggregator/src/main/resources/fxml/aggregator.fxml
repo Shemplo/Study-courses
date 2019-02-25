@@ -19,7 +19,8 @@
     <HBox spacing="5">
         <!-- Left column == search results -->
         <ListView HBox.hgrow="ALWAYS"
-                  fx:id="resultsList" />
+                  fx:id="resultsList"
+                  minWidth="300" />
 
         <!-- Right column == filed & history -->
         <VBox spacing="5">
