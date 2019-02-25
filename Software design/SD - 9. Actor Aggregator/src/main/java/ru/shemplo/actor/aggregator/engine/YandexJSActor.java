@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.events.XMLEvent;
 
 import ru.shemplo.actor.aggregator.engine.units.JSRequest;
 import ru.shemplo.actor.aggregator.engine.units.JSResponse.JSResponseRow;
@@ -41,6 +40,7 @@ public class YandexJSActor extends AbsJSActor {
     
     @Override
     protected List <JSResponseRow> parseResponse (String response) {
+        response = response.replace ("<hlword>", "").replace ("</hlword>", "");
         final byte [] bytes = response.getBytes (StandardCharsets.UTF_8);
         InputStream is = new ByteArrayInputStream (bytes);
         
@@ -59,12 +59,12 @@ public class YandexJSActor extends AbsJSActor {
                 
                 String title = "";
                 if (stream.findElementInScope ("doc", "title")) {
-                    title = readTextMaybeWithTags (reader);
+                    title = reader.getElementText ();
                 } else { continue; }
                 
                 String headline = "";
                 if (stream.findElementInScope ("doc", "headline")) {
-                    headline = readTextMaybeWithTags (reader);
+                    headline = reader.getElementText ();
                 }
 
                 final URL link = new URL (url);
@@ -78,23 +78,6 @@ public class YandexJSActor extends AbsJSActor {
         }
         
         return rows;
-    }
-    
-    private String readTextMaybeWithTags (XMLStreamReader reader) throws XMLStreamException {
-        String value = "";
-        
-        int event = reader.next ();
-        if (event == XMLEvent.START_ELEMENT) {
-            value = reader.getElementText ();
-            event = reader.next (); // out from </hlword>
-            if (event == XMLEvent.CHARACTERS) {
-                value.concat (reader.getText ());
-            }
-        } else {
-            value = reader.getText ();
-        }
-        
-        return value;
     }
     
 }
