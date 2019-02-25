@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public enum JSActorDescriptor implements Function <ActorSystem, ActorRef> {
     
     YANDEX_ACTOR (YandexJSActor.class),
-    GOOGLE_ACTOR (YandexJSActor.class),
+    GOOGLE_ACTOR (GoogleJSActor.class),
     STUB_ACTOR   (StubJSActor.class)
     ;
     

@@ -26,6 +26,14 @@ public class JSResponse {
     private final List <JSResponseRow> rows;
     
     public JSResponse mergeIn (JSResponse response) {
+        if (!this.request.equals (response.request)) {
+            System.err.println ("Mismatched requests (merge stopped)");
+            System.err.flush ();
+            
+            return this;
+        }
+        
+        finishTime = Math.max (finishTime, response.finishTime);
         rows.addAll (response.rows);
         Collections.shuffle (rows);
         
@@ -34,7 +42,7 @@ public class JSResponse {
     
     public static JSResponse empty (JSRequest request) {
         final List <JSResponseRow> rows = new ArrayList <> ();
-        return new JSResponse (request, 0L, false, rows);
+        return new JSResponse (request, 0L, true, rows);
     }
     
 }
