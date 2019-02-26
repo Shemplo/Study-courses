@@ -23,21 +23,21 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.pattern.Patterns;
 import ru.shemplo.actor.aggregator.RunSearchAggregator;
-import ru.shemplo.actor.aggregator.engine.JAggregateEngine;
-import ru.shemplo.actor.aggregator.engine.units.JSRequest;
-import ru.shemplo.actor.aggregator.engine.units.JSResponse;
-import ru.shemplo.actor.aggregator.engine.units.JSResponse.JSResponseRow;
+import ru.shemplo.actor.aggregator.engine.AggregateEngine;
+import ru.shemplo.actor.aggregator.engine.units.SRequest;
+import ru.shemplo.actor.aggregator.engine.units.SResponse;
+import ru.shemplo.actor.aggregator.engine.units.SResponse.SResponseRow;
 import scala.util.Try;
 
 public class WindowController implements Initializable {
 
-    private final Props ENGINE_PROPS = Props.create (JAggregateEngine.class);
+    private final Props ENGINE_PROPS = Props.create (AggregateEngine.class);
     private final ActorSystem actors = RunSearchAggregator.getActors ();
     
     private final AtomicInteger requestsCounter = new AtomicInteger ();
     
-    @FXML private ListView <JSResponseRow> resultsList;
-    @FXML private ListView <JSRequest> historyList;
+    @FXML private ListView <SResponseRow> resultsList;
+    @FXML private ListView <SRequest> historyList;
     
     @FXML private TextField searchQuery;
     @FXML private Button searchButton;
@@ -75,14 +75,14 @@ public class WindowController implements Initializable {
         }
         
         ActorRef actor = actors.actorOf (ENGINE_PROPS, getNextActorName ());
-        final JSRequest request = new JSRequest (query);
+        final SRequest request = new SRequest (query);
         historyList.getItems ().add (request);
         
-        Patterns.ask (actor, request, 10000L).onComplete (
+        Patterns.ask (actor, request, 7500L).onComplete (
             response -> switch$ (response,
                 caseOf (r -> r instanceof Try, Try::get, r -> {
-                    if (r instanceof JSResponse) {
-                        JSResponse resp = (JSResponse) r;
+                    if (r instanceof SResponse) {
+                        SResponse resp = (SResponse) r;
                         request.setResponse (resp);
                         historyList.refresh ();
                     }
@@ -97,7 +97,7 @@ public class WindowController implements Initializable {
             requestsCounter.getAndIncrement ());
     }
     
-    public void showResponse (JSResponse response) {
+    public void showResponse (SResponse response) {
         if (response == null) { return; }
         
         Platform.runLater (() -> {

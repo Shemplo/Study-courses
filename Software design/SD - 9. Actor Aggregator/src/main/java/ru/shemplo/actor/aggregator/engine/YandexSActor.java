@@ -14,14 +14,14 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import ru.shemplo.actor.aggregator.engine.units.JSRequest;
-import ru.shemplo.actor.aggregator.engine.units.JSResponse.JSResponseRow;
+import ru.shemplo.actor.aggregator.engine.units.SRequest;
+import ru.shemplo.actor.aggregator.engine.units.SResponse.SResponseRow;
 import ru.shemplo.actor.aggregator.engine.xml.StaxStream;
 
-public class YandexJSActor extends AbsJSActor {
+public class YandexSActor extends AbsSActor {
     
     @Override
-    protected URL makeGetRequestURL (JSRequest request) throws RuntimeException {
+    protected URL makeGetRequestURL (SRequest request) throws RuntimeException {
         final String template = "https://yandex.com/search/xml?l10n=en&user=%s&key=%s&query=%s";
         
         String query = null;
@@ -39,12 +39,12 @@ public class YandexJSActor extends AbsJSActor {
     }
     
     @Override
-    protected List <JSResponseRow> parseResponse (String response) {
+    protected List <SResponseRow> parseResponse (String response) {
         response = response.replace ("<hlword>", "").replace ("</hlword>", "");
         final byte [] bytes = response.getBytes (StandardCharsets.UTF_8);
         InputStream is = new ByteArrayInputStream (bytes);
         
-        List <JSResponseRow> rows = new ArrayList <> ();
+        List <SResponseRow> rows = new ArrayList <> ();
         try (StaxStream stream = new StaxStream (is)) {
             XMLStreamReader reader = stream.getReader ();
             while (stream.findElement ("group")) {
@@ -68,8 +68,8 @@ public class YandexJSActor extends AbsJSActor {
                 }
 
                 final URL link = new URL (url);
-                final JSActorDescriptor source = JSActorDescriptor.YANDEX_ACTOR;
-                rows.add (new JSResponseRow (title, headline, link, source));
+                final SActorDescriptor source = SActorDescriptor.YANDEX_ACTOR;
+                rows.add (new SResponseRow (title, headline, link, source));
             }
         } catch (XMLStreamException xmlse) {
             xmlse.printStackTrace ();

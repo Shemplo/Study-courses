@@ -11,13 +11,13 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ru.shemplo.actor.aggregator.engine.units.JSRequest;
-import ru.shemplo.actor.aggregator.engine.units.JSResponse.JSResponseRow;
+import ru.shemplo.actor.aggregator.engine.units.SRequest;
+import ru.shemplo.actor.aggregator.engine.units.SResponse.SResponseRow;
 
-public class GoogleJSActor extends AbsJSActor {
+public class GoogleSActor extends AbsSActor {
 
     @Override
-    protected URL makeGetRequestURL (JSRequest request) {
+    protected URL makeGetRequestURL (SRequest request) {
         final String template = "https://www.googleapis.com/customsearch/v1?"
                               + "q=%s&cx=%s&num=10&key=%s";
         
@@ -36,9 +36,10 @@ public class GoogleJSActor extends AbsJSActor {
     }
 
     @Override
-    protected List <JSResponseRow> parseResponse (String response) {
-        final List <JSResponseRow> rows = new ArrayList <> ();
+    protected List <SResponseRow> parseResponse (String response) {
+        final List <SResponseRow> rows = new ArrayList <> ();
         final JSONObject root = new JSONObject (response);
+        if (!root.has ("items")) { return rows; }
         
         JSONArray items = root.getJSONArray ("items");
         for (int i = 0; i < items.length (); i++) {
@@ -52,8 +53,8 @@ public class GoogleJSActor extends AbsJSActor {
             try   { link = new URL (url); } 
             catch (MalformedURLException e) {}
             
-            final JSActorDescriptor source = JSActorDescriptor.GOOGLE_ACTOR;
-            rows.add (new JSResponseRow (title, description, link, source));
+            final SActorDescriptor source = SActorDescriptor.GOOGLE_ACTOR;
+            rows.add (new SResponseRow (title, description, link, source));
         }
         
         return rows;

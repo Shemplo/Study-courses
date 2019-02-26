@@ -3,9 +3,9 @@ package ru.shemplo.actor.aggregator.engine.units;
 import lombok.Data;
 
 @Data
-public class JSRequest {
+public class SRequest {
 
-    private JSResponse response;
+    private SResponse response;
 
     private final String query;
     

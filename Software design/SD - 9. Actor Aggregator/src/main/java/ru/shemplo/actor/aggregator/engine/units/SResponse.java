@@ -8,26 +8,28 @@ import java.util.List;
 
 import lombok.Data;
 import lombok.NonNull;
-import ru.shemplo.actor.aggregator.engine.JSActorDescriptor;
+import ru.shemplo.actor.aggregator.engine.SActorDescriptor;
 
 @Data
-public class JSResponse {
+public class SResponse {
     
     @Data
-    public static class JSResponseRow {
+    public static class SResponseRow {
         
         private final String title, description;
         private final URL link;
         
-        private final JSActorDescriptor source;
+        private final SActorDescriptor source;
         
     }
     
     @NonNull private Long      finishTime;
     @NonNull private Boolean   justFinished;
-    private final List <JSResponseRow> rows;
+    private final List <SResponseRow> rows;
     
-    public JSResponse mergeIn (JSResponse response) {
+    private long duration = 0l;
+    
+    public SResponse mergeIn (SResponse response) {
         finishTime = Math.max (finishTime, response.finishTime);
         rows.addAll (response.rows);
         Collections.shuffle (rows);
@@ -35,9 +37,9 @@ public class JSResponse {
         return this;
     }
     
-    public static JSResponse empty () {
-        final List <JSResponseRow> rows = new ArrayList <> ();
-        return new JSResponse (0L, true, rows);
+    public static SResponse empty () {
+        final List <SResponseRow> rows = new ArrayList <> ();
+        return new SResponse (0L, true, rows);
     }
     
 }

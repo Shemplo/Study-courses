@@ -11,12 +11,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.VBox;
 
-import ru.shemplo.actor.aggregator.engine.units.JSResponse.JSResponseRow;
+import ru.shemplo.actor.aggregator.engine.units.SResponse.SResponseRow;
 
-public class ResponseListCell extends ListCell <JSResponseRow> {
+public class ResponseListCell extends ListCell <SResponseRow> {
     
     @Override
-    protected void updateItem (JSResponseRow item, boolean empty) {
+    protected void updateItem (SResponseRow item, boolean empty) {
         super.updateItem (item, empty);
         if (item == null || empty) {
             setGraphic (null);

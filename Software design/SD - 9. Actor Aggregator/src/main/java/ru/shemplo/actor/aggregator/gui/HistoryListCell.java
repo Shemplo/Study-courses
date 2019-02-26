@@ -7,10 +7,10 @@ import javafx.scene.control.ListCell;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 
-import ru.shemplo.actor.aggregator.engine.units.JSRequest;
-import ru.shemplo.actor.aggregator.engine.units.JSResponse;
+import ru.shemplo.actor.aggregator.engine.units.SRequest;
+import ru.shemplo.actor.aggregator.engine.units.SResponse;
 
-public class HistoryListCell extends ListCell <JSRequest> {
+public class HistoryListCell extends ListCell <SRequest> {
     
     private final WindowController controller;
     
@@ -22,14 +22,14 @@ public class HistoryListCell extends ListCell <JSRequest> {
             MouseButton button = me.getButton ();
             if (MouseButton.PRIMARY.equals (button) && !isEmpty ()
                     && getItem () != null) {
-                JSResponse response = getItem ().getResponse ();
+                SResponse response = getItem ().getResponse ();
                 controller.showResponse (response);
             }
         });
     }
     
     @Override
-    protected void updateItem (JSRequest item, boolean empty) {
+    protected void updateItem (SRequest item, boolean empty) {
         super.updateItem (item, empty);
         if (item == null || empty) {
             setGraphic (null);
@@ -47,7 +47,7 @@ public class HistoryListCell extends ListCell <JSRequest> {
             status.getStyleClass ().add ("query-status");
             root.getChildren ().add (status);
         } else {
-            final JSResponse response = item.getResponse ();
+            final SResponse response = item.getResponse ();
             Date date = new Date (response.getFinishTime ());
             
             String value = String.format ("%s, %d results found", date.toString (), 
@@ -56,6 +56,12 @@ public class HistoryListCell extends ListCell <JSRequest> {
             status.getStyleClass ().add ("query-status");
             root.getChildren ().add (status);
             
+            double duration = ((double) response.getDuration ()) / 1000.0d;
+            value = String.format ("done by %.3fs", duration);
+            final Label metrics = new Label (value);
+            metrics.getStyleClass ().add ("response-src");
+            root.getChildren ().add (metrics);
+
             if (response.getJustFinished ()) {
                 controller.showResponse (response);
                 response.setJustFinished (false);

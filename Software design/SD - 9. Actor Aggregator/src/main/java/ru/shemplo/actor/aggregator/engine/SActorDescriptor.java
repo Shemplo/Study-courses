@@ -14,11 +14,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum JSActorDescriptor implements Function <ActorSystem, ActorRef> {
+public enum SActorDescriptor implements Function <ActorSystem, ActorRef> {
     
-    YANDEX_ACTOR ("Yandex",  YandexJSActor.class, conf -> conf.containsKey ("yandex.key")),
-    GOOGLE_ACTOR ("Google",  GoogleJSActor.class, conf -> conf.containsKey ("google.key")),
-    STUB_ACTOR   ("My Stub", StubJSActor.class,   __ -> true)
+    YANDEX_ACTOR ("Yandex",  YandexSActor.class, conf -> conf.containsKey ("yandex.key")),
+    GOOGLE_ACTOR ("Google",  GoogleSActor.class, conf -> conf.containsKey ("google.key")),
+    YAHOO_ACTOR  ("Yahoo",   YahooSActor.class,  __ -> true),
+    STUB_ACTOR   ("My Stub", StubSActor.class,   __ -> true)
     ;
     
     @Getter private final String title;
@@ -31,7 +32,7 @@ public enum JSActorDescriptor implements Function <ActorSystem, ActorRef> {
         Map <String, Object> config = getConfiguration ();
         
         if (activate.test (config)) {
-            return system.actorOf (create (token));            
+            return system.actorOf (create (token));
         }
         
         return null;

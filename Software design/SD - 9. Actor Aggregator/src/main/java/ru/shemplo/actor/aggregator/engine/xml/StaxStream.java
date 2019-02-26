@@ -2,6 +2,8 @@ package ru.shemplo.actor.aggregator.engine.xml;
 
 import java.io.InputStream;
 
+import java.util.function.Predicate;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -21,13 +23,14 @@ public class StaxStream implements AutoCloseable {
         return reader;
     }
     
-    public boolean findElementInScope (String scope, String name) throws XMLStreamException {
+    public boolean findElementWithTest (String scope, String name, 
+            Predicate <XMLStreamReader> test) throws XMLStreamException {
         while (reader.hasNext ()) {
             int event = reader.next ();
             
             if (event == XMLEvent.START_ELEMENT) {
-                String localName = reader.getLocalName ();
-                if (localName.equals (name)) {
+                final String localName = reader.getLocalName ();
+                if (localName.equals (name) && test.test (reader)) {
                     return true;
                 }
             } else if (event == XMLEvent.END_ELEMENT) {
@@ -40,6 +43,10 @@ public class StaxStream implements AutoCloseable {
         }
         
         return false;
+    }
+    
+    public boolean findElementInScope (String scope, String name) throws XMLStreamException {
+        return findElementWithTest (scope, name, __ -> true);
     }
     
     public boolean findElement (String name) throws XMLStreamException {

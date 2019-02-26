@@ -9,11 +9,10 @@ import java.util.Set;
 
 import akka.actor.AbstractActorWithTimers;
 import akka.actor.ActorRef;
-import ru.shemplo.actor.aggregator.engine.units.JSRequest;
-import ru.shemplo.actor.aggregator.engine.units.JSResponse;
-import ru.shemplo.snowball.utils.fp.AStream;
+import ru.shemplo.actor.aggregator.engine.units.SRequest;
+import ru.shemplo.actor.aggregator.engine.units.SResponse;
 
-public class JAggregateEngine extends AbstractActorWithTimers implements AutoCloseable {
+public class AggregateEngine extends AbstractActorWithTimers implements AutoCloseable {
     
     private final class TimelimitIndicatior {}
     
@@ -22,24 +21,28 @@ public class JAggregateEngine extends AbstractActorWithTimers implements AutoClo
 
     @Override
     public void preStart () throws Exception {
-        AStream.make (Arrays.asList (JSActorDescriptor.values ()).stream ())
-               .map     (d -> d.apply (getContext ().getSystem ()))
-               .filter  (Objects::nonNull)
-               .forEach (children::add);
+        Arrays.asList (SActorDescriptor.values ()).stream ()
+              .map     (d -> d.apply (getContext ().getSystem ()))
+              .filter  (Objects::nonNull)
+              .forEach (children::add);
     }
     
     // The number of actors that can write response answer
     // Can be used as condition of early reply
-    private int barrier = JSActorDescriptor.values ().length;
+    private int barrier = SActorDescriptor.values ().length;
     private boolean responseSent = false;
+    private long start = 0l;
     
     private ActorRef answerDestination;
-    private JSResponse response;
+    private SResponse response;
     
     @Override
     public Receive createReceive () {
         return receiveBuilder ()
-             . match (JSRequest.class, req -> {
+             . match (SRequest.class, req -> {
+                 // Initializing stopwatch for statistics
+                 this.start = System.currentTimeMillis ();
+                 
                  // Actualizing real number of search actors
                  this.barrier = children.size ();
                  
@@ -48,18 +51,16 @@ public class JAggregateEngine extends AbstractActorWithTimers implements AutoClo
                  
                  // Initializing empty response object (will be used for accumulation)
                  // TODO: return this object as Future and update it in resultList
-                 this.response = JSResponse.empty ();
+                 this.response = SResponse.empty ();
                  
                  // Delegation request to children (they know what to do)
-                 children.forEach (child -> {
-                     child.tell (req, getSelf ());
-                 });
+                 children.forEach (child -> child.tell (req, getSelf ()));
                  
                  // Initializing timer that will indicate how much time actor can work
                  getTimers ().startSingleTimer ("TL", new TimelimitIndicatior (), 
-                                                Duration.ofMillis (7500));
+                                                Duration.ofMillis (1500));
              })
-             . match (JSResponse.class, resp -> {
+             . match (SResponse.class, resp -> {
                  // Accumulating response in single instance
                  response.mergeIn (resp);
                  barrier -= 1;
@@ -79,8 +80,9 @@ public class JAggregateEngine extends AbstractActorWithTimers implements AutoClo
         if (responseSent) { return; } // Response is already sent
         
         Long time = System.currentTimeMillis ();
+        response.setDuration     (time - start);
         response.setJustFinished (true);
-        response.setFinishTime (time);
+        response.setFinishTime   (time);
         
         answerDestination.forward (response, getContext());
         responseSent = true;
