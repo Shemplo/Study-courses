@@ -58,7 +58,7 @@ public class AggregateEngine extends AbstractActorWithTimers implements AutoClos
                  
                  // Initializing timer that will indicate how much time actor can work
                  getTimers ().startSingleTimer ("TL", new TimelimitIndicatior (), 
-                                                Duration.ofMillis (1500));
+                                                Duration.ofMillis (1000));
              })
              . match (SResponse.class, resp -> {
                  // Accumulating response in single instance

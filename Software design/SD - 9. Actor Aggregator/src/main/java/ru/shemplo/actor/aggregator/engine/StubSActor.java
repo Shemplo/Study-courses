@@ -16,7 +16,7 @@ public class StubSActor extends AbstractActor {
     public Receive createReceive () {
         return receiveBuilder ()
              . match (SRequest.class, req -> {
-                 Thread.sleep (100 + new Random ().nextInt (2000));
+                 Thread.sleep (100 + new Random ().nextInt (1000));
                  
                  Long time = System.currentTimeMillis ();
                  final SActorDescriptor source = SActorDescriptor.STUB_ACTOR;

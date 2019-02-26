@@ -1,6 +1,7 @@
 package ru.shemplo.actor.aggregator.gui;
 
 import java.util.Date;
+import java.util.Locale;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -57,7 +58,7 @@ public class HistoryListCell extends ListCell <SRequest> {
             root.getChildren ().add (status);
             
             double duration = ((double) response.getDuration ()) / 1000.0d;
-            value = String.format ("done by %.3fs", duration);
+            value = String.format (Locale.US, "done by %.3fs", duration);
             final Label metrics = new Label (value);
             metrics.getStyleClass ().add ("response-src");
             root.getChildren ().add (metrics);
