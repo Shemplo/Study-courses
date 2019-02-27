@@ -19,6 +19,7 @@ public enum SActorDescriptor implements Function <ActorSystem, ActorRef> {
     YANDEX_ACTOR ("Yandex",  YandexSActor.class, conf -> conf.containsKey ("yandex.key")),
     GOOGLE_ACTOR ("Google",  GoogleSActor.class, conf -> conf.containsKey ("google.key")),
     YAHOO_ACTOR  ("Yahoo",   YahooSActor.class,  __ -> true),
+    BING_ACTOR   ("Bing",    BingSActor.class,   __ -> true),
     STUB_ACTOR   ("My Stub", StubSActor.class,   __ -> true)
     ;
     
