@@ -40,3 +40,5 @@
 * **_8 term, 2019_** :  
   * _Software desing_  
     < description >
+  * _System administration_  
+    < description >
