@@ -39,6 +39,7 @@ public class Run {
 		DBAccess db = DBAccess.getInstanceOf (DBType.SQLite);
 		db.update (DBLib.createTable ());
 		
+		
 		Server server = new Server (8081);
 		
 		ServletContextHandler context = new ServletContextHandler (SESSIONS);
