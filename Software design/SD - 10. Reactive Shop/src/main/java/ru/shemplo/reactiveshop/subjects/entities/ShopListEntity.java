@@ -40,6 +40,8 @@ public abstract class ShopListEntity {
     public static class ShopListUser extends ShopListEntity {
         
         private final UserEntity user;
+        
+        private final double currencyModifier;
 
         private final ShopListRequest request;
         

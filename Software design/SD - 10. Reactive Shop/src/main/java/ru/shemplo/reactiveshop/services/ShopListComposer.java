@@ -75,8 +75,13 @@ public class ShopListComposer implements Observer <ShopListEntity> {
             ShopListUser user = users.get (request);
             view.addObject ("user", user);
             
-            //double attitude = user.getUser ().getCurrency ();
+            double modifier = user.getCurrencyModifier ();
             List <ShopListItem> items = this.items.get (request);
+            items.forEach (item -> {
+                double price = item.getItem ().getPrice () * modifier;
+                double rounded = Math.round (price * 100) / 100.0;
+                item.getItem ().setPrice (rounded);
+            });
             view.addObject ("items", items);
             
             this.items.remove (request);
