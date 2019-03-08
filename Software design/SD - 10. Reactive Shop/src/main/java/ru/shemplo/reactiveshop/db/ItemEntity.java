@@ -10,6 +10,7 @@ import lombok.*;
 @NoArgsConstructor 
 @AllArgsConstructor
 @Table (name = "items")
+@EqualsAndHashCode (exclude = {"id"})
 public class ItemEntity {
     
     @Id @GeneratedValue 
@@ -19,5 +20,7 @@ public class ItemEntity {
     private String name;
     
     private double price;
+    
+    private String thumbnail;
     
 }

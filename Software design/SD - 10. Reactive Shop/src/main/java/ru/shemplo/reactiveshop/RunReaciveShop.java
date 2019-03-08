@@ -12,9 +12,8 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import ru.shemplo.reactiveshop.services.ItemsLoader;
-import ru.shemplo.reactiveshop.services.ShopListComposer;
-import ru.shemplo.reactiveshop.services.UsersLoader;
+import ru.shemplo.reactiveshop.services.*;
+import ru.shemplo.reactiveshop.subjects.RegisterSubject;
 import ru.shemplo.reactiveshop.subjects.ShopListSubject;
 
 @SpringBootApplication (exclude = {SecurityAutoConfiguration.class})
@@ -28,16 +27,24 @@ public class RunReaciveShop {
         context.getBean (mainClass).intinializeReactivity ();
     }
         
+    @Autowired private EntitiesRegister entitiesRegister;
     @Autowired private ShopListComposer shopListComposer;
+    @Autowired private CurrencyLoader currencyLoader;
     @Autowired private UsersLoader usersLoader;
     @Autowired private ItemsLoader itemsLoader;
     
+    @Autowired private RegisterSubject registerSubject;
     @Autowired private ShopListSubject shopListSubject;
     
     public void intinializeReactivity () {
         shopListSubject.subscribe (shopListComposer);
+        shopListSubject.subscribe (currencyLoader);
         shopListSubject.subscribe (itemsLoader);
         shopListSubject.subscribe (usersLoader);
+        
+        registerSubject.subscribe (entitiesRegister);
+        registerSubject.subscribe (currencyLoader);
+        registerSubject.subscribe (usersLoader);
     }
     
     @Configuration @EnableAsync

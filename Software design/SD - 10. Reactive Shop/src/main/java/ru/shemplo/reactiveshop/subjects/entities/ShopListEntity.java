@@ -4,6 +4,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import lombok.*;
+import ru.shemplo.reactiveshop.db.CurrencyQuatationsEntity;
 import ru.shemplo.reactiveshop.db.ItemEntity;
 import ru.shemplo.reactiveshop.db.UserEntity;
 
@@ -40,8 +41,16 @@ public abstract class ShopListEntity {
     public static class ShopListUser extends ShopListEntity {
         
         private final UserEntity user;
+
+        private final ShopListRequest request;
         
-        private final double currencyModifier;
+    }
+    
+    @ToString @Getter @Setter
+    @RequiredArgsConstructor @EqualsAndHashCode (callSuper = false)
+    public static class ShopListCurrency extends ShopListEntity {
+        
+        private final CurrencyQuatationsEntity quatation;
 
         private final ShopListRequest request;
         

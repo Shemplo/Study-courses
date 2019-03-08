@@ -2,24 +2,25 @@ package ru.shemplo.reactiveshop.services;
 
 import static ru.shemplo.snowball.utils.fp.FunctionalUtils.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import ru.shemplo.reactiveshop.db.CurrencyEntity;
+import ru.shemplo.reactiveshop.db.CurrencyQuatationsEntity;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity;
+import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListCurrency;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListItem;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListRequest;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListUser;
 import ru.shemplo.snowball.utils.fp.FunctionalUtils.Case;
 
-@Component
-public class ShopListComposer implements Observer <ShopListEntity> {
+@Service
+public class ShopListComposer implements Observer <Object> {
 
     private final Map <ShopListRequest, List <ShopListItem>> 
         items = new HashMap <> ();
@@ -28,21 +29,23 @@ public class ShopListComposer implements Observer <ShopListEntity> {
     
     private final Map <ShopListRequest, Integer> 
         total = new HashMap <> ();
+    
+    private final Map <CurrencyEntity, CurrencyQuatationsEntity> 
+        quotations = new HashMap <> ();
 
     @Override
-    public void onNext (ShopListEntity desc) {        
-        ShopListRequest request = desc.getRequest ();
+    public void onNext (Object desc) {
+        if (!(desc instanceof ShopListEntity)) { return; }
+        ShopListRequest request = ((ShopListEntity) desc).getRequest ();
         
         switch$ (desc, 
             Case.caseOf (o -> o instanceof ShopListRequest, __ -> {
                 items.putIfAbsent (request, new ArrayList <> ());
-                System.out.println (__);
-                return false;
+                return tryComposeResponse (request);
             }),
             
-            Case.caseOf (o -> o instanceof ShopListItem, o -> (ShopListItem) o, 
-                    item -> { 
-                System.out.println (item);
+            Case.caseOf (o -> o instanceof ShopListItem, o -> (ShopListItem) o, item -> { 
+                System.out.println ("Item " + item);
                 List <ShopListItem> items = this.items.get (request);
                 if (item.getItem () != null) { items.add (item); }
                 
@@ -50,9 +53,8 @@ public class ShopListComposer implements Observer <ShopListEntity> {
                 return tryComposeResponse (request);
             }),
             
-            Case.caseOf (o -> o instanceof ShopListUser, o -> (ShopListUser) o, 
-                    user -> {
-                System.out.println (user);
+            Case.caseOf (o -> o instanceof ShopListUser, o -> (ShopListUser) o, user -> {
+                System.out.println ("User " + user);
                 if (user.getUser () != null) {
                     users.put (request, user);
                 } else {
@@ -60,6 +62,12 @@ public class ShopListComposer implements Observer <ShopListEntity> {
                     request.getFuture ().setResult (view);
                 }
                 
+                return tryComposeResponse (request);
+            }),
+            
+            Case.caseOf (o -> o instanceof ShopListCurrency, o -> (ShopListCurrency) o, currency -> { 
+                System.out.println ("Currency " + currency);
+                quotations.put (currency.getQuatation ().getCurrency (), currency.getQuatation ());
                 return tryComposeResponse (request);
             })
         );
@@ -70,12 +78,16 @@ public class ShopListComposer implements Observer <ShopListEntity> {
         if (total == null) { return false; }
         
         if (items.get (request).size () == total && users.get (request) != null) {
-            ModelAndView view = new ModelAndView ("goods");
-            
             ShopListUser user = users.get (request);
+            if (!quotations.containsKey (user.getUser ().getCurrency ())) {
+                return false; // currency is not actualized now
+            }
+            
+            CurrencyEntity currency = user.getUser ().getCurrency ();
+            ModelAndView view = new ModelAndView ("goods");
             view.addObject ("user", user);
             
-            double modifier = user.getCurrencyModifier ();
+            double modifier = quotations.get (currency).getPrice ();
             List <ShopListItem> items = this.items.get (request);
             items.forEach (item -> {
                 double price = item.getItem ().getPrice () * modifier;
@@ -83,6 +95,11 @@ public class ShopListComposer implements Observer <ShopListEntity> {
                 item.getItem ().setPrice (rounded);
             });
             view.addObject ("items", items);
+            
+            List <String> currencies = this.quotations.keySet ().stream ()
+                                     . map     (CurrencyEntity::getCodeISO)
+                                     . collect (Collectors.toList ());
+            view.addObject ("currencies", currencies);
             
             this.items.remove (request);
             this.total.remove (request);

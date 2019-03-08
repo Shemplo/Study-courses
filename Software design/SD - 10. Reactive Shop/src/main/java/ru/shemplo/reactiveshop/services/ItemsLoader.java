@@ -10,18 +10,17 @@ import io.reactivex.disposables.Disposable;
 import ru.shemplo.reactiveshop.db.ItemEntity;
 import ru.shemplo.reactiveshop.db.ItemEntityRepository;
 import ru.shemplo.reactiveshop.subjects.ShopListSubject;
-import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListItem;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListRequest;
 
 @Component
-public class ItemsLoader implements Observer <ShopListEntity> {
+public class ItemsLoader implements Observer <Object> {
 
     @Autowired private ItemEntityRepository itemsRepository;
     @Autowired private ShopListSubject shopListSubject;
     
     @Override
-    public void onNext (ShopListEntity entity) {
+    public void onNext (Object entity) {
         if (!(entity instanceof ShopListRequest)) { return; }
         
         ShopListRequest request = (ShopListRequest) entity;

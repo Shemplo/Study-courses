@@ -9,11 +9,23 @@
         <meta charset="UTF-8" />
         <title>Shop</title>
         
-        <!--<link rel="stylesheet" href="/resources/css/index.css" />-->
+        <link rel="stylesheet" href="/resources/css/index.css" />
         <!--<link rel="shortcut icon" href="/resources/gfx/jiraf.png" type="image/x-icon">-->
     </head>
     
     <body>
-    	<h2>Index</h2>
+        <header class="index-central-header">
+            <div class="index-central-background"></div>
+        	<h2 class="index-central-title">Sea of Flowers</h2>    
+        </header>
+        
+        <div class="order-button">
+            <h3 class="order-button-title">
+                <a class="order-button-link"
+                   href="/goods">
+                   See our offers
+                </a>
+            </h3>
+        </div>
     </body>
 </html>

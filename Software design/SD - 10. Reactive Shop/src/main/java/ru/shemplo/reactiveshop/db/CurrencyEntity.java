@@ -10,6 +10,7 @@ import lombok.*;
 @NoArgsConstructor 
 @AllArgsConstructor
 @Table (name = "currencies")
+@EqualsAndHashCode (exclude = {"id"})
 public class CurrencyEntity {
     
     @Id @GeneratedValue 

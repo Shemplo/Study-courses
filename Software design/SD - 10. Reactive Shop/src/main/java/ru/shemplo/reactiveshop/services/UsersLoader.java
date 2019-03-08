@@ -1,58 +1,43 @@
 package ru.shemplo.reactiveshop.services;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import ru.shemplo.reactiveshop.db.*;
+import ru.shemplo.reactiveshop.db.UserEntity;
+import ru.shemplo.reactiveshop.db.UserEntityRepository;
+import ru.shemplo.reactiveshop.subjects.RegisterSubject;
 import ru.shemplo.reactiveshop.subjects.ShopListSubject;
-import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity;
+import ru.shemplo.reactiveshop.subjects.entities.RegisterEntity.RegisterUserRequest;
+import ru.shemplo.reactiveshop.subjects.entities.RegisterEntity.RegisterUserUser;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListRequest;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListUser;
 
-@Component
-public class UsersLoader implements Observer <ShopListEntity> {
+@Service
+public class UsersLoader implements Observer <Object> {
 
-    @Autowired private CurrencyQuatationsEntityRepository currencyQuatationsEntityRepository;
-    @Autowired private CurrencyEntityRepository currencyEntityRepository;
-    
     @Autowired private UserEntityRepository userRepository;
+    @Autowired private RegisterSubject registerSubject;
     @Autowired private ShopListSubject shopListSubject;
     
-    private CurrencyEntity USD;
-    
-    @PostConstruct
-    private void init () {
-        USD = currencyEntityRepository.findByCodeISO ("USD");
-    }
-    
     @Override
-    public void onNext (ShopListEntity entity) {
-        if (!(entity instanceof ShopListRequest)) { return; }
-        
-        ShopListRequest request = (ShopListRequest) entity;
-        final String userID = request.getUserIdentifier ();
-        
-        UserEntity user = userRepository.findByIdentifier (userID);
-        
-        if (user != null) {
-            CurrencyQuatationsEntity userCurrency = currencyQuatationsEntityRepository
-                                                  . findLastByCurrency (user.getCurrency ());
-            CurrencyQuatationsEntity usdCurrency  = currencyQuatationsEntityRepository
-                                                  . findLastByCurrency (USD);
-            System.out.println (userCurrency);
-            System.out.println (usdCurrency);
+    public void onNext (Object entity) {
+        if (entity instanceof ShopListRequest) {
+            ShopListRequest request = (ShopListRequest) entity;
+            final String userID = request.getUserIdentifier ();
             
-            double modifier = userCurrency.getPrice () / usdCurrency.getPrice ();
-            ShopListUser listUser = new ShopListUser (user, modifier, request);
+            UserEntity user = userRepository.findByIdentifier (userID);
+            ShopListUser listUser = new ShopListUser (user, request);
             shopListSubject.subject (listUser);
-        } else {
-            // TODO: change to sending error
-            ShopListUser listUser = new ShopListUser (null, 1.0, request);
-            shopListSubject.subject (listUser);
+        } else if (entity instanceof RegisterUserRequest) {
+            RegisterUserRequest request = (RegisterUserRequest) entity;
+            
+            final String identifier = request.getName ().trim ().toLowerCase ();
+            UserEntity user = userRepository.findByIdentifier (identifier);
+            
+            RegisterUserUser registerUser = new RegisterUserUser (user, request);
+            registerSubject.subject (registerUser);
         }
     }
     
