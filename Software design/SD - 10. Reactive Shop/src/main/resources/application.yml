@@ -1,0 +1,15 @@
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+    throw-exception-if-no-handler-found: true
+    static-path-pattern: /resources/**
+  profiles:
+    active:
+      - dev
+
+server:
+  servlet:
+    contextPath: /
+  port: 8080

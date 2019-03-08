@@ -1,21 +1,54 @@
 package ru.shemplo.reactiveshop;
 
-import io.reactivex.netty.RxNetty;
-import ru.shemplo.reactiveshop.controllers.MainController;
-import ru.shemplo.snowball.annot.Wind;
-import ru.shemplo.snowball.annot.processor.Snowball;
+import java.util.concurrent.Executor;
 
-@Wind (blow = {MainController.class})
-public class RunReaciveShop extends Snowball {
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import ru.shemplo.reactiveshop.services.ItemsLoader;
+import ru.shemplo.reactiveshop.services.ShopListComposer;
+import ru.shemplo.reactiveshop.services.UsersLoader;
+import ru.shemplo.reactiveshop.subjects.ShopListSubject;
+
+@SpringBootApplication (exclude = {SecurityAutoConfiguration.class})
+public class RunReaciveShop {
     
-    public static void main (String ... args) { shape (args); }
+    public static void main (String ... args) {
+        Class <RunReaciveShop> mainClass = RunReaciveShop.class;
+        final ConfigurableApplicationContext context 
+            = SpringApplication.run (mainClass, args);
+        
+        context.getBean (mainClass).intinializeReactivity ();
+    }
+        
+    @Autowired private ShopListComposer shopListComposer;
+    @Autowired private UsersLoader usersLoader;
+    @Autowired private ItemsLoader itemsLoader;
     
-    private MainController mainController;
+    @Autowired private ShopListSubject shopListSubject;
     
-    @Override
-    protected void onShaped (String ... args) {
-        RxNetty.createHttpServer (8080, mainController::hanleRequest)
-               .startAndWait     ();
+    public void intinializeReactivity () {
+        shopListSubject.subscribe (shopListComposer);
+        shopListSubject.subscribe (itemsLoader);
+        shopListSubject.subscribe (usersLoader);
+    }
+    
+    @Configuration @EnableAsync
+    public class SpringAsyncConfig implements AsyncConfigurer {
+         
+        @Override public Executor getAsyncExecutor () {
+            ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler ();
+            scheduler.setPoolSize (4); scheduler.initialize ();
+            return scheduler;
+        }
+         
     }
     
 }

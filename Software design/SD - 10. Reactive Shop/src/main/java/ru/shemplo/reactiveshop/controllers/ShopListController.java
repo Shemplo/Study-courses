@@ -1,24 +1,41 @@
 package ru.shemplo.reactiveshop.controllers;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
-import ru.shemplo.reactiveshop.RequestDesc;
-import ru.shemplo.snowball.annot.PostShaped;
-import ru.shemplo.snowball.annot.Snowflake;
-import rx.Observable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.servlet.ModelAndView;
 
-@Snowflake
+import ru.shemplo.reactiveshop.subjects.ShopListSubject;
+import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity;
+import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListRequest;
+
+@Controller
 public class ShopListController {
     
-    //private MainController mainController;
+    @Autowired private ShopListSubject shopListSubject;
     
-    @PostShaped private void init () {
-        System.out.println ("Post shaped");
+    @GetMapping ("/goods")
+    public DeferredResult <ModelAndView> handleShopListForGuest () {
+        return handleShopList ("guest");
     }
-
-    public Observable <Void> handle (RequestDesc request) {
-        request.S.setStatus (HttpResponseStatus.OK);
-        request.S.writeString ("It works");
-        return request.S.close ();
+    
+    @GetMapping (path = {"/goods"}, params = {"user"})
+    public DeferredResult <ModelAndView> handleShopList (
+                @RequestParam ("user") final String user
+            ) {
+        DeferredResult <ModelAndView> result = new DeferredResult <> ();
+        ShopListEntity desc = new ShopListRequest (result, user);
+        shopListSubject.subject (desc);
+        
+        return result;
+    }
+    
+    @GetMapping ("/")
+    public ModelAndView handleShopList2 () {
+        ModelAndView view = new ModelAndView ("index");
+        return view;
     }
     
 }
