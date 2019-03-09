@@ -6,4 +6,6 @@ public interface UserEntityRepository extends JpaRepository <UserEntity, Long> {
     
     public UserEntity findByIdentifier (String identifier);
     
+    public void deleteByIdentifier (String identifier);
+    
 }

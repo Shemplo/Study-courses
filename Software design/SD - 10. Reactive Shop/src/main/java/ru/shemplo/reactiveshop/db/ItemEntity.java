@@ -23,4 +23,6 @@ public class ItemEntity {
     
     private String thumbnail;
     
+    private String description;
+    
 }

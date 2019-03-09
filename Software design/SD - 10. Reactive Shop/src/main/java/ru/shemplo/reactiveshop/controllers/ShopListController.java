@@ -1,6 +1,7 @@
 package ru.shemplo.reactiveshop.controllers;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -22,7 +23,10 @@ public class ShopListController {
     
     @GetMapping (path = {"/goods"})
     public DeferredResult <ModelAndView> handleShopList (HttpServletRequest request) {
-        Cookie cookie = Arrays.asList (request.getCookies ()).stream ()
+        Cookie [] cookies = Optional.ofNullable (request.getCookies ())
+                          . orElse (new Cookie [] {});
+                          
+        Cookie cookie = Arrays.asList (cookies).stream ()
                       . filter    (c -> c.getName ().equals ("Client"))
                       . findFirst ().orElse (new Cookie ("Client", "guest"));
         

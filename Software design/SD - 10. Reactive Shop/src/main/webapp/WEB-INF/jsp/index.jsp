@@ -7,7 +7,7 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Shop</title>
+        <title>Sea of Flowers</title>
         
         <link rel="stylesheet" href="/resources/css/index.css" />
         <!--<link rel="shortcut icon" href="/resources/gfx/jiraf.png" type="image/x-icon">-->

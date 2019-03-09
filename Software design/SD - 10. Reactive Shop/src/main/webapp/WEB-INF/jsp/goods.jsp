@@ -7,7 +7,7 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Shop :: goods</title>
+        <title>Sea of flowers :: goods</title>
         
         <link rel="stylesheet" href="/resources/css/goods.css" />
         <!--<link rel="shortcut icon" href="/resources/gfx/jiraf.png" type="image/x-icon">-->
@@ -15,12 +15,19 @@
     
     <body>
         <c:set var="currency" value="${user.getUser ().getCurrency ().getCodeISO ()}" />
+        <c:set var="withDescription" value="${user.getUser ().isWithDescription ()}" />
+        <c:set var="identifier" value="${user.getUser ().getIdentifier ()}" />
+        <c:set var="withIcon" value="${user.getUser ().isWithIcon ()}" />
+        <c:set var="sorting" value="${user.getUser ().getSorting ()}" />
+        <c:set var="color" value="${user.getUser ().getColor ()}" />
+        <c:set var="shape" value="${user.getUser ().getShape ()}" />
+        <c:set var="login" value="${user.getUser ().getLogin ()}" />
     
         <header class="top-page-header">
             <div class="top-page-header-background"></div>
             <div class="top-page-header-cover">
                 <img alt="logo" src="/resources/gfx/sea.png" />
-                <span>Sea of Flowers</span>
+                <span>Sea of flowers</span>
             </div>
         </header>
     
@@ -55,19 +62,81 @@
 	                </c:when>
 	                
 	                <c:otherwise>
-                        Not guest
+                        <input id="userIdentifier" type="hidden" value="${identifier}" />
+                        <p>Welcome, <b>${login}</b></p>
+                        <br />
+                        
+                        <p><b>Choose what you want:</b></p>
+                        
+                        <p class="form-line">
+                           <span>Sorting:</span>
+                           <select id="sorting">
+                               <option value="alphabetASC"  ${sorting == 'alphabetASC' ? 'selected' : ''}>A → Z</option>
+                               <option value="alphabetDESC" ${sorting == 'alphabetDESC' ? 'selected' : ''}>Z → A</option>
+                               <option value="priceDESC"    ${sorting == 'priceDESC' ? 'selected' : ''}>Price ↓</option>
+                               <option value="priceASC"     ${sorting == 'priceASC' ? 'selected' : ''}>Price ↑</option>
+                               <option value="shuffle"      ${sorting == 'shuffle' ? 'selected' : ''}>Shuffle</option>
+                           </select>
+                        </p>
+                        
+                        <p class="form-line">
+                            <span>Currency:</span>
+                            <select id="currency">
+                                <c:forEach var="cur" items="${currencies}">
+                                    <option ${cur == currency ? 'selected' : ''}>${cur}</option>
+                                </c:forEach>
+                            </select>
+                        </p>
+                        
+                        <p class="form-line">
+                            <span>Flowers with description:</span>
+                            <input id="showWithoutDesc" type="checkbox" ${withDescription ? 'checked' : ''} />
+                        </p>
+                        <p class="form-line">
+                            <span>Flowers with icon:</span>
+                            <input id="showWithoutIcon" type="checkbox" ${withIcon ? 'checked' : ''} />
+                        </p>
+                        
+                        <p class="form-line">
+                           <span>Living shape:</span>
+                           <select id="shape" disabled>
+                                <c:forEach var="cur" items="${currencies}">
+                                    <option ${cur == shape ? 'selected' : ''}>flower</option>
+                                </c:forEach>
+                           </select>
+                        </p>
+                        
+                        <p class="form-line">
+                           <span>Main color:</span>
+                           <select id="color" disabled>
+                                <option ${color == 'all' ? 'selected' : ''}>All</option>
+                                <c:forEach var="cur" items="${currencies}">
+                                    <option ${cur == color ? 'selected' : ''}>yellow</option>
+                                </c:forEach>
+                           </select>
+                        </p>
+                        
+                        <p class="form-line">
+                            <button id="filter">Apply parameters</button>
+                        </p>
                     </c:otherwise>
                 </c:choose>
             </div>
             
             <div class="goods-block">
-                <c:forEach var="itemObj" items="${items}">
-                    <c:set var="item" value="${itemObj.getItem ()}" />
-                    <p class="good-item-line">
-                        <img alt="stub" src="/resources/${item.getThumbnail ()}">
-                        <span class="good-item-price">${item.getPrice ()} ${currency}</span>
-                        ${item.getName ()}
-                    </p>
+                <c:forEach var="item" items="${items}">
+                    <div class="good-item-line">
+                        <div class="good-item-price">
+                            <img alt="stub" src="/resources/${item.getThumbnail ()}">
+                            ${item.getPrice ()} ${currency}
+                        </div>
+                        <div>
+                            <h3>${item.getName ()}</h3>
+                            <c:if test="${item.getDescription () != null}">
+                                <p>${item.getDescription ()}</p>
+                            </c:if>
+                        </div>
+                    </div>
                 </c:forEach>
             </div>
         </div>

@@ -12,6 +12,7 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import ru.shemplo.reactiveshop.db.CurrencyEntity;
 import ru.shemplo.reactiveshop.db.CurrencyQuatationsEntity;
+import ru.shemplo.reactiveshop.db.ItemEntity;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListCurrency;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListItem;
@@ -45,7 +46,6 @@ public class ShopListComposer implements Observer <Object> {
             }),
             
             Case.caseOf (o -> o instanceof ShopListItem, o -> (ShopListItem) o, item -> { 
-                System.out.println ("Item " + item);
                 List <ShopListItem> items = this.items.get (request);
                 if (item.getItem () != null) { items.add (item); }
                 
@@ -54,7 +54,6 @@ public class ShopListComposer implements Observer <Object> {
             }),
             
             Case.caseOf (o -> o instanceof ShopListUser, o -> (ShopListUser) o, user -> {
-                System.out.println ("User " + user);
                 if (user.getUser () != null) {
                     users.put (request, user);
                 } else {
@@ -66,7 +65,6 @@ public class ShopListComposer implements Observer <Object> {
             }),
             
             Case.caseOf (o -> o instanceof ShopListCurrency, o -> (ShopListCurrency) o, currency -> { 
-                System.out.println ("Currency " + currency);
                 quotations.put (currency.getQuatation ().getCurrency (), currency.getQuatation ());
                 return tryComposeResponse (request);
             })
@@ -87,13 +85,46 @@ public class ShopListComposer implements Observer <Object> {
             ModelAndView view = new ModelAndView ("goods");
             view.addObject ("user", user);
             
+            boolean descriptionRequired = user.getUser ().isWithDescription (),
+                    iconRequired         = user.getUser ().isWithIcon ();
+            
             double modifier = quotations.get (currency).getPrice ();
-            List <ShopListItem> items = this.items.get (request);
+            List <ItemEntity> items = this.items.get (request).stream ()
+                                    . map     (ShopListItem::getItem)
+                                    . filter  (item -> item.getDescription () != null   || !descriptionRequired)
+                                    . filter  (item -> !item.getThumbnail ().contains ("stub") || !iconRequired)
+                                    . collect (Collectors.toList ());
+            
+            String sorting = user.getUser ().getSorting ();
+            
+            switch (sorting) {
+                case "alphabetASC":
+                    Collections.sort (items, (a, b) -> a.getName ().compareTo (b.getName ()));
+                    break;
+                    
+                case "alphabetDESC":
+                    Collections.sort (items, (a, b) -> -a.getName ().compareTo (b.getName ()));
+                    break;
+                    
+                case "priceASC":
+                    Collections.sort (items, (a, b) -> Double.compare (a.getPrice (), b.getPrice ()));
+                    break;
+                    
+                case "priceDESC":
+                    Collections.sort (items, (a, b) -> -Double.compare (a.getPrice (), b.getPrice ()));
+                    break;
+                    
+                case "Shuffle":
+                    Collections.shuffle (items);
+                    break;
+            }
+            
             items.forEach (item -> {
-                double price = item.getItem ().getPrice () * modifier;
+                double price = item.getPrice () * modifier;
                 double rounded = Math.round (price * 100) / 100.0;
-                item.getItem ().setPrice (rounded);
+                item.setPrice (rounded);
             });
+            
             view.addObject ("items", items);
             
             List <String> currencies = this.quotations.keySet ().stream ()

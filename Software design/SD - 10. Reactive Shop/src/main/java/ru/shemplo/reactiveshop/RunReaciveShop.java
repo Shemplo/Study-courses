@@ -15,6 +15,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import ru.shemplo.reactiveshop.services.*;
 import ru.shemplo.reactiveshop.subjects.RegisterSubject;
 import ru.shemplo.reactiveshop.subjects.ShopListSubject;
+import ru.shemplo.reactiveshop.subjects.UpdateSubject;
 
 @SpringBootApplication (exclude = {SecurityAutoConfiguration.class})
 public class RunReaciveShop {
@@ -35,6 +36,7 @@ public class RunReaciveShop {
     
     @Autowired private RegisterSubject registerSubject;
     @Autowired private ShopListSubject shopListSubject;
+    @Autowired private UpdateSubject updateSubject;
     
     public void intinializeReactivity () {
         shopListSubject.subscribe (shopListComposer);
@@ -45,6 +47,10 @@ public class RunReaciveShop {
         registerSubject.subscribe (entitiesRegister);
         registerSubject.subscribe (currencyLoader);
         registerSubject.subscribe (usersLoader);
+        
+        updateSubject.subscribe (entitiesRegister);
+        updateSubject.subscribe (currencyLoader);
+        updateSubject.subscribe (usersLoader);
     }
     
     @Configuration @EnableAsync

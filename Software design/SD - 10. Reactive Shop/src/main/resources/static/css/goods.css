@@ -1,16 +1,20 @@
 @import url(fonts.css);
 
+body {
+	margin: 0;
+}
+
 .top-page-header {
 	position     : relative;
 	margin-bottom: 0.5em;
 	
-	font-family: Zero5;
+	font-family: DRAgu;
 	font-size  : 24pt;
 }
 
 .top-page-header-background {
 	height  : 80px;
-	position: fixed;
+	position: absolute;
     display : block;
     top     : 0;
     right   : 0;
@@ -28,11 +32,12 @@
     z-index : 1;
     
     font-weight: bold;
+    color      : #1a4050;
 }
 
 .top-page-header-cover > img {
-	max-height: 64px;
-	
+	max-height    : 64px;
+	margin-right  : 0.5em;
 	vertical-align: middle;
 }
 
@@ -50,10 +55,14 @@
 	padding: 0.15em 0.75em;
 }
 
+.form {
+	min-width: 240px;
+}
+
 .form-line {
 	display: flex;
     
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items    : flex-start;
 }
 
@@ -77,15 +86,33 @@
 	border : 1px solid darkgray;
 }
 
-.good-item-line > img {
-	margin        : 0 0.75em 0 0;
+.good-item-line {
+	display  : flex;
+	max-width: 70%;
+	margin   : 1em 0 0.5em 0;
+}
+
+.good-item-line h3 {
+	margin   : 0.175em 0 0.15em 0;
+}
+
+.good-item-line h3 + p {
+	margin: 0.25em 0 0.15em 0;
+	
+	font-size: 12pt;
+    color    : gray;
+}
+
+.good-item-line img {
+	margin        : 0.25em 0.75em 0 0;
 	max-height    : 32px;
 	vertical-align: middle;
 }
 
 .good-item-price {
-	display: inline-block;
-    margin : 0 1.25em 0 0;
+	min-width: 135px;
+    margin   : 0 1.25em 0 0;
     
+    text-align : left;
     font-weight: bold;
 }

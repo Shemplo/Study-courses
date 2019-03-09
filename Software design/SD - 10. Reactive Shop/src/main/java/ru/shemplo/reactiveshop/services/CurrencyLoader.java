@@ -13,10 +13,13 @@ import ru.shemplo.reactiveshop.db.CurrencyQuatationsEntity;
 import ru.shemplo.reactiveshop.db.CurrencyQuatationsEntityRepository;
 import ru.shemplo.reactiveshop.subjects.RegisterSubject;
 import ru.shemplo.reactiveshop.subjects.ShopListSubject;
+import ru.shemplo.reactiveshop.subjects.UpdateSubject;
 import ru.shemplo.reactiveshop.subjects.entities.RegisterEntity.RegisterUserCurrency;
 import ru.shemplo.reactiveshop.subjects.entities.RegisterEntity.RegisterUserRequest;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListCurrency;
 import ru.shemplo.reactiveshop.subjects.entities.ShopListEntity.ShopListRequest;
+import ru.shemplo.reactiveshop.subjects.entities.UpdateEntity.UpdateUserCurrency;
+import ru.shemplo.reactiveshop.subjects.entities.UpdateEntity.UpdateUserRequest;
 
 @Service
 public class CurrencyLoader implements Observer <Object> {
@@ -25,6 +28,7 @@ public class CurrencyLoader implements Observer <Object> {
     @Autowired private CurrencyEntityRepository currencyEntityRepository;
     @Autowired private RegisterSubject registerSubject;
     @Autowired private ShopListSubject shopListSubject;
+    @Autowired private UpdateSubject updateSubject;
     
     @Override
     public void onNext (Object entity) {
@@ -41,6 +45,13 @@ public class CurrencyLoader implements Observer <Object> {
                                              . findAll ();
             for (CurrencyEntity currency : currencies) {
                 registerSubject.subject (new RegisterUserCurrency (currency, request));
+            }
+        } else if (entity instanceof UpdateUserRequest) {
+            UpdateUserRequest request = (UpdateUserRequest) entity;
+            List <CurrencyEntity> currencies = currencyEntityRepository
+                                             . findAll ();
+            for (CurrencyEntity currency : currencies) {
+                updateSubject.subject (new UpdateUserCurrency (currency, request));
             }
         }
     }
