@@ -95,7 +95,7 @@ public class ShopListComposer implements Observer <Object> {
                                     . filter  (item -> !item.getThumbnail ().contains ("stub") || !iconRequired)
                                     . collect (Collectors.toList ());
             
-            String sorting = user.getUser ().getSorting ();
+            String sorting = Optional.ofNullable (user.getUser ().getSorting ()).orElse ("");
             
             switch (sorting) {
                 case "alphabetASC":
@@ -117,6 +117,8 @@ public class ShopListComposer implements Observer <Object> {
                 case "Shuffle":
                     Collections.shuffle (items);
                     break;
+                    
+                default: break;
             }
             
             items.forEach (item -> {
