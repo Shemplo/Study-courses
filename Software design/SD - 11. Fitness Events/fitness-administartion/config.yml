@@ -1,0 +1,7 @@
+database-profile:
+  !!ru.shemplo.fitness.entities.Database
+  URL     : jdbc:mysql://localhost/fitness?useUnicode=true&characterEncoding=UTF-8&
+              autoReconnect=true&useSSL=false&useJDBCCompliantTimezoneShift=true&
+              useLegacyDatetimeCode=false&serverTimezone=UTC
+  login   : root
+  password: 
