@@ -19,12 +19,11 @@ public class DefaultDBManager implements DBUpdateManager, DBRetriveManager, DBMa
     private AppConfiguration configuration;
     
     @Override
-    public void update (String request) throws IOException, SQLException {
-        try (
-            Connection connection = openConnection ();
-        ) {
-            if (!connection.prepareStatement (request).execute ()) {
-                throw new SQLException ("Failed to execute query");
+    public void update (String ... requests) throws IOException, SQLException {
+        try (final Connection connection = openConnection ()) {
+            for (String request : requests) {
+                connection.prepareStatement (request)
+                          .execute          ();
             }
         }
     }
@@ -54,6 +53,19 @@ public class DefaultDBManager implements DBUpdateManager, DBRetriveManager, DBMa
         }
         
         return result;
+    }
+    
+    @Override
+    public <T> T runFunction (String request) throws IOException, SQLException {
+        try (
+            Connection connection = openConnection ();
+        ) {
+            ResultSet set = connection.prepareStatement (request).executeQuery ();
+            set.next (); // Fetching result of function
+            
+            @SuppressWarnings ("unchecked") T result = (T) set.getObject (1);
+            return result;
+        }
     }
     
     protected Connection openConnection () throws IOException, SQLException {

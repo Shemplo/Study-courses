@@ -17,6 +17,7 @@ public class AdminApplication extends Application {
         final Scene scene = new Scene (FXMLLoader.load (url));
         
         stage.setTitle ("Fitness Events - administration");
+        stage.setMinWidth (600);
         stage.setScene (scene);
         stage.show ();
     }

@@ -14,18 +14,18 @@
             <Insets top="5" right="5" bottom="5" left="5"/>
         </padding>
 
-        <!-- Left column with list of Season Tickets -->
+        <!-- Left column with list of clients -->
         <VBox>
             <HBox alignment="CENTER_LEFT">
                 <padding>
                     <Insets top="5" right="5" bottom="5" left="5"/>
                 </padding>
 
-                <Label text="List of Season Tickets:"/>
+                <Label text="List of clients:"/>
                 <Pane HBox.hgrow="ALWAYS"/>
                 <Button text="add new"/>
             </HBox>
-            <ListView />
+            <ListView VBox.vgrow="ALWAYS" />
         </VBox>
         <Separator orientation="VERTICAL" />
 
