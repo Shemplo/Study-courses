@@ -8,7 +8,7 @@
 
 <?import javafx.geometry.Insets?>
 <StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-           fx:controller="ru.shemplo.fitness.administration.gfx.AdminController">
+       fx:controller="ru.shemplo.fitness.administration.gfx.AdminController">
     <HBox>
         <padding>
             <Insets top="5" right="5" bottom="5" left="5"/>
@@ -30,8 +30,11 @@
         <Separator orientation="VERTICAL" />
 
         <!-- Right part with Season Ticked data -->
-        <VBox>
-
+        <VBox HBox.hgrow="ALWAYS">
+            <ScrollPane pannable="true" hbarPolicy="NEVER"
+                    VBox.vgrow="ALWAYS">
+                <HBox fx:id="clientDetails" />
+            </ScrollPane>
         </VBox>
     </HBox>
 </StackPane>
