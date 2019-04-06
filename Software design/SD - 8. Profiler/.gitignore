@@ -1,2 +1,7 @@
 /target/
 /generated
+
+/metagennet
+/runtime
+
+.class
