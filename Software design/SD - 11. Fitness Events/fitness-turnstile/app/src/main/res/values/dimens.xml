@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="scanner_width">200dp</dimen>
+    <dimen name="scanner_height">200dp</dimen>
+    <dimen name="scanner_text_size">18sp</dimen>
+</resources>

@@ -1,0 +1,16 @@
+.column {
+    -fx-padding: 10;
+    -fx-spacing: 10;
+}
+
+.client-details {
+    -fx-padding: 10;
+}
+
+Button {
+    -fx-cursor: HAND;
+}
+
+.icon-button {
+    -fx-background-color: none;
+}

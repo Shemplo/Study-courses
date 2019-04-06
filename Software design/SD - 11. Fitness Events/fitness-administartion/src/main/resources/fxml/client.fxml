@@ -1,147 +1,190 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.LineChart?>
-<?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ChoiceBox?>
-<?import javafx.scene.control.DatePicker?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import java.lang.String?>
 
-<?import javafx.scene.layout.GridPane?>
-<VBox xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="ru.shemplo.fitness.administration.gfx.ClientController"
-      alignment="TOP_CENTER" spacing="25" style="-fx-background-color: transparent;">
-    <padding>
-        <Insets bottom="10" left="10" right="10" top="10" />
-    </padding>
+<StackPane xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
+    <VBox styleClass="client-details" alignment="CENTER" maxWidth="1000" spacing="25">
 
-    <HBox alignment="CENTER_RIGHT">
-        <Button text="save" />
-    </HBox>
+        <HBox spacing="20">
+            <VBox spacing="20" alignment="TOP_CENTER">
+                <VBox spacing="10" alignment="CENTER">
+                    <ImageView fitWidth="128" fitHeight="128">
+                        <Image url="/img/avatar.jpg"/>
+                    </ImageView>
+                    <Button text="Change image" disable="true"/>
+                </VBox>
+            </VBox>
 
-    <HBox>
-        <VBox spacing="10" HBox.hgrow="ALWAYS">
-            <Label text="Personal information:" />
-
-            <GridPane hgap="15" vgap="10" HBox.hgrow="ALWAYS">
-                <!-- 1 row -->
-                <HBox alignment="CENTER_RIGHT" spacing="5"
-                      GridPane.columnIndex="0"
-                      GridPane.rowIndex="0">
-                    <Label text="Name:" />
-                    <TextField />
+            <VBox spacing="20" alignment="TOP_CENTER">
+                <HBox alignment="CENTER_LEFT" spacing="5">
+                    <Label text="Profile ID" minWidth="90"/>
+                    <TextField fx:id="idF" HBox.hgrow="ALWAYS" disable="true"/>
                 </HBox>
 
-                <HBox alignment="CENTER_RIGHT" spacing="5"
-                      GridPane.columnIndex="1"
-                      GridPane.rowIndex="0">
-                    <Label text="Last name:" />
-                    <TextField />
-                </HBox>
+                <VBox spacing="10">
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Name"/>
+                        <Separator HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="First name" minWidth="90"/>
+                        <TextField fx:id="firstNameF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Second name" minWidth="90"/>
+                        <TextField fx:id="secondNameF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Last name" minWidth="90"/>
+                        <TextField fx:id="lastNameF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
 
-                <HBox alignment="CENTER_RIGHT" spacing="5"
-                      GridPane.columnIndex="2"
-                      GridPane.rowIndex="0">
-                    <Label text="Second name:" />
-                    <TextField />
-                </HBox>
+                <VBox spacing="10">
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Profession"/>
+                        <Separator HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Organization" minWidth="90"/>
+                        <TextField fx:id="organizationF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Position" minWidth="90"/>
+                        <TextField fx:id="positionF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
 
-                <!-- 2 row -->
-                <HBox alignment="CENTER_RIGHT" spacing="10" HBox.hgrow="ALWAYS"
-                      GridPane.columnIndex="0"
-                      GridPane.columnSpan="1"
-                      GridPane.rowIndex="1">
-                    <Label text="Sex:" />
-                    <RadioButton text="female" />
-                    <RadioButton text="male" />
-                </HBox>
+                <VBox spacing="10">
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Coordinates"/>
+                        <Separator HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Country" minWidth="90"/>
+                        <TextField fx:id="countryF" HBox.hgrow="ALWAYS"/>
 
-                <HBox alignment="CENTER_RIGHT" spacing="5"
-                      GridPane.columnIndex="1"
-                      GridPane.rowIndex="1">
-                    <Label text="Birthday:" />
-                    <DatePicker />
-                </HBox>
-                <HBox alignment="CENTER_RIGHT" spacing="5"
-                      GridPane.columnIndex="2"
-                      GridPane.rowIndex="1">
-                    <Label text="Language:" />
-                    <ChoiceBox />
-                </HBox>
-            </GridPane>
-        </VBox>
-    </HBox>
+                        <Label text="State" minWidth="90" alignment="CENTER_RIGHT"/>
+                        <TextField fx:id="stateF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="City/Town" minWidth="90"/>
+                        <TextField fx:id="cityF" HBox.hgrow="ALWAYS"/>
 
-    <VBox spacing="10">
-        <Label text="Contacts information:" />
+                        <Label text="District" minWidth="90" alignment="CENTER_RIGHT"/>
+                        <TextField fx:id="districtF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Phone" minWidth="90"/>
+                        <TextField fx:id="phoneF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Email" minWidth="90"/>
+                        <TextField fx:id="emailF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Home page" minWidth="90"/>
+                        <TextField fx:id="homePageF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
 
-        <GridPane hgap="15" vgap="10">
-            <!-- 1 row -->
-            <HBox alignment="CENTER_RIGHT" spacing="5"
-                  GridPane.columnIndex="0"
-                  GridPane.rowIndex="0">
-                <Label text="Phone:" />
-                <TextField />
-            </HBox>
+                <VBox spacing="10">
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Other"/>
+                        <Separator HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Birthday" minWidth="90"/>
+                        <HBox prefWidth="50" HBox.hgrow="ALWAYS">
+                            <DatePicker fx:id="birthdayF" HBox.hgrow="ALWAYS"/>
+                        </HBox>
 
-            <HBox alignment="CENTER_RIGHT" spacing="5"
-                  GridPane.columnIndex="1"
-                  GridPane.rowIndex="0">
-                <Label text="Reserve phone:" />
-                <TextField />
-            </HBox>
+                        <Label text="Sex" minWidth="90" alignment="CENTER_RIGHT"/>
+                        <HBox prefWidth="50" HBox.hgrow="ALWAYS">
+                            <ChoiceBox fx:id="sexF" maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                                <String fx:value="Male"/>
+                                <String fx:value="Female"/>
+                            </ChoiceBox>
+                        </HBox>
+                    </HBox>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Label text="Remark" minWidth="90"/>
+                        <TextField fx:id="remarkF" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
+            </VBox>
 
-            <HBox alignment="CENTER_RIGHT" spacing="5"
-                  GridPane.columnIndex="2"
-                  GridPane.rowIndex="0">
-                <Label text="E-mail:" />
-                <TextField />
-            </HBox>
-        </GridPane>
+            <VBox spacing="20">
+                <VBox spacing="10" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="ticketDetails" spacing="10" disable="true">
+                        <HBox alignment="CENTER_LEFT" spacing="5">
+                            <Label text="Season ticket"/>
+                            <Separator HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="saveTicketDetails" styleClass="icon-button">
+                                <graphic>
+                                    <ImageView fitWidth="16" fitHeight="16">
+                                        <Image url="/img/save.png"/>
+                                    </ImageView>
+                                </graphic>
+                            </Button>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="5">
+                            <Label text="Name" minWidth="90"/>
+                            <TextField fx:id="ticketNameF" HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="genTicketName" styleClass="icon-button">
+                                <graphic>
+                                    <ImageView fitWidth="16" fitHeight="16">
+                                        <Image url="/img/more.png"/>
+                                    </ImageView>
+                                </graphic>
+                            </Button>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="5">
+                            <Label text="Secret" minWidth="90"/>
+                            <TextField fx:id="ticketSecretF" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="5">
+                            <Label text="Visits" minWidth="90"/>
+                            <TextField fx:id="ticketVisitsF" HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="genFakeVisit" styleClass="icon-button">
+                                <graphic>
+                                    <ImageView fitWidth="12" fitHeight="12">
+                                        <Image url="/img/mone.png"/>
+                                    </ImageView>
+                                </graphic>
+                            </Button>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="5">
+                            <Label text="Last visit" minWidth="90"/>
+                            <TextField fx:id="ticketLastUsedF" HBox.hgrow="ALWAYS"
+                                disable="true"/>
+                        </HBox>
+                    </VBox>
+
+                    <Separator HBox.hgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="List of Season Tickets:"/>
+                        <Pane HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="addTicket" styleClass="icon-button">
+                            <graphic>
+                                <ImageView fitWidth="16" fitHeight="16">
+                                    <Image url="/img/add.png"/>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    <ListView fx:id="ticketsList" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </VBox>
+        </HBox>
+
+        <HBox alignment="CENTER" spacing="10">
+            <Button fx:id="saveClientDetails">Save</Button>
+            <Button fx:id="resetClientDetails">Reset</Button>
+        </HBox>
     </VBox>
-
-    <HBox spacing="20">
-        <VBox spacing="10">
-            <Label text="Season tickets:" />
-
-            <ListView VBox.vgrow="ALWAYS" />
-        </VBox>
-
-        <VBox spacing="10">
-            <Label text="Visit statistics:" />
-
-            <VBox>
-                <Label text="Visit frequency:" />
-
-                <LineChart maxHeight="50">
-                    <xAxis>
-                        <CategoryAxis side="BOTTOM" />
-                    </xAxis>
-                    <yAxis>
-                        <CategoryAxis side="LEFT" />
-                    </yAxis>
-                </LineChart>
-            </VBox>
-
-            <VBox maxHeight="50">
-                <Label text="Visit duration:" />
-
-                <LineChart>
-                    <xAxis>
-                        <CategoryAxis side="BOTTOM" />
-                    </xAxis>
-                    <yAxis>
-                        <CategoryAxis side="LEFT" />
-                    </yAxis>
-                </LineChart>
-            </VBox>
-        </VBox>
-    </HBox>
-</VBox>
+</StackPane>

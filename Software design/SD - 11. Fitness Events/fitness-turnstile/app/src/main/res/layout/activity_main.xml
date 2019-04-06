@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/nfc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:drawableTop="@drawable/nfc"
+        android:gravity="center"
+        android:text="@string/nfc_waiting"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimary"
+        android:textSize="@dimen/scanner_text_size" />
+
+    <TextView
+        android:id="@+id/pass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:drawableTop="@drawable/pass"
+        android:gravity="center"
+        android:text="@string/nfc_pass"
+        android:textAlignment="center"
+        android:textColor="@color/primaryColor"
+        android:textSize="@dimen/scanner_text_size"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/fail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:drawableTop="@drawable/fail"
+        android:gravity="center"
+        android:text="@string/nfc_fail"
+        android:textAlignment="center"
+        android:textColor="@color/secondaryColor"
+        android:textSize="@dimen/scanner_text_size"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="@dimen/scanner_width"
+            android:layout_height="@dimen/scanner_height"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nfc_processing"
+            android:textAlignment="center"
+            android:textColor="@color/secondaryTextColor"
+            android:textSize="@dimen/scanner_text_size" />
+    </LinearLayout>
+
+
+</FrameLayout>

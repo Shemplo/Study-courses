@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.layout.VBox?>
+
+
+<?import javafx.scene.layout.StackPane?>
+
+<?import ru.shemplo.fitness.administration.gfx.DateAxis?>
+<?import javafx.scene.chart.LineChart?>
+
+<StackPane xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="ru.shemplo.fitness.administration.gfx.StatisticsController">
+    <VBox alignment="TOP_CENTER" spacing="20">
+        <LineChart fx:id="dayVisits" title="Visits per day" animated="false" legendVisible="false">
+            <xAxis>
+                <DateAxis fx:id="dayVisitsX" autoRanging="false" side="BOTTOM" />
+            </xAxis>
+            <yAxis>
+                <NumberAxis side="LEFT" />
+            </yAxis>
+        </LineChart>
+        <LineChart fx:id="monthVisits" title="Visits in the last 30 days" animated="false" legendVisible="false">
+            <xAxis>
+                <DateAxis fx:id="monthVisitsX" autoRanging="false" side="BOTTOM" />
+            </xAxis>
+            <yAxis>
+                <NumberAxis side="LEFT" />
+            </yAxis>
+        </LineChart>
+        <LineChart fx:id="averageVisits" title="Average visits in the last 30 days" animated="false" legendVisible="false">
+            <xAxis>
+                <DateAxis fx:id="averageVisitsX" autoRanging="false" side="BOTTOM" />
+            </xAxis>
+            <yAxis>
+                <NumberAxis side="LEFT" />
+            </yAxis>
+        </LineChart>
+    </VBox>
+</StackPane>

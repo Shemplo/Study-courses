@@ -1,0 +1,55 @@
+create-data-by-type:        INSERT
+                            INTO `events` (`object_class`, `object_id`, `property_name`, 
+                                           `property_action`)
+                            VALUES ('%s', '%d', 'instance', 'create');
+                            
+update-data-by-type:        INSERT
+                            INTO `events` (`object_class`, `object_id`, `property_name`, 
+                                           `property_action`, `property_value`)
+                            VALUES ('%s', '%d', '%s', 'set', '%s');
+                            
+create-new-event:           INSERT
+                            INTO `events` (`object_class`, `object_id`, `property_name`, 
+                                           `property_action`, `property_value`)
+                            VALUES ('%s', '%d', '%s', '%s', '%s');
+                            
+retrieve-data-by-type-id:   SELECT `object_id`, `property_name`, `property_action`, `property_value`, `date`
+                            FROM `events` WHERE `object_class` = '%s' AND `object_id` = '%d'
+                            ORDER BY `date` ASC
+                            
+retrieve-all-by-type:       SELECT `object_id`, `property_name`, `property_action`, `property_value`, `date`
+                            FROM `events` WHERE `object_class` = '%s' ORDER BY `date` ASC
+           
+# P - probably             
+retrieve-p-client-tickets:  SELECT es.`object_id`, es.`property_name`, es.`property_action`,
+                                   es.`property_value`, es.`date`
+                            FROM `events` es, (
+                                SELECT `object_id` FROM `events` 
+                                WHERE `object_class` = 'seasonticket' AND `property_name` = 'client'
+                                    AND `property_action` = 'set' AND `property_value` = '%d' 
+                            ) ids
+                            WHERE ids.`object_id` = es.`object_id` 
+                              AND es.`object_class` = 'seasonticket'
+                            ORDER BY `date` ASC
+
+# Date format must be: `yyyy-mm-dd HH:MM:ss` (f.e. `2009-01-28 21:00:00`)
+retrieve-all-by-type-after: SELECT `object_id`, `object_class`, `property_name`, `property_action`, `property_value`, `date`
+                            FROM `events` WHERE `object_class` = '%s' AND `date` > '%s'
+                            ORDER BY `date` ASC
+                            
+retrieve-by-id-type-after:  SELECT `object_id`, `property_name`, `property_action`, `property_value`, `date`
+                            FROM `events` WHERE `object_class` = '%s' AND `object_id` = '%d' AND `date` > '%s'
+                            ORDER BY `date` ASC
+                            
+retrieve-ticket-by-secret:  SELECT es.`object_id`, es.`property_name`, es.`property_action`, 
+                                   es.`property_value`, es.`date`
+                            FROM `events` es, (
+                                SELECT `object_id`
+                                FROM `events`
+                                WHERE `object_class` = 'seasonticket' AND `property_name` = 'secret'
+                                    AND `property_action` = 'set' AND `property_value` = '%s'
+                                ORDER BY `date` DESC
+                                LIMIT 1
+                            ) id
+                            WHERE es.`object_id` = id.`object_id`
+                            ORDER BY `date` ASC

@@ -18,6 +18,6 @@ public class FitnessEvent {
                       propertyName,   //
                       propertyAction, //
                       propertyValue;  //
-    private Timestamp timestamp;      //
+    private Timestamp date;           //
     
 }

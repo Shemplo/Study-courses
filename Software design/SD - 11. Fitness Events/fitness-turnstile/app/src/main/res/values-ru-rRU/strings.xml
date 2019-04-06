@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Фитнес-Клуб</string>
+    <string name="nfc_disabled">Связь NFC отключена</string>
+    <string name="nfc_waiting">Предъявите пропуск</string>
+    <string name="nfc_fail">Пропуск заблокирован</string>
+    <string name="nfc_pass">Пропуск принят</string>
+    <string name="nfc_processing">Обработка…</string>
+    <string name="nfc_not_supported">Это устройство не поддерживает NFC</string>
+</resources>

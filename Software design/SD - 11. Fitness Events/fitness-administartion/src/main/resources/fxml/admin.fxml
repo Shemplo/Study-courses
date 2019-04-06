@@ -1,40 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<?import javafx.geometry.Insets?>
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-       fx:controller="ru.shemplo.fitness.administration.gfx.AdminController">
-    <HBox>
-        <padding>
-            <Insets top="5" right="5" bottom="5" left="5"/>
-        </padding>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ru.shemplo.fitness.administration.gfx.AdminController"
+      stylesheets="/css/admin.css">
 
-        <!-- Left column with list of clients -->
-        <VBox>
-            <HBox alignment="CENTER_LEFT">
-                <padding>
-                    <Insets top="5" right="5" bottom="5" left="5"/>
-                </padding>
+    <!-- Left column with list of clients -->
+    <VBox styleClass="column" minWidth="300" HBox.hgrow="SOMETIMES">
+        <HBox spacing="5" alignment="CENTER_LEFT" VBox.vgrow="NEVER">
+            <Label>List of clients:</Label>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="addClient" styleClass="icon-button">
+                <graphic>
+                    <ImageView fitWidth="16" fitHeight="16">
+                        <Image url="/img/add.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <Button fx:id="openStatistics" styleClass="icon-button">
+                <graphic>
+                    <ImageView fitWidth="16" fitHeight="16">
+                        <Image url="/img/statistics.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+        </HBox>
+        <ListView fx:id="clientsList" VBox.vgrow="ALWAYS"/>
+    </VBox>
 
-                <Label text="List of clients:"/>
-                <Pane HBox.hgrow="ALWAYS"/>
-                <Button text="add new"/>
-            </HBox>
-            <ListView VBox.vgrow="ALWAYS" />
-        </VBox>
-        <Separator orientation="VERTICAL" />
+    <Separator orientation="VERTICAL"/>
 
-        <!-- Right part with Season Ticked data -->
-        <VBox HBox.hgrow="ALWAYS">
-            <ScrollPane pannable="true" hbarPolicy="NEVER"
-                    VBox.vgrow="ALWAYS">
-                <HBox fx:id="clientDetails" />
-            </ScrollPane>
-        </VBox>
-    </HBox>
-</StackPane>
+    <!-- Right column with Season Ticket data -->
+    <VBox styleClass="column" minWidth="500" HBox.hgrow="ALWAYS">
+        <ScrollPane fx:id="details" pannable="true" fitToWidth="true" 
+            fitToHeight="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+        </ScrollPane>
+    </VBox>
+</HBox>

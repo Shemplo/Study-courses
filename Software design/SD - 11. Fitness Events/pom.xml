@@ -41,6 +41,13 @@
                         <mainClass>ru.shemplo.*</mainClass>
                     </transformer>
                 </transformers>
+                <artifactSet>
+                  <includes>
+                    <include>ru.shemplo:fitness</include>
+                    <include>ru.shemplo:fitness-common</include>
+                    <include>ru.shemplo:fitness-administration</include>
+                  </includes>
+                </artifactSet>
             </configuration>
           </execution>
         </executions>
@@ -111,7 +118,7 @@
     <dependency>
         <groupId>ru.shemplo</groupId>
         <artifactId>snowball</artifactId>
-        <version>1.2.3</version>
+        <version>1.2.5</version>
     </dependency>
     
     <dependency>

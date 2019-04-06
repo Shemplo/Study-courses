@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Fitness App</string>
+    <string name="nfc_disabled">NFC is disabled</string>
+    <string name="nfc_waiting">Show your pass</string>
+    <string name="nfc_fail">Pass is blocked</string>
+    <string name="nfc_pass">Pass allowed</string>
+    <string name="nfc_processing">Processing…</string>
+    <string name="nfc_not_supported">This device doesn\'t support NFC</string>
+</resources>

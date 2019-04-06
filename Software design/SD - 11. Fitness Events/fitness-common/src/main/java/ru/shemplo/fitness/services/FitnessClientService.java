@@ -1,66 +1,54 @@
 package ru.shemplo.fitness.services;
 
 import java.io.IOException;
-import java.sql.SQLException;
+import java.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import ru.shemplo.fitness.AppConfiguration;
-import ru.shemplo.fitness.db.DBManager;
-import ru.shemplo.fitness.db.DBObjectUnwrapper;
 import ru.shemplo.fitness.entities.FitnessClient;
 import ru.shemplo.fitness.entities.FitnessEvent;
 import ru.shemplo.snowball.annot.Snowflake;
+import ru.shemplo.snowball.stuctures.Pair;
 
 @Snowflake
-public class FitnessClientService {
+public class FitnessClientService extends AbsService <FitnessClient> {
     
-    private DBObjectUnwrapper objectUnwrapper;
-    private AppConfiguration configuration;
-    private DBManager database;
-    
-    public FitnessClient createClient (Map <String, String> data) throws IOException {
-        Integer nextID;
-        try   { nextID = database.runFunction ("SELECT GET_NEXT_ID_FOR ('client');"); } 
-        catch (SQLException sqle) { throw new IOException (sqle); }
-        
-        try { 
-            String template = configuration.<String> get ("create-client-data").get ();
-            database.update (String.format (template, nextID)); 
-        } catch (SQLException sqle) { throw new IOException (sqle); }
-        
-        return updateClient (nextID, data);
+    public FitnessClientService () {
+        super (FitnessClient.class);
     }
     
-    public FitnessClient updateClient (int clientID, Map <String, String> data) throws IOException {        
-        try { 
-            String template = configuration.<String> get ("update-client-data").get ();
-            String [] requests = new String [data.size ()];
-            AtomicInteger index = new AtomicInteger ();
-            data.forEach ((key, value) -> {
-                requests [index.get ()] = String.format (template, clientID, key, value);
-                index.incrementAndGet ();
-            });
-            
-            database.update (requests); 
-        } catch (SQLException sqle) { throw new IOException (sqle); }
+    public Pair <List <FitnessClient>, Boolean> updateClients (List <FitnessClient> clients, 
+            LocalDateTime lastUpdate, int current) throws IOException {
+        Map <Integer, List <FitnessEvent>> events = getAllEventsAfter (lastUpdate).stream ()
+          . collect (Collectors.groupingBy (FitnessEvent::getObjectId));
+        Map <Integer, FitnessClient> clientss = clients.stream ()
+          . collect (Collectors.toMap (FitnessClient::getId, __ -> __));
+        AtomicBoolean currentUpdated = new AtomicBoolean (false);
+        final List <FitnessClient> toAdd = new ArrayList <> ();
         
-        return getClientByID (clientID);
-    }
-    
-    public FitnessClient getClientByID (int clientID) throws IOException {
-        try { 
-            final String template = configuration.<String> get ("retrieve-client-data").get ();
-            String request = String.format (template, clientID);
-            
-            List <FitnessEvent> sequence = database.retrieve (request, FitnessEvent.class);
-            FitnessClient client = objectUnwrapper.unwrap (sequence, FitnessClient.class);
-            client.setId (clientID);
-            return client;
-        } catch (SQLException sqle) { throw new IOException (sqle); }
+        events.forEach ((id, eventss) -> {
+            if (clientss.containsKey (id)) {
+                final FitnessClient client = clientss.get (id);
+                objectUnwrapper.unwrapTo (eventss, client);
+                
+                if (current == id) { currentUpdated.set (true); }
+            } else {
+                final FitnessClient client = new FitnessClient ();
+                objectUnwrapper.unwrapTo (eventss, client);
+                toAdd.add (client);
+            }
+        });
+        
+        List <FitnessClient> toAddFiltered = toAdd.stream ()
+           . filter (FitnessClient::isCompleted)
+           . collect (Collectors.toList ());
+        
+        return Pair.mp (toAddFiltered, currentUpdated.get ());
     }
     
 }

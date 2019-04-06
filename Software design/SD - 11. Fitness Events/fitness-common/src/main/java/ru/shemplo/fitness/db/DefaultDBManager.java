@@ -8,11 +8,13 @@ import java.sql.SQLException;
 
 import java.util.*;
 
+import lombok.AllArgsConstructor;
 import ru.shemplo.fitness.AppConfiguration;
 import ru.shemplo.fitness.entities.Database;
 import ru.shemplo.snowball.annot.Snowflake;
 
 @Snowflake
+@AllArgsConstructor
 public class DefaultDBManager implements DBUpdateManager, DBRetriveManager, DBManager {
     
     private DBObjectUnwrapper objectUnwrapper;
@@ -26,6 +28,11 @@ public class DefaultDBManager implements DBUpdateManager, DBRetriveManager, DBMa
                           .execute          ();
             }
         }
+    }
+    
+    @Override
+    public <T> List <T> retrieveTo (String request, T instance) throws IOException, SQLException {
+        throw new UnsupportedOperationException ();
     }
     
     @Override
@@ -47,11 +54,11 @@ public class DefaultDBManager implements DBUpdateManager, DBRetriveManager, DBMa
                     map.put (name, value);
                 }
                 
-                System.out.println (map);
+                System.out.format ("Thread[%2d]: %s%n", Thread.currentThread().getId(), map);
                 result.add (objectUnwrapper.unwrap (map, type));
             }
         }
-        
+
         return result;
     }
     
