@@ -4,21 +4,21 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 
-public class PrefixTreeNode {
+public class PrefixNode {
     
-    protected final Map <Character, PrefixTreeNode> 
+    protected final Map <Character, PrefixNode> 
         transitions = new LinkedHashMap <> ();
     protected double norm = 1, weight = 0;
     protected Character value;
     
     public void processSequence (Queue <Character> sequence, int count) {
         this.value = sequence.poll ();
-        this.weight = count;
+        this.weight += count;
         
-        if (sequence.size () > 1) {
+        if (sequence.size () > 0) {
             final Character ancor = sequence.peek ();
             
-            transitions.putIfAbsent (ancor,    new PrefixTreeNode ());
+            transitions.putIfAbsent (ancor,    new PrefixNode ());
             transitions.get (ancor).processSequence (sequence, count);
         }
     }

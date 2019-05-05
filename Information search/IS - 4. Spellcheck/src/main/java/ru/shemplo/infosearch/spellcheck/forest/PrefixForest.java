@@ -3,14 +3,15 @@ package ru.shemplo.infosearch.spellcheck.forest;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import ru.shemplo.infosearch.spellcheck.Trio;
+import ru.shemplo.infosearch.spellcheck.SearchPath;
+import ru.shemplo.snowball.stuctures.Trio;
 
 public class PrefixForest {
     
     private static final int K = 5;
     
     //private Map <Character, PrefixTree> tries = new LinkedHashMap <> ();
-    private final PrefixTreeNode tree = new PrefixTreeNode ();
+    private final PrefixNode tree = new PrefixNode ();
     
     private int totalCount = 0;
     
@@ -32,49 +33,47 @@ public class PrefixForest {
     }
     
     public String spellcheckWord (String word) {
+        System.out.println ("Word: " + word);
         word = String.format ("^%s$", word);
+        System.out.println ("Prepare: " + word);
         
-        List <Trio <String, PrefixTreeNode, Double>> 
-            paths = new ArrayList <> ();
+        List <SearchPath> paths = new ArrayList <> ();
         
-        PrefixTreeNode stub = new PrefixTreeNode ();
+        PrefixNode stub = new PrefixNode ();
         stub.weight = 1;
         
         final Queue <Character> chars = new LinkedList <> ();
         for (char c : word.toCharArray ()) { chars.add (c); }
         
-        Comparator <Trio <String, PrefixTreeNode, Double>> 
-            cmp = (a, b) -> -Double.compare (a.T, b.T);
-        PriorityQueue <Trio <String, PrefixTreeNode, Double>> 
-            queue = new PriorityQueue <> (cmp);
-        queue.add (Trio.mt ("", tree, 1D));
+        Comparator <SearchPath> cmp = (a, b) -> -Double.compare (a.T, b.T);
+        PriorityQueue <SearchPath>  queue = new PriorityQueue <> (cmp);
+        queue.add (new SearchPath ("", 1D));
         
-        while (queue.isEmpty ()) {
-            Trio <String, PrefixTreeNode, Double> path = queue.poll ();
-            if (path.F.length () < word.length ()) {
-                for (Trio <String, PrefixTreeNode, Double> trans : 
+        while (!queue.isEmpty ()) {
+            final SearchPath path = queue.poll ();
+            System.out.println ("> Prefix: " + path.F);
+            if (path.F.length () < word.length () - 1) {
+                for (Trio <String, PrefixNode, Double> trans : 
                         makeTransformations (path.F, tree, word)) {
-                    Character expected = word.charAt (word.length ());
-                    double prob = Optional.ofNullable (path.S.transitions.get (expected))
+                    System.out.println (">> Transformation: " + trans.F);
+                    Character expected = word.charAt (path.F.length () + 1);
+                    double prob = Optional.ofNullable (path.S.peek ().transitions.get (expected))
                                           .orElse     (stub).weight;
                     double fprob = path.T * (trans.T / prob) * 1; // XXX: 1 == P(pi, hist | theta) ????
                     trans = trans.applyT (__ -> fprob);
-                    queue.add (trans);
+                    //queue.add (trans);
                 }
             } else {
-                if (path.S.isLeaf ()) {
+                if (path.S.peek ().isLeaf ()) {
                     paths.add (path);
                     
                     if (paths.size () >= K) { break; }
                 } else {
-                    for (Trio <String, PrefixTreeNode, Double> trans : 
+                    for (Trio <String, PrefixNode, Double> trans : 
                             makeTransformations (path.F, tree, word)) {
-                        Character expected = word.charAt (word.length ());
-                        double prob = Optional.ofNullable (path.S.transitions.get (expected))
-                                              .orElse     (stub).weight;
-                        double fprob = path.T * (trans.T / prob);
+                        final double fprob = path.T * trans.T;
                         trans = trans.applyT (__ -> fprob);
-                        queue.add (trans);
+                        //queue.add (trans);
                     }
                 }
             }
@@ -84,9 +83,10 @@ public class PrefixForest {
         return paths.get (0).F;
     }
     
-    public List <Trio <String, PrefixTreeNode, Double>> makeTransformations (String tmp,
-            PrefixTreeNode node, String word) {
+    public List <Trio <String, PrefixNode, Double>> makeTransformations (String tmp,
+            PrefixNode node, String word) {
         return node.transitions.entrySet ().stream ()
+             //. peek (e -> System.out.println (e.getKey () + " " + e.getValue ().weight))
              . map (e -> Trio.mt (
                      e.getKey (), 
                      e.getValue (), 
@@ -96,6 +96,7 @@ public class PrefixForest {
              . map     (t -> t.applyF (v -> tmp + v))
              . sorted  ((a, b) -> -Double.compare (a.T, b.T))
              . limit   (K)
+             //. peek (t -> System.out.println (t.F + " " + t.T))
              . collect (Collectors.toList ());
     }
     
