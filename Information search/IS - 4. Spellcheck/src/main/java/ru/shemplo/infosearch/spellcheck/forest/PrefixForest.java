@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import ru.shemplo.infosearch.spellcheck.SearchPath;
-import ru.shemplo.snowball.stuctures.Trio;
+import ru.shemplo.snowball.utils.MiscUtils;
 
 public class PrefixForest {
     
@@ -47,21 +47,24 @@ public class PrefixForest {
         
         Comparator <SearchPath> cmp = (a, b) -> -Double.compare (a.T, b.T);
         PriorityQueue <SearchPath>  queue = new PriorityQueue <> (cmp);
+        
         queue.add (new SearchPath ("", 1D));
+        queue.peek ().S.push (tree);
         
         while (!queue.isEmpty ()) {
             final SearchPath path = queue.poll ();
             System.out.println ("> Prefix: " + path.F);
             if (path.F.length () < word.length () - 1) {
-                for (Trio <String, PrefixNode, Double> trans : 
-                        makeTransformations (path.F, tree, word)) {
+                for (SearchPath trans : makeTransformations (path.F, path.S, word)) {
                     System.out.println (">> Transformation: " + trans.F);
                     Character expected = word.charAt (path.F.length () + 1);
                     double prob = Optional.ofNullable (path.S.peek ().transitions.get (expected))
                                           .orElse     (stub).weight;
-                    double fprob = path.T * (trans.T / prob) * 1; // XXX: 1 == P(pi, hist | theta) ????
-                    trans = trans.applyT (__ -> fprob);
-                    //queue.add (trans);
+                    System.out.println ("Expected: " + expected + ", prob: " + prob + " / " + trans.T);
+                    double fprob = path.T * (trans.T / prob) * (expected.equals (trans.F.charAt (trans.F.length () - 1)) ? 1 : 0.1);
+                    SearchPath copy = new SearchPath (trans.F, trans.S, fprob);
+                    //trans = trans.applyT (__ -> fprob);
+                    queue.add (copy);
                 }
             } else {
                 if (path.S.peek ().isLeaf ()) {
@@ -69,10 +72,9 @@ public class PrefixForest {
                     
                     if (paths.size () >= K) { break; }
                 } else {
-                    for (Trio <String, PrefixNode, Double> trans : 
-                            makeTransformations (path.F, tree, word)) {
-                        final double fprob = path.T * trans.T;
-                        trans = trans.applyT (__ -> fprob);
+                    for (@SuppressWarnings ("unused") SearchPath trans : makeTransformations (path.F, path.S, word)) {
+                        //final double fprob = path.T * trans.T;
+                        //trans = trans.applyT (__ -> fprob);
                         //queue.add (trans);
                     }
                 }
@@ -80,23 +82,24 @@ public class PrefixForest {
         }
         
         paths.sort (cmp);
+        
+        paths.forEach (System.out::println);
         return paths.get (0).F;
     }
     
-    public List <Trio <String, PrefixNode, Double>> makeTransformations (String tmp,
-            PrefixNode node, String word) {
-        return node.transitions.entrySet ().stream ()
-             //. peek (e -> System.out.println (e.getKey () + " " + e.getValue ().weight))
-             . map (e -> Trio.mt (
-                     e.getKey (), 
-                     e.getValue (), 
-                     e.getValue ().weight
-                   )
-             )
-             . map     (t -> t.applyF (v -> tmp + v))
+    public List <SearchPath> makeTransformations (String tmp, Stack <PrefixNode> hist, String word) {
+        return hist.peek ().transitions.entrySet ().stream ()
+             . peek (e -> System.out.println (e.getKey () + " " + e.getValue ().weight))
+             . map (e -> {
+                 final Stack <PrefixNode> stack = MiscUtils.cast (hist.clone ());
+                 stack.push (e.getValue ());
+                 
+                 final double weight = e.getValue ().weight;
+                 return new SearchPath (tmp + e.getKey (), stack, weight);
+             })
              . sorted  ((a, b) -> -Double.compare (a.T, b.T))
              . limit   (K)
-             //. peek (t -> System.out.println (t.F + " " + t.T))
+             . peek (t -> System.out.println (t.F + " " + t.T))
              . collect (Collectors.toList ());
     }
     

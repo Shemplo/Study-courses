@@ -4,6 +4,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 
+import lombok.ToString;
+
+@ToString (exclude = {"transitions"})
 public class PrefixNode {
     
     protected final Map <Character, PrefixNode> 

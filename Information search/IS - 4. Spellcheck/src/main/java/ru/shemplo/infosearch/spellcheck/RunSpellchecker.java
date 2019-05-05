@@ -17,7 +17,7 @@ public class RunSpellchecker {
     private static final String fileIN = "words.freq.csv";
     
     public static void main (String ... args) throws IOException {
-        /*
+        ///*
         final CSVReader wordsReader = new CSVReader ();
         wordsReader.read (directory + fileIN, ",");
         System.out.println ("IN file read");
@@ -45,21 +45,27 @@ public class RunSpellchecker {
         
         final CSVWriter wordsWriter = new CSVWriter (directory + fileOUT, ",");
         wordsWriter.write (Arrays.asList ("Id", "Expected"), rows);
-        */
+        //*/
         
+        /*
         final PrefixForest forest = new PrefixForest ();
         forest.addWord ("", 2);
-        forest.addWord ("man", 4);
+        forest.addWord ("man", 3);
         forest.addWord ("mat", 1);
+        forest.addWord ("mit", 2);
         forest.addWord ("bat", 1);
         forest.addWord ("rat", 1);
-        forest.addWord ("rating", 3);
+        forest.addWord ("rating", 4);
+        forest.addWord ("rum", 3);
+        forest.addWord ("rumba", 3);
         forest.addWord ("mana", 2);
         forest.addWord ("manual", 2);
+        forest.addWord ("mordor", 3);
         
         forest.normalize ();
         
         System.out.println (forest.spellcheckWord ("rut"));
+        */
     }
     
 }
