@@ -3,14 +3,19 @@ package ru.shemplo.infosearch.spellcheck.forest;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.Setter;
 import ru.shemplo.infosearch.spellcheck.SearchPath;
 import ru.shemplo.snowball.utils.MiscUtils;
 
 public class PrefixForest {
     
-    private static final int K = 5;
+    private static final int K = 40;
     
     //private Map <Character, PrefixTree> tries = new LinkedHashMap <> ();
+    @Getter @Setter
+    private Map <String, Double> statistics = new HashMap <> ();
+    private final Set <String> correct = new HashSet <> ();
     private final PrefixNode tree = new PrefixNode ();
     
     private int totalCount = 0;
@@ -27,15 +32,24 @@ public class PrefixForest {
         tree.processSequence (chars, count);
     }
     
+    public void addCorrectWord (String word) {
+        correct.add (word);
+    }
+    
     public void normalize () {
         //tries.forEach ((__, tree) -> tree.normalize (totalCount));
         tree.normalize (totalCount);
     }
     
     public String spellcheckWord (String word) {
-        System.out.println ("Word: " + word);
+        if (correct.contains (word)) {
+            System.out.println ("Correct!");
+            return word;
+        }
+        
+        //System.out.println ("Word: " + word);
         word = String.format ("^%s$", word);
-        System.out.println ("Prepare: " + word);
+        //System.out.println ("Prepare: " + word);
         
         List <SearchPath> paths = new ArrayList <> ();
         
@@ -53,17 +67,28 @@ public class PrefixForest {
         
         while (!queue.isEmpty ()) {
             final SearchPath path = queue.poll ();
-            System.out.println ("> Prefix: " + path.F);
+            //System.out.println ("> Prefix: " + path.F);
             if (path.F.length () < word.length () - 1) {
-                for (SearchPath trans : makeTransformations (path.F, path.S, word)) {
-                    System.out.println (">> Transformation: " + trans.F);
+                List <SearchPath> transformations = makeTransformations (path.F, path.S, word);
+                
+                for (SearchPath trans : transformations) {
+                    Character current = trans.F.charAt (trans.F.length () - 1);
                     Character expected = word.charAt (path.F.length () + 1);
-                    double prob = Optional.ofNullable (path.S.peek ().transitions.get (expected))
-                                          .orElse     (stub).weight;
-                    System.out.println ("Expected: " + expected + ", prob: " + prob + " / " + trans.T);
-                    double fprob = path.T * (trans.T / prob) * (expected.equals (trans.F.charAt (trans.F.length () - 1)) ? 1 : 0.1);
+                    boolean equal = expected.equals (current);
+                    String key = current + "-" + expected;
+                    
+                    double factor = equal ? 1 : Optional.ofNullable (statistics.get (key)).orElse (0D);
+                    double fprob = path.T * (trans.T / path.S.peek ().weight) * factor;
+                    if (!equal) {
+                        final int r = path.getReplaces () + 1;
+                        fprob *= Math.pow (Math.E, -r * 2.5);
+                    }
+                    
                     SearchPath copy = new SearchPath (trans.F, trans.S, fprob);
-                    //trans = trans.applyT (__ -> fprob);
+                    if (!equal) {
+                        copy.setReplaces (path.getReplaces () + 1);
+                    }
+                    
                     queue.add (copy);
                 }
             } else {
@@ -71,25 +96,26 @@ public class PrefixForest {
                     paths.add (path);
                     
                     if (paths.size () >= K) { break; }
-                } else {
-                    for (@SuppressWarnings ("unused") SearchPath trans : makeTransformations (path.F, path.S, word)) {
-                        //final double fprob = path.T * trans.T;
-                        //trans = trans.applyT (__ -> fprob);
-                        //queue.add (trans);
-                    }
+                }
+                
+                for (SearchPath trans : makeTransformations (path.F, path.S, word)) {
+                    double fprob = path.T * (trans.T / path.S.peek ().weight) * 10;
+                    SearchPath copy = new SearchPath (trans.F, trans.S, fprob);
+                    queue.add (copy);
                 }
             }
         }
         
         paths.sort (cmp);
         
-        paths.forEach (System.out::println);
-        return paths.get (0).F;
+        //paths.forEach (System.out::println);
+        int length = paths.get (0).F.length ();
+        return paths.get (0).F.substring (0, length - 1);
     }
     
     public List <SearchPath> makeTransformations (String tmp, Stack <PrefixNode> hist, String word) {
         return hist.peek ().transitions.entrySet ().stream ()
-             . peek (e -> System.out.println (e.getKey () + " " + e.getValue ().weight))
+             //. peek (e -> System.out.println (e.getKey () + " " + e.getValue ().weight))
              . map (e -> {
                  final Stack <PrefixNode> stack = MiscUtils.cast (hist.clone ());
                  stack.push (e.getValue ());
@@ -99,8 +125,31 @@ public class PrefixForest {
              })
              . sorted  ((a, b) -> -Double.compare (a.T, b.T))
              . limit   (K)
-             . peek (t -> System.out.println (t.F + " " + t.T))
+             //. peek (t -> System.out.println (t.F + " " + t.T))
              . collect (Collectors.toList ());
+    }
+    
+    public void findWord (String word) {
+        final Queue <Character> chars = new LinkedList <> ();
+        for (char c : word.toCharArray ()) { chars.add (c); }
+        
+        PrefixNode node = tree;
+        int step = 0;
+        
+        while (!chars.isEmpty ()) {
+            Character c = chars.poll ();
+            if (!node.transitions.containsKey (c)) {
+                System.out.println ("Word not find: " + c + " / " + step);
+            }
+            
+            node = node.transitions.get (c);
+            step += 1;
+        }
+        
+        System.out.println ("Word find " + node.weight);
+        node.transitions.forEach ((key, value) -> {
+            System.out.println ("Transition: " + key + " / " + value.isLeaf () + " / " + value.weight);
+        });
     }
     
 }
