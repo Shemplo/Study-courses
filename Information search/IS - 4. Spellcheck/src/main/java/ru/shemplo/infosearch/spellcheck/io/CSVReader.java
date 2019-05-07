@@ -21,6 +21,7 @@ public class CSVReader {
     }
     
     public int getRowsNumber () {
+        //System.out.println (rows.stream ().map (row -> row.get (0)).collect (Collectors.toSet ()).size ());
         return rows.size ();
     }
     

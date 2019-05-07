@@ -42,21 +42,17 @@ public class PrefixForest {
     
     public String spellcheckWord (String word) {
         if (correct.contains (word)) {
-            System.out.println ("Correct!");
             return word;
         }
         
         //System.out.println ("Word: " + word);
-        word = String.format ("^%s$", word);
+        String fword = String.format ("^%s$", word);
         //System.out.println ("Prepare: " + word);
         
         List <SearchPath> paths = new ArrayList <> ();
         
-        PrefixNode stub = new PrefixNode ();
-        stub.weight = 1;
-        
         final Queue <Character> chars = new LinkedList <> ();
-        for (char c : word.toCharArray ()) { chars.add (c); }
+        for (char c : fword.toCharArray ()) { chars.add (c); }
         
         Comparator <SearchPath> cmp = (a, b) -> -Double.compare (a.T, b.T);
         PriorityQueue <SearchPath>  queue = new PriorityQueue <> (cmp);
@@ -66,12 +62,12 @@ public class PrefixForest {
         while (!queue.isEmpty ()) {
             final SearchPath path = queue.poll ();
             //System.out.println ("> Prefix: " + path.F);
-            if (path.F.length () < word.length () - 1) {
-                List <SearchPath> transformations = makeTransformations (path.F, path.S, word);
+            if (path.F.length () < fword.length () - 1) {
+                List <SearchPath> transformations = makeTransformations (path.F, path.S, fword);
                 
                 for (SearchPath trans : transformations) {
                     Character current = trans.F.charAt (trans.F.length () - 1);
-                    Character expected = word.charAt (path.F.length () + 1);
+                    Character expected = fword.charAt (path.F.length () + 1);
                     boolean equal = expected.equals (current);
                     String key = current + "-" + expected;
                     
@@ -79,12 +75,13 @@ public class PrefixForest {
                     double fprob = path.T * (trans.T / path.S.weight) * factor;
                     if (!equal) {
                         final int r = path.getReplaces () + 1;
-                        fprob *= Math.pow (Math.E, -r * 2.5);
+                        fprob *= Math.pow (Math.E, -r * 2);
                     }
                     
                     SearchPath copy = new SearchPath (trans.F, trans.S, fprob);
                     if (!equal) {
                         copy.setReplaces (path.getReplaces () + 1);
+                        if (copy.getReplaces () > 6) { break; }
                     }
                     
                     queue.add (copy);
@@ -94,21 +91,26 @@ public class PrefixForest {
                     paths.add (path);
                     
                     if (paths.size () >= K) { break; }
-                }
-                
-                for (SearchPath trans : makeTransformations (path.F, path.S, word)) {
-                    final double fprob = path.T * (trans.T / path.S.weight) * 2;
-                    SearchPath copy = new SearchPath (trans.F, trans.S, fprob);
-                    queue.add (copy);
+                } else {
+                    for (SearchPath trans : makeTransformations (path.F, path.S, fword)) {
+                        final double fprob = path.T * (trans.T / path.S.weight) * 1.5;
+                        SearchPath copy = new SearchPath (trans.F, trans.S, fprob);
+                        queue.add (copy);
+                    }
                 }
             }
         }
         
-        paths.sort (cmp);
+        if (paths.isEmpty ()) { return word; }
         
-        //paths.forEach (System.out::println);
-        int length = paths.get (0).F.length ();
-        return paths.get (0).F.substring (0, length - 1);
+        SearchPath best = paths.get (0);
+        for (SearchPath path : paths) {
+            if (best.T < path.T) {
+                best = path;
+            }
+        }
+        
+        return best.F.substring (0, best.F.length () - 1);
     }
     
     public List <SearchPath> makeTransformations (String tmp, PrefixNode node, String word) {

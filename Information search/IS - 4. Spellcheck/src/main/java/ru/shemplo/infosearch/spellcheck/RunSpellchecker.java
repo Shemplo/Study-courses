@@ -3,8 +3,7 @@ package ru.shemplo.infosearch.spellcheck;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,7 +26,7 @@ public class RunSpellchecker {
         final PrefixForest forest = new PrefixForest ();
         for (int i = 0; i < wordsReader.getRowsNumber (); i++) {
             int freq = Integer.parseInt (wordsReader.get ("Freq", i));
-            String word = wordsReader.get ("Id", i).toLowerCase ();
+            String word = wordsReader.get ("Id", i);
             forest.addWord (word, freq);
         }
         System.out.println ("Forest built");
@@ -40,13 +39,17 @@ public class RunSpellchecker {
         System.out.println ("IN2 file read");
         
         final Map <String, Double> replaces = new ConcurrentHashMap <> ();
+        final Set <String> toCorrect = new HashSet <> ();
+        
         for (int i = 0; i < answersReader.getRowsNumber (); i++) {
-            String expected = answersReader.get ("Expected", i).toLowerCase ();
-            String word = answersReader.get ("Id", i).toLowerCase ();
+            String expected = answersReader.get ("Expected", i);
+            String word = answersReader.get ("Id", i);
             if (word.equals (expected)) {
                 forest.addCorrectWord (word);
             } else {
                 final int length = Math.min (word.length (), expected.length ());
+                toCorrect.add (word);
+                
                 for (int j = 0; j < length; j++) {
                     if (word.charAt (j) != expected.charAt (j)) {
                         String key = word.charAt (j) + "-" + expected.charAt (j);
@@ -71,15 +74,29 @@ public class RunSpellchecker {
         forest.setStatistics (replaces);
         System.out.println ("Statistics calculated");
         
+        /*
+        Iterator <String> iter = toCorrect.iterator ();
+        iter.next ();
+        
+        String wordt = iter.next ();
+        System.out.println (wordt + " " + forest.spellcheckWord (wordt));
+        */
+        
         final PrintWriter pw = new PrintWriter (directory + fileOUT);
         pw.println ("Id,Expected");
         
-        for (int i = 0; i < wordsReader.getRowsNumber () * 1; i++) {
-            final String word = wordsReader.get ("Id", i).toLowerCase ();
-            String fixed = forest.spellcheckWord (word).toUpperCase ();
-            pw.println (word.toUpperCase () + "," + fixed);
+        System.out.println ("To fix: " + toCorrect.size () + " words");
+        for (int i = 0; i < wordsReader.getRowsNumber (); i++) {
+            final String word = wordsReader.get ("Id", i);
+            String fixed = toCorrect.contains (word) 
+                         ? forest.spellcheckWord (word)
+                         : word;
             
-            System.out.println (word + " -> " + fixed);
+            pw.println (word + "," + fixed);
+            
+            if (i % 1000 == 0) {                
+                System.out.println (i + ": " + word + " -> " + fixed);
+            }
         }
         pw.close ();
         System.out.println ("Spellcheck correction finished");
