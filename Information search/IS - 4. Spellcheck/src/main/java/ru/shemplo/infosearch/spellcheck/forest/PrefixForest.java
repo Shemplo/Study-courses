@@ -6,11 +6,10 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import ru.shemplo.infosearch.spellcheck.SearchPath;
-import ru.shemplo.snowball.utils.MiscUtils;
 
 public class PrefixForest {
     
-    private static final int K = 40;
+    private static final int K = 35;
     
     //private Map <Character, PrefixTree> tries = new LinkedHashMap <> ();
     @Getter @Setter
@@ -62,8 +61,7 @@ public class PrefixForest {
         Comparator <SearchPath> cmp = (a, b) -> -Double.compare (a.T, b.T);
         PriorityQueue <SearchPath>  queue = new PriorityQueue <> (cmp);
         
-        queue.add (new SearchPath ("", 1D));
-        queue.peek ().S.push (tree);
+        queue.add (new SearchPath ("", tree, 1D));
         
         while (!queue.isEmpty ()) {
             final SearchPath path = queue.poll ();
@@ -77,8 +75,8 @@ public class PrefixForest {
                     boolean equal = expected.equals (current);
                     String key = current + "-" + expected;
                     
-                    double factor = equal ? 1 : Optional.ofNullable (statistics.get (key)).orElse (0D);
-                    double fprob = path.T * (trans.T / path.S.peek ().weight) * factor;
+                    double factor = equal ? 1 : Optional.ofNullable (statistics.get (key)).orElse (0.01D);
+                    double fprob = path.T * (trans.T / path.S.weight) * factor;
                     if (!equal) {
                         final int r = path.getReplaces () + 1;
                         fprob *= Math.pow (Math.E, -r * 2.5);
@@ -92,14 +90,14 @@ public class PrefixForest {
                     queue.add (copy);
                 }
             } else {
-                if (path.S.peek ().isLeaf ()) {
+                if (path.S.isLeaf ()) {
                     paths.add (path);
                     
                     if (paths.size () >= K) { break; }
                 }
                 
                 for (SearchPath trans : makeTransformations (path.F, path.S, word)) {
-                    double fprob = path.T * (trans.T / path.S.peek ().weight) * 10;
+                    final double fprob = path.T * (trans.T / path.S.weight) * 2;
                     SearchPath copy = new SearchPath (trans.F, trans.S, fprob);
                     queue.add (copy);
                 }
@@ -113,15 +111,12 @@ public class PrefixForest {
         return paths.get (0).F.substring (0, length - 1);
     }
     
-    public List <SearchPath> makeTransformations (String tmp, Stack <PrefixNode> hist, String word) {
-        return hist.peek ().transitions.entrySet ().stream ()
+    public List <SearchPath> makeTransformations (String tmp, PrefixNode node, String word) {
+        return node.transitions.entrySet ().stream ()
              //. peek (e -> System.out.println (e.getKey () + " " + e.getValue ().weight))
              . map (e -> {
-                 final Stack <PrefixNode> stack = MiscUtils.cast (hist.clone ());
-                 stack.push (e.getValue ());
-                 
                  final double weight = e.getValue ().weight;
-                 return new SearchPath (tmp + e.getKey (), stack, weight);
+                 return new SearchPath (tmp + e.getKey (), e.getValue (), weight);
              })
              . sorted  ((a, b) -> -Double.compare (a.T, b.T))
              . limit   (K)

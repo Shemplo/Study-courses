@@ -1,14 +1,15 @@
 package ru.shemplo.infosearch.spellcheck;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 import ru.shemplo.infosearch.spellcheck.forest.PrefixForest;
 import ru.shemplo.infosearch.spellcheck.io.CSVReader;
-import ru.shemplo.infosearch.spellcheck.io.CSVWriter;
 
 public class RunSpellchecker {
     
@@ -61,7 +62,7 @@ public class RunSpellchecker {
             
             String opposite = reverse (key);
             double opvalue = Optional.ofNullable (replaces.get (opposite))
-                           . orElse (0D);
+                           . orElse (0.01D);
             double factor = value + opvalue;
             
             replaces.put (opposite, opvalue / factor);
@@ -70,18 +71,21 @@ public class RunSpellchecker {
         forest.setStatistics (replaces);
         System.out.println ("Statistics calculated");
         
-        List <List <String>> rows = new ArrayList <> ();
+        final PrintWriter pw = new PrintWriter (directory + fileOUT);
+        pw.println ("Id,Expected");
+        
         for (int i = 0; i < wordsReader.getRowsNumber () * 1; i++) {
             final String word = wordsReader.get ("Id", i).toLowerCase ();
             String fixed = forest.spellcheckWord (word).toUpperCase ();
-            rows.add (Arrays.asList (word.toUpperCase (), fixed));
+            pw.println (word.toUpperCase () + "," + fixed);
             
             System.out.println (word + " -> " + fixed);
         }
+        pw.close ();
         System.out.println ("Spellcheck correction finished");
         
-        final CSVWriter wordsWriter = new CSVWriter (directory + fileOUT, ",");
-        wordsWriter.write (Arrays.asList ("Id", "Expected"), rows);
+        //final CSVWriter wordsWriter = new CSVWriter (directory + fileOUT, ",");
+        //wordsWriter.write (Arrays.asList ("Id", "Expected"), rows);
         //*/
         
         /*
