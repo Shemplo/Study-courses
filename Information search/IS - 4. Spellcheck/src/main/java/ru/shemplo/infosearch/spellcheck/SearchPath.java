@@ -10,6 +10,9 @@ public class SearchPath extends Trio <String, PrefixNode, Double> {
     @Getter @Setter
     private int replaces = 0;
     
+    @Getter @Setter
+    private int offset = 0;
+    
     public SearchPath (String F, PrefixNode S, Double T) {
         super (F, S, T);
     }
