@@ -22,6 +22,7 @@ public class RunSpellchecker {
         wordsReader.read (directory + fileIN, ",");
         System.out.println ("IN file read");
         
+        @SuppressWarnings ("unused")
         Map <String, List <String>> metaphone = new HashMap <> ();
         final PrefixForest forest = new PrefixForest ();
         
@@ -53,28 +54,23 @@ public class RunSpellchecker {
             String expected = answersReader.get ("Expected", i);
             String word = answersReader.get ("Id", i);
             if (word.equals (expected)) {
-                /*
-                String sound = word;
-                try {
-                    sound = Metaphone.encodeEN (word);
-                } catch (Exception e) {}
-                if (!sound.equals (word)) {
-                    metaphone.putIfAbsent (sound, new ArrayList <> ());
-                    metaphone.get (sound).add (word);
-                }
-                
-                sound = word;
-                try {
-                    sound = Metaphone.encodeRU (word);
-                } catch (Exception e) {}
-                if (!sound.equals (word)) {
-                    metaphone.putIfAbsent (sound, new ArrayList <> ());
-                    metaphone.get (sound).add (word);
-                }
-                */
-                
                 correct.add (word);
             } else {
+                /*
+                 * Calculating statistics of replaces particular symbols to other
+                 * 
+                 * For example: 
+                 * 
+                 * Id:       aabc
+                 * Expected: abbd
+                 * 
+                 * Here letter 'a' must be replaced with 'b' (and 'c' with 'd').
+                 * So for letters 'a' and 'c' counters will be incremented by 1.
+                 * Finally counters will be normalized on total number of replaces.
+                 * 
+                 * Also, if Id word is longer than all extra symbols will be
+                 * assigned as replaced to '_' (nothing).
+                 */
                 final int length = Math.min (word.length (), expected.length ());
                 toCorrect.put (word, expected);
                 
@@ -97,19 +93,6 @@ public class RunSpellchecker {
         
         double denominator = replacesCount;
         replaces.forEach ((key, value) -> {
-            /*
-            if (value < 1) { return; }
-            
-            String opposite = reverse (key);
-            double opvalue = Optional.ofNullable (replaces.get (opposite))
-                           . orElse (1D);
-            double factor = value + opvalue;
-            
-            if (opposite.equals (key)) { factor /= 2; }
-            replaces.put (opposite, opvalue / factor);
-            replaces.put (key, value / factor);
-            */
-            
             replaces.compute (key, (__, v) -> v / denominator);
         });
         forest.setStatistics (replaces);
@@ -127,43 +110,12 @@ public class RunSpellchecker {
                 fixed = toCorrect.get (word);
             } else if (!correct.contains (word)) {
                 /*
-                Set <String> candidates = new LinkedHashSet <> ();
-                String encoded = Metaphone.encodeEN (word);
-                if (metaphone.containsKey (encoded)) {
-                    candidates.addAll (metaphone.get (encoded));                    
-                }
-                encoded = Metaphone.encodeRU (word);
-                if (metaphone.containsKey (encoded)) {
-                    candidates.addAll (metaphone.get (encoded));                    
-                }
-                
-                String bestValue = "";
-                double bestProb = 0;
-                
-                for (String candidate : candidates) {
-                    int length = Math.min (candidate.length (), word.length ());
-                    double score = 1;
-                    for (int j = 0; j < length; j++) {
-                        final String key = word.charAt (j) + "-" + candidate.charAt (j);
-                        score *= Optional.ofNullable (replaces.get (key)).orElse (0.01);
-                    }
-                    
-                    if (score > bestProb) {
-                        bestValue = candidate;
-                        bestProb = score;
-                    }
-                }
-                
-                fixed = bestValue;
+                 * Doing word spellcheck and correction in Prefix Forest
+                 * 
+                 * As the result we get the sorted list of candidates,
+                 * then choose the first (best).
                  */
-                
                 fixed = forest.spellcheckWord (word).get (0).F;
-                
-                /*
-                if (toCorrect.containsKey (word) && !fixed.equals (toCorrect.get (word))) {
-                    System.out.println (word + " / " + toCorrect.get (word) + " / " + fixed);
-                }
-                */
             }
             
             pw.println (word + "," + fixed);
@@ -176,6 +128,7 @@ public class RunSpellchecker {
         System.out.println ("Spellcheck correction finished");
     }
     
+    @SuppressWarnings ("unused")
     private static String reverse (String s) {
         char [] array = s.toCharArray ();
         int length = s.length ();

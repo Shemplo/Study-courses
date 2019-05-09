@@ -1,12 +1,10 @@
 package ru.shemplo.infosearch.spellcheck.forest;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 
 import lombok.ToString;
-import ru.shemplo.snowball.stuctures.Pair;
 
 @ToString (exclude = {"transitions"})
 public class PrefixNode {

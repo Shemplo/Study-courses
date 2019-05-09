@@ -13,13 +13,20 @@ public class PrefixForest {
     
     private static final int K = 50;
     
-    //private Map <Character, PrefixTree> tries = new LinkedHashMap <> ();
     @Getter @Setter
     private Map <String, Double> statistics = new HashMap <> ();
     private final PrefixNode tree = new PrefixNode ();
     
     private int totalCount = 0;
     
+    /**
+     * Adds word to the prefix trie.
+     * 
+     * @param word that should be added
+     * 
+     * @param count number of word appeared in search queries
+     * 
+     */
     public void addWord (String word, int count) {
         word = String.format ("^%s$", word);
         totalCount += count;
@@ -27,24 +34,32 @@ public class PrefixForest {
         final Queue <Character> chars = new LinkedList <> ();
         for (char c : word.toCharArray ()) { chars.add (c); }
         
-        //tries.putIfAbsent (chars.peek (), new PrefixTree ());
-        //tries.get (chars.peek ()).addSequence (chars, count);
         tree.processSequence (chars, count);
     }
     
     public void normalize () {
-        //tries.forEach ((__, tree) -> tree.normalize (totalCount));
         tree.normalize (totalCount);
     }
     
+    /**
+     * Gets the word and makes attempts to correct it using
+     * prior probability in Prefix Forest.
+     * 
+     * @param word to spellcheck and correct
+     * 
+     * @return sorted list of candidates for correction
+     * 
+     */
     public List <Pair <String, Double>> spellcheckWord (String word) {
+        /*
+         * If word is too long then say that we can't do anything
+         */
         if (word.length () > 24) {
             return Arrays.asList (Pair.mp (word, 1D));
         }
         
-        //System.out.println ("Word: " + word);
+        // Wrapping word with operational symbols ^ and $
         String fword = String.format ("^%s$", word);
-        //System.out.println ("Prepare: " + word);
         
         List <SearchPath> paths = new ArrayList <> ();
         
@@ -58,9 +73,11 @@ public class PrefixForest {
         
         while (!queue.isEmpty ()) {
             final SearchPath path = queue.poll ();
-            //System.out.println ("> Prefix: " + path.F);
+            
+            // If we didn't get enough length of word in tree
             if (path.F.length () < fword.length () - 1) {
-                List <SearchPath> transformations = makeTransformations (path.F, path.S, fword, K);
+                // Fetching some transitions with the biggest prior probability
+                List <SearchPath> transformations = makeTransformations (path.F, path.S, fword);
                 
                 for (SearchPath trans : transformations) {
                     Character current = trans.F.charAt (trans.F.length () - 1);
@@ -68,13 +85,25 @@ public class PrefixForest {
                     boolean equal = expected.equals (current);
                     String key = current + "-" + expected;
                     
+                    // Estimate probability that current symbol is not correct and tax should be taken
                     double factor = equal ? 1 : Optional.ofNullable (statistics.get (key)).orElse (0.1D);
                     double fprob = path.T * (trans.T / path.S.weight) * factor;
                     if (!equal) {
                         final int r = path.getReplaces () + 1;
                         if (r > 1) { continue; }
                         
+                        // Making tax for deviation from the word
                         fprob *= Math.pow (1 - factor, 2.5);
+                        
+                        /*
+                         * Tax doesn't excepts candidate from the list at all
+                         * but decrease it position in such list.
+                         * 
+                         * This is done from the suggestion that in words
+                         * there are 2 mistakes (replaces) on average. So
+                         * if deviation is more than 2 symbols than tax will
+                         * be huge and such candidate won't be on top.
+                         */
                     }
                     
                     //if (fprob < 1e-10) { continue; }
@@ -84,13 +113,18 @@ public class PrefixForest {
                     
                     queue.add (copy);
                 }
+                
+            // If we got enough length of word in tree
             } else {
+                // In terminal node we just remember the candidate and it's weight
                 if (path.S.isLeaf ()) {
                     paths.add (path);
                     
                     if (paths.size () >= K) { break; }
+                    
+                // Also make attempts to add some symbols to the end to expand word
                 } else if (path.F.length () - word.length () <= 2) {
-                    for (SearchPath trans : makeTransformations (path.F, path.S, fword, K)) {
+                    for (SearchPath trans : makeTransformations (path.F, path.S, fword)) {
                         final double fprob = path.T * (trans.T / path.S.weight) * 2.5;
                         //if (fprob < 1e-20) { continue; }
                         
@@ -103,23 +137,29 @@ public class PrefixForest {
         
         queue.clear ();
         
+        // If absolutely nothing in tree than just return given word
         if (paths.isEmpty ()) { return Arrays.asList (Pair.mp (word, 1D)); }
         
-        SearchPath best = paths.get (0);
-        for (SearchPath path : paths) {
-            if (best.T < path.T) {
-                best = path;
-            }
-        }
-        
-        //return best.F.substring (0, best.F.length () - 1);
+        // Converting result to appropriate form
         return paths.stream ()
              . map (path -> Pair.mp (path.F, path.T))
              . map (pair -> pair.applyF (w -> w.substring (0, w.length () - 1)))
              . collect (Collectors.toList ());
     }
     
-    public List <SearchPath> makeTransformations (String tmp, PrefixNode node, String word, int k) {
+    /**
+     * For given state (node) in tree generates candidate transitions by choosing 
+     * the most poplar variants. For each node will be returned 75% of possible
+     * transitions (or 3 if 75% is less).
+     * 
+     * @param tmp current substring in tree search state
+     * @param node in tree search state
+     * @param word that should be spellchecked
+     * 
+     * @return list of possible transitions
+     * 
+     */
+    public List <SearchPath> makeTransformations (String tmp, PrefixNode node, String word) {
         final List <SearchPath> list = new ArrayList <> (node.transitions.size ());
         for (Entry <Character, PrefixNode> entry : node.transitions.entrySet ()) {
             final PrefixNode tnode = entry.getValue ();
@@ -128,7 +168,7 @@ public class PrefixForest {
         
         list.sort ((a, b) -> -Double.compare (a.T, b.T));
         
-        k = Math.max ((int) (node.transitions.size () * 0.75), 3);
+        int k = Math.max ((int) (node.transitions.size () * 0.75), 3);
         return list.subList (0, Math.min (k, list.size ()));
         /*
         return node.transitions.entrySet ().stream ()
