@@ -6,6 +6,8 @@
 * **_2 term, 2016_** : 
   * _C/C++_  
     < description >
+  * _Paradigms of programming_  
+    < description >
 * **_3 term, 2016_** : 
   * _Advanced java_  
     < description >
