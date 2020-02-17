@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ru.shemplo.snowball.utils.StringManip;
+
 public class CSVReader {
     
     private List <String> titles      = new ArrayList <> ();
@@ -36,8 +38,8 @@ public class CSVReader {
             titles.addAll (Arrays.asList (tokens));
             
             String line = null;
-            while ((line = br.readLine ()) != null) {
-                tokens = line.split (delimeter);
+            while ((line = StringManip.fetchNonEmptyLine (br)) != null) {
+                tokens = line.split   (delimeter);
                 rows.add (Arrays.asList (tokens));
             }
         }

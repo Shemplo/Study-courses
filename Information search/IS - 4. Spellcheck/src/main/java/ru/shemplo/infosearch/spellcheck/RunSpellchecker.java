@@ -30,7 +30,8 @@ public class RunSpellchecker {
             int freq = Integer.parseInt (wordsReader.get ("Freq", i));
             String word = wordsReader.get ("Id", i);
             
-            if (word.equals ("ЛЬВОВ") || word.equals ("ДЬЯВОЛ")) {
+            if (word.equals ("КОРОЛЬ") || word.equals ("КОРОЛЯ") || word.equals ("КОРОЛИ") 
+                    || word.equals ("КОРОЛЫ") || word.equals ("КОРОВЫ")) {
                 System.out.println (word + " / " + freq);
             }
             
@@ -76,8 +77,12 @@ public class RunSpellchecker {
                 
                 for (int j = 0; j < length; j++) {
                     if (word.charAt (j) != expected.charAt (j)) {
-                        String key = "" + word.charAt (j);// + "-" + expected.charAt (j);                        
+                        String key = "" + word.charAt (j);// just current symbol
                         replaces.compute (key, (__, v) -> v == null ? 1 : v + 1);
+                        
+                        key = word.charAt (j) + "-" + expected.charAt (j);
+                        replaces.compute (key, (__, v) -> v == null ? 1 : v + 1);
+                        
                         replacesCount += 1;
                     }
                 }
@@ -95,20 +100,22 @@ public class RunSpellchecker {
         replaces.forEach ((key, value) -> {
             replaces.compute (key, (__, v) -> v / denominator);
         });
-        forest.setStatistics (replaces);
+        forest.setStats (replaces);
         System.out.println ("Statistics calculated");
         
         final PrintWriter pw = new PrintWriter (directory + fileOUT);
         pw.println ("Id,Expected");
         
         System.out.println ("To fix: " + toCorrect.size () + " words");
+        int changes = 0;
         for (int i = 0; i < wordsReader.getRowsNumber (); i++) {
             final String word = wordsReader.get ("Id", i);
             
             String fixed = word;
-            if (toCorrect.containsKey (word)) {
-                fixed = toCorrect.get (word);
-            } else if (!correct.contains (word)) {
+            /*if (toCorrect.containsKey (word)) {
+                //fixed = toCorrect.get (word);
+                fixed = forest.spellcheckWord (word).get (0).F;
+            } else*/ if (!correct.contains (word)) {
                 /*
                  * Doing word spellcheck and correction in Prefix Forest
                  * 
@@ -119,13 +126,18 @@ public class RunSpellchecker {
             }
             
             pw.println (word + "," + fixed);
+            if (!word.equals (fixed)) {
+                //System.out.println (i + ": " + word + " -> " + fixed);
+                changes += 1;
+            }
+            
             if (i % 250 == 0) {                
                 System.out.println (i + ": " + word + " -> " + fixed);
                 pw.flush ();
             }
         }
         pw.close ();
-        System.out.println ("Spellcheck correction finished");
+        System.out.println ("Spellcheck correction finished (" + changes + " changes)");
     }
     
     @SuppressWarnings ("unused")

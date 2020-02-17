@@ -13,8 +13,10 @@ public class SearchPath extends Trio <String, PrefixNode, Double> {
     @Getter @Setter
     private int offset = 0;
     
-    public SearchPath (String F, PrefixNode S, Double T) {
+    public SearchPath (String F, PrefixNode S, Double T, int offset) {
         super (F, S, T);
+        
+        this.offset = offset;
     }
     
     /*

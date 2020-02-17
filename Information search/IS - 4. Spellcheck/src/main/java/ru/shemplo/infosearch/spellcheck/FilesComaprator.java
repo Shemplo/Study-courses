@@ -1,15 +1,11 @@
 package ru.shemplo.infosearch.spellcheck;
 
 import java.io.IOException;
-import java.lang.reflect.WildcardType;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import javax.crypto.Cipher;
-import javax.swing.tree.ExpandVetoException;
 
 import ru.shemplo.infosearch.spellcheck.io.CSVReader;
 
