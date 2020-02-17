@@ -18,6 +18,11 @@ public class RunVigenereDecipher {
         char [] buffer = new char [input.length ()];
         
         for (int i = 0; i < input.length (); i++) {
+            if (!Character.isLetter (input.charAt (i))) {
+                buffer [i] = input.charAt (i);
+                continue;
+            }
+            
             char c = (char) (input.charAt (i) - 'a');
             char k = (char) (key.charAt (i % key.length ()) - 'a');
             
