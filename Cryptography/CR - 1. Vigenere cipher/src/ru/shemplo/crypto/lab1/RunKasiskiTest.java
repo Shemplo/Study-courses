@@ -20,7 +20,6 @@ public class RunKasiskiTest {
     private static final Map <String, List <Integer>> 
         substrings = new HashMap <> ();
     
-    
     public static void main (String ... args) throws IOException {
         String input = Files.readAllLines (Paths.get ("text.txt")).stream ()
             . collect (Collectors.joining (" ")).toLowerCase ();
