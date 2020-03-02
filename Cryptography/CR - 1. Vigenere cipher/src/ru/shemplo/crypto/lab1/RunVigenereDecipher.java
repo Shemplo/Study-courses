@@ -6,15 +6,15 @@ public class RunVigenereDecipher {
     
     public static void main (String ... args) throws IOException {
         System.out.print ("Encoded message: ");
-        String input = Utils.readInput ().toLowerCase ();
+        String input = Utils.readInput ();
         System.out.print ("Key: ");
-        String key = Utils.readInput ().toLowerCase ();
+        String key = Utils.readInput ();
         
         System.out.println ();
-        System.out.println (decode (input, key));
+        System.out.println (decrypt (input, key));
     }
     
-    public static String decode (String input, String key) {
+    public static String decrypt (String input, String key) {
         char [] buffer = new char [input.length ()];
         
         for (int i = 0; i < input.length (); i++) {

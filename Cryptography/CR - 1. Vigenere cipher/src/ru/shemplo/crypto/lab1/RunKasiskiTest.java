@@ -24,7 +24,7 @@ public class RunKasiskiTest {
     public static void main (String ... args) throws IOException {
         String input = Files.readAllLines (Paths.get ("text.txt")).stream ()
             . collect (Collectors.joining (" ")).toLowerCase ();
-        input = RunVigenereCipher.encode (input, KEY);
+        input = RunVigenereCipher.encrypt (input, KEY);
         
         fillPreficies (input, substrings);
         
