@@ -1,7 +1,6 @@
 package ru.shemplo.crypto.lab5;
 
-import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.valueOf;
+import static java.math.BigInteger.*;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -42,8 +41,26 @@ public class RunRSACipher {
         return new Tup4 <> (encrypt (input, e, n), e, d, n);
     }
     
+    public static Tup4 <String, BigInteger, BigInteger, BigInteger> encrypt (String input, BigInteger e) {
+        BigInteger p, q, n, phi;
+        
+        do {
+            p = getPrime (); q = getPrime ();
+            
+            n = p.multiply (q);
+            phi = p.subtract (ONE).multiply (q.subtract (ONE));
+        } while (!e.gcd (phi).equals (ONE));
+        
+        final var d = e.modInverse (phi);
+        
+        return new Tup4 <> (encrypt (input, e, n), e, d, n);
+    }
+    
     public static BigInteger getPrime () {
-        return BigInteger.probablePrime (8, RANDOM); // to fit `char`
+        while (true) {
+            final var tmp = BigInteger.valueOf (RANDOM.nextInt (256));
+            if (tmp.isProbablePrime (20)) { return tmp; }
+        }
     }
     
     private static String encrypt (String message, BigInteger key, BigInteger mod) {

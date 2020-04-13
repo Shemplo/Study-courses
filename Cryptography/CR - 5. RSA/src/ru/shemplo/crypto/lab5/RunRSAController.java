@@ -2,6 +2,7 @@ package ru.shemplo.crypto.lab5;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.NoSuchElementException;
 
 public class RunRSAController {
     
@@ -43,9 +44,15 @@ public class RunRSAController {
                 
                 System.out.println ();
                 System.out.println ("Message: " + decrypted);
+                System.out.println ("Iteration: " + attempts);
                 System.out.println ("Correct: " + correct);
             } else if (mode.equals ("sm")) {
-                RunSmallExponentHack.main ();
+                try {
+                    RunSmallExponentHack.main ();
+                    System.out.println ();
+                } catch (NoSuchElementException nsee) {
+                    System.out.println ("Hack failed :(");
+                }
             } else if (mode.equals ("s")) {
                 break;
             }
