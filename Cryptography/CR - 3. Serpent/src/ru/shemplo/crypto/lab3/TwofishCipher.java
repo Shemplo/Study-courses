@@ -17,18 +17,33 @@ public class TwofishCipher {
     private static final int SK_ROTL = 9;
     
     public static byte [] encrypt (byte [] message, byte [] key) {
-        message = Arrays.copyOf (message, 128);
-        key = Arrays.copyOf (key, 32);
+        final var sessionKey = makeKey (Arrays.copyOf (key, 32));
         
-        final var sessionKey = makeKey (key);
-        return blockEncrypt (message, 0, sessionKey);
+        final var blocks = message.length / BLOCK_SIZE + (message.length % BLOCK_SIZE > 0 ? 1 : 0);
+        final var cipher = new byte [blocks * BLOCK_SIZE];
+        message = Arrays.copyOf (message, cipher.length);
+        
+        for (int i = 0; i < blocks; i++) {
+            final var tmp = blockEncrypt (message, i * BLOCK_SIZE, sessionKey);
+            System.arraycopy (tmp, 0, cipher, i * BLOCK_SIZE, BLOCK_SIZE);
+        }
+        
+        return cipher;
     }
     
     public static byte [] decrypt (byte [] cipher, byte [] key) {
-        key = Arrays.copyOf (key, 32);
+        final var sessionKey = makeKey (Arrays.copyOf (key, 32));
         
-        final var sessionKey = makeKey (key);
-        return blockDecrypt (cipher, 0, sessionKey);
+        final var blocks = cipher.length / BLOCK_SIZE + (cipher.length % BLOCK_SIZE > 0 ? 1 : 0);
+        final var message = new byte [blocks * BLOCK_SIZE];
+        cipher = Arrays.copyOf (cipher, message.length);
+        
+        for (int i = 0; i < blocks; i++) {
+            final var tmp = blockDecrypt (cipher, i * BLOCK_SIZE, sessionKey);
+            System.arraycopy (tmp, 0, message, i * BLOCK_SIZE, BLOCK_SIZE);
+        }
+        
+        return message;
     }
     
     private static synchronized Object makeKey (byte [] k) {
