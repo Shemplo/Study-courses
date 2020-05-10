@@ -1,4 +1,4 @@
-package ru.shemplo.crypto.lab3;
+package ru.shemplo.crypto.lab4;
 
 public class Matrices {
     

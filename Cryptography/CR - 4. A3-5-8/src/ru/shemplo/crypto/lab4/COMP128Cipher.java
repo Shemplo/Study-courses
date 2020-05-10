@@ -1,6 +1,6 @@
-package ru.shemplo.crypto.lab3;
+package ru.shemplo.crypto.lab4;
 
-import static ru.shemplo.crypto.lab3.Matrices.*;
+import static ru.shemplo.crypto.lab4.Matrices.*;
 
 // A3,A8
 public class COMP128Cipher {

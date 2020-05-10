@@ -1,4 +1,4 @@
-package ru.shemplo.crypto.lab3;
+package ru.shemplo.crypto.lab4;
 
 import java.util.List;
 import java.util.stream.Collectors;
