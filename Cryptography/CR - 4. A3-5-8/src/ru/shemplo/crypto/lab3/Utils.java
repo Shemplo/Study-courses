@@ -3,6 +3,7 @@ package ru.shemplo.crypto.lab3;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Random;
 
 public class Utils {
     
@@ -13,15 +14,15 @@ public class Utils {
         return br.readLine ();
     }
     
+    public static void randomizeArray (int [] array, Random random, int limit) {
+        for (int i = 0; i < array.length; i++) {
+            array [i] = random.nextInt (limit);
+        }
+    }
     
-    /*
-     * 
-     * 
-for (i=0; i<16; i++)
-    key[i] = (hextoint(argv[1][2*i+2])<<4)
-            | hextoint(argv[1][2*i+3]);
-     * 
-     */
+    public static int majority (int a, int b, int c) {
+        return a + b + c >= 2 ? 1 : 0;
+    }
     
     public static int [] compressInput (String input) {
         int [] bytes = new int [16];
