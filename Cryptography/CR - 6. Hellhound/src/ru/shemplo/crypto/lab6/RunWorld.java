@@ -15,15 +15,6 @@ public class RunWorld {
                 sendMessage ("Trent #0", new String [] {"initial", "Alice", "Bob"});
             }
             
-            @Override
-            public void handleMessage (String from, Object [] message) {
-                if ("chat".equals (message [0])) {
-                    
-                } else {                    
-                    super.handleMessage (from, message);
-                }
-            }
-            
         };
         delivery.addEndpoint (alice);
         

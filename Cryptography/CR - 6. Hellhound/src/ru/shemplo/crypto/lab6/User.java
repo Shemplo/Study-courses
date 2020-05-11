@@ -10,6 +10,9 @@ public class User extends Endpoint {
     private final Map <String, Long> handshakeValues = new HashMap <> ();
     private final Map <String, byte []> sessionKeys = new HashMap <> ();
     
+    private final Map <String, Long> sessionDuration = new HashMap <> ();
+    private final Map <String, Long> sessionStart = new HashMap <> ();
+    
     private final byte [] key;
     
     public User (String name, DeliveryService delivery) {
@@ -28,9 +31,15 @@ public class User extends Endpoint {
         if ("session".equals (message [0])) {
             final var bundle = parseMessage ((byte []) message [1], key);
             
+            final long timestamp = Long.parseLong (bundle [0]);
+            final long duration = Long.parseLong (bundle [1]);
+            
             final byte [] keyAB = bundle [2].getBytes ();
             final String partner = bundle [4].trim ();
             sessionKeys.put (partner, keyAB);
+            
+            sessionDuration.put (partner, duration);
+            sessionStart.put (partner, timestamp);
             
             final long now = System.currentTimeMillis ();
             handshakeValues.put (partner, now + 1);
@@ -42,9 +51,15 @@ public class User extends Endpoint {
             final byte [] cipher = ((String) message [2]).getBytes (ISO_8859_1);
             final var bundle = parseMessage (cipher, key);
             
+            final long duration = Long.parseLong (bundle [1]);
+            final long start = Long.parseLong (bundle [0]);
+            
             final String partner = bundle [3].trim ();
             final byte [] keyAB = bundle [2].getBytes ();
             sessionKeys.put (partner, keyAB);
+            
+            sessionDuration.put (partner, duration);
+            sessionStart.put (partner, start);
             
             final String [] handshakeBundle = parseMessage ((byte []) message [1], keyAB);
             
@@ -61,9 +76,36 @@ public class User extends Endpoint {
                 
                 final long timestamp = Long.parseLong (bundle [0].trim ());
                 if (timestamp == handshakeValues.get (from)) {
-                    System.out.println ("Connection with " + from + " established");
+                    System.out.println ("+++ Connection with " + from + " established +++");
                     handshakeValues.remove (from);
+                    System.out.println ("\n\n");
+                    
+                    final var cipher = cipherMessage (keyAB, "My name is Alice");
+                    sendMessage ("Bob", new Object [] {"chat", cipher});
                 }
+            }
+        } else if ("chat".equals (message [0])) {
+            final var keyAB = sessionKeys.get (from);
+            final var bundle = parseMessage ((byte []) message [1], keyAB);
+            
+            final var text = bundle [0].trim ();
+            System.out.format ("[%s] Chat message from '%s': %s\n", getName (), from, text);
+            final var expirationTime = sessionStart.get (from) + sessionDuration.get (from);
+            
+            if (System.currentTimeMillis () >= expirationTime) {
+                System.out.format ("--- Session with '%s' is expired ---\n", from);
+            } else {
+                String response = text.length () > 30 
+                     ? text.substring (text.length () - 30) 
+                     : text;
+                response += "-" + getName ();
+                
+                try {
+                    Thread.sleep (1000 + random.nextInt (500));
+                } catch (InterruptedException e) {}
+                
+                final var cipher = cipherMessage (keyAB, response);
+                sendMessage (from, new Object [] {"chat", cipher});
             }
         }
     }

@@ -26,7 +26,7 @@ public class Trent extends Endpoint {
             final byte [] aKey = user2key.get (a), bKey = user2key.get (b);
             
             final String timestamp = String.valueOf (System.currentTimeMillis ());
-            final String ttl = String.valueOf (1000 * 60); // 1 minute
+            final String ttl = String.valueOf (1000 * 10); // 10 seconds
             final String key = generateKey (32);
             
             final byte [] bCipher = cipherMessage (bKey, timestamp, ttl, key, a);

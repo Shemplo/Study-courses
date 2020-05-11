@@ -1,6 +1,7 @@
 package ru.shemplo.crypto.lab6;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -32,6 +33,11 @@ public abstract class Endpoint {
     }
     
     protected byte [] cipherMessage (byte [] key, String ... values) {
+        final var strValues = Utils.flatLine (Arrays.toString (values));
+        final var strKey = Utils.flatLine (new String (key));
+        
+        System.out.format ("[%s] Cipher values (key: %s): %s\n", getName (), strKey, strValues);
+        
         final String bundle = String.join (">>>", values);
         return TwofishCipher.encrypt (bundle.getBytes (), key);
     }
