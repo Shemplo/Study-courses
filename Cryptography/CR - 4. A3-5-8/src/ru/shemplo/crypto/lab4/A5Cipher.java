@@ -20,7 +20,7 @@ public class A5Cipher {
         int [] key = new int [message.length];
         
         for (int i = 0; i < message.length; i++) {
-            int m = Utils.majority (x [8], y [10], x [10]);
+            int m = Utils.majority (x [8], y [10], z [10]);
             if (x [8] == m) {
                 int t = x [13] ^ x [16] ^ x [17] ^ x [18];
                 System.arraycopy (x, 0, x, 1, x.length - 1);
@@ -31,7 +31,7 @@ public class A5Cipher {
                 System.arraycopy (y, 0, y, 1, y.length - 1);
                 y [0] = t;
             }
-            if (x [10] == m) {
+            if (z [10] == m) {
                 int t = z [7] ^ z [20] ^ z [21] ^ z [22];
                 System.arraycopy (z, 0, z, 1, z.length - 1);
                 z [0] = t;
