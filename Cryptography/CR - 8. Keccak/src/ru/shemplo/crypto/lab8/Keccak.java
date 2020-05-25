@@ -16,13 +16,6 @@ public class Keccak {
         this.r = r; this.d = d; this.out = out;
     }
     
-    /**
-     * Do hash.
-     *
-     * @param message input data
-     * @param parameter keccak param
-     * @return byte-array result
-     */
     public byte [] digest (final byte [] message) {
         final int [] p = new int [message.length];
         final int [] s = new int [1600 >>> 3];
@@ -99,7 +92,7 @@ public class Keccak {
             BigInteger [] C = new BigInteger [5];
             BigInteger [] D = new BigInteger [5];
             
-            // θ step
+            // θ step (XOR in pair columns)
             for (int i = 0; i < 5; i++) {
                 C [i] = state [i][0].xor (state [i][1]).xor (state [i][2]).xor (state [i][3]).xor (state [i][4]);
             }
@@ -114,7 +107,7 @@ public class Keccak {
                 }
             }
             
-            // ρ and π steps
+            // ρ and π steps (shifts in the row of 5x5)
             int x = 1, y = 0;
             BigInteger current = state [x][y];
             for (int i = 0; i < 24; i++) {
@@ -127,7 +120,7 @@ public class Keccak {
                 state [x][y] = Utils.leftRotate (shiftValue, (i + 1) * (i + 2) / 2, 64);
             }
             
-            // χ step
+            // χ step (permutations in 5x5)
             for (int j = 0; j < 5; j++) {
                 BigInteger [] t = new BigInteger [5];
                 for (int i = 0; i < 5; i++) {
@@ -140,7 +133,7 @@ public class Keccak {
                 }
             }
             
-            // ι step
+            // ι step (round-dependent transformation)
             for (int i = 0; i < 7; i++) {
                 LFSRstate = ((LFSRstate << 1) ^ ((LFSRstate >> 7) * 0x71)) % 256;
                 int bitPosition = (1 << i) - 1;
