@@ -28,10 +28,10 @@ public class RunRSAController {
                 int attempts = 0;
                 
                 while (!correct && attempts < 10) {
-                    final var tmp = RunRSACipher.encrypt (input);
+                    final var tmp = RunRSACipher.encrypt (input.toCharArray ());
                     cipher = tmp;
                     
-                    decrypted = RunRSADecipher.decrypt (tmp.T1, tmp.T3, tmp.T4);
+                    decrypted = new String (RunRSADecipher.decrypt (tmp.T1, tmp.T3, tmp.T4));
                     correct = input.equals (decrypted);
                     attempts++;
                 }

@@ -16,14 +16,16 @@ public class RunSmallExponentHack {
     
     private static final String MESSAGE = "Test 123";
     
+    // :NOTE: before start change bounds of primary generator UPPER to 256, LOWER to 0
+    
     public static void main (String ... args) throws IOException {
         Locale.setDefault (Locale.ENGLISH);
         
-        final List <Tup4 <String, BigInteger, BigInteger, BigInteger>> ciphers = new ArrayList <> ();
+        final List <Tup4 <int [], BigInteger, BigInteger, BigInteger>> ciphers = new ArrayList <> ();
         final var knownNs = new HashSet <BigInteger> ();
         
         while (ciphers.size () < 20) {
-            final var cipher = RunRSACipher.encrypt (MESSAGE, EXP);
+            final var cipher = RunRSACipher.encrypt (MESSAGE.toCharArray (), EXP);
             if (cipher.T4.compareTo (BigInteger.valueOf (500)) <= 0
                     && !knownNs.contains (cipher.T4)) {
                 knownNs.add (cipher.T4);
@@ -33,11 +35,11 @@ public class RunSmallExponentHack {
         
         BigInteger bounds = ciphers.stream ().map (t -> t.T4).limit (3).reduce (BigInteger.ONE, BigInteger::multiply);
         
-        for (int i = 0; i < ciphers.get (0).T1.length (); i++) { 
+        for (int i = 0; i < ciphers.get (0).T1.length; i++) { 
             final int index = i;
             
             final var options = ciphers.stream ().<Set <BigInteger>> map (cipher -> {
-                final var code = BigInteger.valueOf (cipher.T1.charAt (index));
+                final var code = BigInteger.valueOf (cipher.T1 [index]);
                 final var steps = bounds.divide (cipher.T4).intValue ();
                 final var step = cipher.T4;
                 

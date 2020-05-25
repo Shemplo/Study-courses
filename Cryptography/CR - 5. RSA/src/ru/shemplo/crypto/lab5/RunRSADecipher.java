@@ -16,17 +16,24 @@ public class RunRSADecipher {
         String mod = Utils.readInput ();
         
         System.out.println ();
-        System.out.println (decrypt (input, new BigInteger (key), new BigInteger (mod)));
+        final var chars = input.toCharArray ();
+        final var codes = new int [chars.length];
+        System.arraycopy (chars, 0, codes, 0, chars.length);
+        final var decrypted = decrypt (codes, new BigInteger (key), new BigInteger (mod));
+        System.out.println (new String (decrypted));
     }
     
-    public static String decrypt (String input, BigInteger key, BigInteger mod) {
-        final char [] buffer     = new char [input.length ()], 
-                      characters = input.toCharArray ();
-        for (int i = 0; i < characters.length; i++) {
-            buffer [i] = (char) valueOf (characters [i]).modPow (key, mod).intValue ();
+    public static char [] decrypt (int [] message, BigInteger key, BigInteger mod) {
+        final char [] buffer = new char [message.length];
+        
+        for (int i = 0; i < message.length; i++) {
+            final var m = valueOf (message [i]).modPow (key, mod);
+            //System.out.println (message [i] + " | " + ((int) message [i]) + " | " + m + " | " 
+              //                  + m.intValue () + " | " + ((char) m.intValue ()));
+            buffer [i] = (char) m.intValue ();
         }
         
-        return new String (buffer);
+        return buffer;
     }
     
 }
