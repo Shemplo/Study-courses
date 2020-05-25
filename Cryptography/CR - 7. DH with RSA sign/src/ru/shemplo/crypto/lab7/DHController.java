@@ -3,7 +3,6 @@ package ru.shemplo.crypto.lab7;
 import static java.math.BigInteger.*;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Random;
 
 import ru.shemplo.crypto.lab5.RunRSACipher;
@@ -13,8 +12,8 @@ public class DHController {
     
     public static final Random r = new Random ();
     
-    public static final BigInteger G = probablePrime (5, r),
-                                   P = probablePrime (30, r);
+    public static final BigInteger G = probablePrime (7, r),
+                                   P = probablePrime (50, r);
     
     public static void main (String ... args) {
         /* Welcome to Unicode reality
@@ -33,7 +32,7 @@ public class DHController {
         System.out.println (">>> Generation of public numbers P and G <<<");
         final var pm1d2 = P.subtract (ONE).divide (TWO);
         System.out.println ("Is `(p - 1) / 2` primary number: " + pm1d2.isProbablePrime (10));
-        System.out.println ("p = " + P + "; g = " + G);
+        System.out.println ("P = " + P + "; G = " + G);
         System.out.println ();
         
         System.out.println (">>> Generation of private keys of Alice (a) and Bob (b)  <<<");
