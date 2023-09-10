@@ -51,14 +51,14 @@ public class DHController {
         final var EDNa = RunRSACipher.encrypt ("".toCharArray ());
         System.out.println ("E, D, N for Alice: " + EDNa);
         final var Ca = RunRSACipher.encrypt (A.toString ().toCharArray (), EDNa.T3, EDNa.T4);
-        System.out.println ("Signed with Da A value: " + new String (Ca, 0, Ca.length));
+        //System.out.println ("Signed with Da A value: " + new String (Ca, 0, Ca.length));
         System.out.println ();
         
         System.out.println (">>> Generation of RSA key-pair for Bob <<<");
         final var EDNb = RunRSACipher.encrypt ("".toCharArray ());
         System.out.println ("E, D, N for Bob: " +  EDNb);
         final var Cb = RunRSACipher.encrypt (B.toString ().toCharArray (), EDNb.T3, EDNb.T4);
-        System.out.println ("Signed with Db B value: " + new String (Cb, 0, Cb.length));
+        //System.out.println ("Signed with Db B value: " + new String (Cb, 0, Cb.length));
         System.out.println ();
         
         System.out.println (">>> Deciphering signed B and A values for Alice (Ra) and Bob (Rb) <<<");

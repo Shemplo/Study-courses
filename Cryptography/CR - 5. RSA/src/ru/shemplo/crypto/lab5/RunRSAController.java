@@ -2,6 +2,7 @@ package ru.shemplo.crypto.lab5;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
 
 public class RunRSAController {
@@ -22,22 +23,22 @@ public class RunRSAController {
                 System.out.print ("Message: ");
                 String input = Utils.readInput ();
                 
-                Tup4 <?, ?, ?, ?> cipher = null;
+                Tup4 <BigInteger [], ?, ?, ?> cipher = null;
                 boolean correct = false;
                 String decrypted = "";
                 int attempts = 0;
                 
                 while (!correct && attempts < 10) {
-                    final var tmp = RunRSACipher.encrypt (input.toCharArray ());
+                    final var tmp = RunRSACipher.encrypt (input.getBytes (StandardCharsets.UTF_8));
                     cipher = tmp;
                     
-                    decrypted = new String (RunRSADecipher.decrypt (tmp.T1, tmp.T3, tmp.T4));
+                    decrypted = new String (RunRSADecipher.decryptB (tmp.T1, tmp.T3, tmp.T4));
                     correct = input.equals (decrypted);
                     attempts++;
                 }
                 
                 System.out.println ();
-                System.out.println ("Cipher: " + cipher.T1);
+                //System.out.println ("Cipher: " + Arrays.toString (cipher.T1));
                 System.out.println ("Exponent: " + cipher.T2);
                 System.out.println ("Secret key: " + cipher.T3);
                 System.out.println ("Modulus: " + cipher.T4);

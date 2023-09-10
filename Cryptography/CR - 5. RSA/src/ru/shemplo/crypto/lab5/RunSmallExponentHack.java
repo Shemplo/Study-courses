@@ -21,7 +21,7 @@ public class RunSmallExponentHack {
     public static void main (String ... args) throws IOException {
         Locale.setDefault (Locale.ENGLISH);
         
-        final List <Tup4 <int [], BigInteger, BigInteger, BigInteger>> ciphers = new ArrayList <> ();
+        final List <Tup4 <BigInteger [], BigInteger, BigInteger, BigInteger>> ciphers = new ArrayList <> ();
         final var knownNs = new HashSet <BigInteger> ();
         
         while (ciphers.size () < 20) {
@@ -39,7 +39,7 @@ public class RunSmallExponentHack {
             final int index = i;
             
             final var options = ciphers.stream ().<Set <BigInteger>> map (cipher -> {
-                final var code = BigInteger.valueOf (cipher.T1 [index]);
+                final var code = cipher.T1 [index];
                 final var steps = bounds.divide (cipher.T4).intValue ();
                 final var step = cipher.T4;
                 
